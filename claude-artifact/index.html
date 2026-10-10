@@ -1,0 +1,2721 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>餐飲AI助理</title>
+<style>
+  :root{
+    color-scheme: light;
+    --bg: #f9f9f7;
+    --surface: #fcfcfb;
+    --surface-2: #f3f2ee;
+    --text-primary: #0b0b0b;
+    --text-secondary: #52514e;
+    --muted: #898781;
+    --grid: #e1e0d9;
+    --baseline: #c3c2b7;
+    --border: rgba(11,11,11,0.10);
+    --accent: #eb6834;
+    --accent-soft: #fbe3d6;
+    --series-1: #2a78d6;
+    --series-2: #eb6834;
+    --series-3: #1baf7a;
+    --series-4: #eda100;
+    --series-5: #e87ba4;
+    --good: #0ca30c;
+    --warn: #b45309;
+    --warn-soft: #fdf1de;
+    --shadow: 0 1px 2px rgba(11,11,11,0.06), 0 8px 24px -12px rgba(11,11,11,0.18);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      color-scheme: dark;
+      --bg: #0d0d0d;
+      --surface: #1a1a19;
+      --surface-2: #232322;
+      --text-primary: #ffffff;
+      --text-secondary: #c3c2b7;
+      --muted: #898781;
+      --grid: #2c2c2a;
+      --baseline: #383835;
+      --border: rgba(255,255,255,0.10);
+      --accent: #d95926;
+      --accent-soft: #3a2418;
+      --series-1: #3987e5;
+      --series-2: #d95926;
+      --series-3: #199e70;
+      --series-4: #c98500;
+      --series-5: #d55181;
+      --good: #0ca30c;
+      --warn: #eab04d;
+      --warn-soft: #2e2210;
+      --shadow: 0 1px 2px rgba(0,0,0,0.4), 0 8px 24px -12px rgba(0,0,0,0.6);
+    }
+  }
+  :root[data-theme="dark"]{
+    color-scheme: dark;
+    --bg: #0d0d0d;
+    --surface: #1a1a19;
+    --surface-2: #232322;
+    --text-primary: #ffffff;
+    --text-secondary: #c3c2b7;
+    --muted: #898781;
+    --grid: #2c2c2a;
+    --baseline: #383835;
+    --border: rgba(255,255,255,0.10);
+    --accent: #d95926;
+    --accent-soft: #3a2418;
+    --series-1: #3987e5;
+    --series-2: #d95926;
+    --series-3: #199e70;
+    --series-4: #c98500;
+    --series-5: #d55181;
+    --good: #0ca30c;
+    --warn: #eab04d;
+    --warn-soft: #2e2210;
+    --shadow: 0 1px 2px rgba(0,0,0,0.4), 0 8px 24px -12px rgba(0,0,0,0.6);
+  }
+
+  *{ box-sizing: border-box; }
+  body{
+    margin:0;
+    background: var(--bg);
+    color: var(--text-primary);
+    font-family: -apple-system, "Segoe UI", "PingFang TC", "Microsoft JhengHei", system-ui, sans-serif;
+    padding-inline: 20px;
+    padding-block: calc(20px + env(safe-area-inset-top,0px)) calc(40px + env(safe-area-inset-bottom,0px));
+  }
+  h1,h2,h3{ font-family: "Noto Sans TC", -apple-system, "PingFang TC", "Microsoft JhengHei", system-ui, sans-serif; text-wrap: balance; margin: 0; }
+  .wrap{ max-width: 880px; margin: 0 auto; display:flex; flex-direction:column; gap:20px; }
+
+  .top{ display:flex; flex-direction:column; gap:6px; padding-block: 4px 2px; }
+  .eyebrow{ font-size:12px; font-weight:700; letter-spacing:.08em; color:var(--accent); text-transform:uppercase; }
+  .title{ font-size: clamp(26px,5vw,34px); font-weight:800; }
+  .subtitle{ font-size:14px; color:var(--text-secondary); max-width:60ch; line-height:1.6; }
+
+  .banner{
+    background: var(--accent-soft);
+    border:1px solid var(--border);
+    border-radius:12px;
+    padding:14px 16px;
+    font-size:13px;
+    line-height:1.7;
+    color: var(--text-primary);
+  }
+  .banner b{ color: var(--accent); }
+
+  .card{
+    background: var(--surface);
+    border:1px solid var(--border);
+    border-radius:16px;
+    box-shadow: var(--shadow);
+    padding:20px;
+  }
+  .card-head{ display:flex; align-items:baseline; justify-content:space-between; gap:12px; flex-wrap:wrap; margin-bottom:14px; }
+  .card-title{ font-size:16px; font-weight:700; }
+  .card-note{ font-size:12px; color:var(--muted); }
+
+  .source-row{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+  .seg{ display:inline-flex; background:var(--surface-2); border:1px solid var(--border); border-radius:999px; padding:3px; gap:2px; }
+  .seg button{
+    border:none; background:transparent; padding:7px 14px; border-radius:999px; font-size:13px; font-weight:600;
+    color: var(--text-secondary); cursor:pointer; font-family:inherit;
+  }
+  .seg button[aria-pressed="true"]{ background: var(--accent); color:#fff; }
+  .file-btn{
+    border:1px dashed var(--border); background:transparent; color:var(--text-secondary);
+    padding:7px 14px; border-radius:999px; font-size:13px; font-weight:600; cursor:pointer; font-family:inherit;
+  }
+  .file-btn:hover{ border-color: var(--accent); color:var(--accent); }
+  .hint{ font-size:12px; color:var(--muted); margin-top:8px; line-height:1.6; }
+  .warn{
+    display:none; font-size:12.5px; line-height:1.6; color:var(--text-primary);
+    background: var(--warn-soft); border:1px solid var(--border); border-radius:10px; padding:10px 12px; margin-top:10px;
+  }
+  .warn.show{ display:block; }
+  .warn b{ color:var(--warn); }
+
+  .file-chips{ display:flex; flex-direction:column; gap:6px; margin-top:12px; }
+  .file-chip{
+    display:flex; align-items:center; gap:10px; padding:8px 10px; border-radius:10px;
+    background:var(--surface-2); font-size:12.5px;
+  }
+  .file-chip .fc-name{ flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:var(--text-primary); font-weight:600; }
+  .file-chip .fc-tag{
+    flex-shrink:0; font-size:11px; font-weight:700; padding:2px 8px; border-radius:999px;
+    background:var(--accent-soft); color:var(--accent);
+  }
+  .file-chip.fc-bad .fc-tag{ background:var(--warn-soft); color:var(--warn); }
+  .file-chip .fc-month{ flex-shrink:0; color:var(--muted); font-variant-numeric: tabular-nums; }
+
+  .stats{ display:grid; grid-template-columns:repeat(4,1fr); gap:12px; }
+  .stat{ background:var(--surface-2); border-radius:12px; padding:14px 14px; display:flex; flex-direction:column; gap:4px; }
+  .stat .label{ font-size:12px; color:var(--muted); }
+  .stat .value{ font-size:20px; font-weight:800; font-variant-numeric: tabular-nums; }
+  .stat .unit{ font-size:12px; font-weight:600; color:var(--text-secondary); }
+  @media (max-width:560px){ .stats{ grid-template-columns:repeat(2,1fr); } }
+
+  svg text{ font-family:-apple-system,"Segoe UI","PingFang TC","Microsoft JhengHei",system-ui,sans-serif; }
+  .chart-wrap{ position:relative; }
+  .axis-label{ fill: var(--muted); font-size:11px; }
+  .grid-line{ stroke: var(--grid); stroke-width:1; }
+  .baseline{ stroke: var(--baseline); stroke-width:1; }
+  .trend-area{ fill: var(--series-1); opacity:0.12; }
+  .trend-line{ fill:none; stroke: var(--series-1); stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+  .trend-dot{ fill: var(--surface); stroke: var(--series-1); stroke-width:2; }
+  .trend-dot.target{ fill: var(--series-1); }
+  .hover-line{ stroke: var(--muted); stroke-width:1; stroke-dasharray:3 3; opacity:0; }
+  .tooltip{
+    position:absolute; pointer-events:none; background:var(--text-primary); color:var(--surface);
+    font-size:12px; padding:6px 9px; border-radius:8px; line-height:1.5; transform:translate(-50%,-115%);
+    opacity:0; transition:opacity .1s; white-space:nowrap; font-variant-numeric: tabular-nums;
+  }
+  .tooltip.show{ opacity:1; }
+  .legend-note{ font-size:12px; color:var(--muted); margin-top:8px; }
+  .empty-note{ font-size:13px; color:var(--muted); padding:24px 0; text-align:center; }
+
+  .rank-list{ display:flex; flex-direction:column; gap:10px; }
+  .rank-row{ display:grid; grid-template-columns:22px 100px 1fr 64px; align-items:center; gap:10px; }
+  .rank-idx{ font-size:12px; color:var(--muted); font-weight:700; }
+  .rank-name{ font-size:14px; font-weight:700; }
+  .rank-track{ height:10px; background:var(--surface-2); border-radius:999px; overflow:hidden; }
+  .rank-fill{ height:100%; border-radius:999px; }
+  .rank-mult{ font-size:13px; font-weight:800; text-align:right; font-variant-numeric: tabular-nums; }
+  .rank-detail{ grid-column:2 / -1; font-size:12px; color:var(--text-secondary); margin-top:-4px; }
+  @media (max-width:560px){
+    .rank-row{ grid-template-columns:20px 1fr 52px; }
+    .rank-track{ grid-column: 1 / -1; order:3; }
+    .rank-detail{ grid-column:1 / -1; }
+  }
+
+  .recon-table{ width:100%; border-collapse:collapse; font-size:13px; }
+  .recon-table th{ text-align:right; font-size:11px; color:var(--muted); font-weight:600; padding:6px 8px; border-bottom:1px solid var(--border); }
+  .recon-table th:first-child, .recon-table td:first-child{ text-align:left; }
+  .recon-table td{ text-align:right; padding:8px; border-bottom:1px solid var(--border); font-variant-numeric: tabular-nums; }
+  .recon-table .gap-hi{ color:var(--warn); font-weight:700; }
+  .recon-wrap{ overflow-x:auto; }
+
+  .log-wrap{ overflow-x:auto; max-height:260px; overflow-y:auto; border:1px solid var(--border); border-radius:10px; margin-top:12px; }
+  .log-table{ width:100%; border-collapse:collapse; font-size:12.5px; }
+  .log-table th{
+    position:sticky; top:0; text-align:left; font-size:11px; color:var(--muted); font-weight:600;
+    padding:7px 10px; background:var(--surface-2); border-bottom:1px solid var(--border); white-space:nowrap;
+  }
+  .log-table td{ text-align:left; padding:7px 10px; border-bottom:1px solid var(--border); vertical-align:top; }
+  .log-table td:first-child{ white-space:nowrap; color:var(--muted); font-variant-numeric: tabular-nums; }
+  .log-table td:nth-child(2){ white-space:nowrap; font-weight:600; }
+  .log-table td:nth-child(3){ color:var(--text-secondary); max-width:160px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .log-table .log-fail{ color:var(--warn); }
+  .log-actions{ display:flex; gap:10px; margin-top:12px; flex-wrap:wrap; }
+  .db-status{ font-size:12px; font-weight:600; margin-top:8px; line-height:1.6; }
+  .db-status.db-on{ color:var(--good); }
+  .db-status.db-pending{ color:var(--muted); }
+  .db-status.db-off{ color:var(--warn); }
+
+  .recon-table td.tl{ text-align:left; }
+  .banner summary{ cursor:pointer; list-style:none; }
+  .banner summary::-webkit-details-marker{ display:none; }
+  .banner summary::after{ content:" ▾"; color:var(--accent); }
+  .banner[open] summary::after{ content:" ▴"; }
+  .toolbar{ display:flex; gap:8px; justify-content:flex-end; margin-bottom:-8px; }
+  .card-head.toggle{ cursor:pointer; margin-bottom:0; user-select:none; border-radius:10px; }
+  .card-head.toggle:focus-visible{ outline:2px solid var(--accent); outline-offset:4px; }
+  .card-head.toggle:hover .card-title{ color:var(--accent); }
+  .head-right{ display:flex; align-items:baseline; gap:10px; flex-wrap:wrap; justify-content:flex-end; }
+  .card-sum{ font-size:12.5px; color:var(--accent); font-weight:700; }
+  .chev{ display:inline-block; font-size:12px; color:var(--muted); transition:transform .15s; }
+  [aria-expanded="true"] > .head-right > .chev, [aria-expanded="true"] > .chev{ transform:rotate(180deg); }
+  .card-body{ margin-top:14px; }
+  .card-head.toggle[aria-expanded="true"] .card-sum{ display:none; }
+  .card-head.toggle[aria-expanded="false"] .card-note{ display:none; }
+  .wine-sec h3.toggle{ cursor:pointer; display:flex; justify-content:space-between; align-items:center; gap:8px; padding:10px 12px; background:var(--surface-2); border-radius:10px; margin-bottom:0; }
+  .wine-sec h3.toggle:hover{ color:var(--accent); }
+  .wine-sec .sec-body{ margin-top:10px; }
+  .wine-sec{ margin-top:10px; }
+  .stat.drillable{ cursor:pointer; border:1px solid transparent; transition:border-color .12s, transform .12s; position:relative; text-align:left; font:inherit; color:inherit; }
+  .stat.drillable:hover{ border-color:var(--accent); }
+  .stat.drillable:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
+  .stat.drillable[aria-expanded="true"]{ border-color:var(--accent); background:var(--accent-soft); }
+  .stat .more{ font-size:11px; color:var(--accent); font-weight:700; margin-top:2px; }
+  .drill{ margin-top:14px; border:1px solid var(--border); border-radius:12px; padding:16px; background:var(--surface); animation:drillIn .15s ease-out; }
+  @keyframes drillIn{ from{ opacity:0; transform:translateY(-4px); } to{ opacity:1; transform:none; } }
+  .drill-head{ display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:12px; }
+  .drill-title{ font-size:15px; font-weight:800; }
+  .drill-close{ border:none; background:var(--surface-2); color:var(--text-secondary); border-radius:999px; padding:5px 12px; font:inherit; font-size:12px; font-weight:700; cursor:pointer; }
+  .mini-stats{ display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:10px; margin-bottom:14px; }
+  .mini{ background:var(--surface-2); border-radius:10px; padding:10px 12px; }
+  .mini .l{ font-size:11.5px; color:var(--muted); }
+  .mini .v{ font-size:16px; font-weight:800; font-variant-numeric:tabular-nums; margin-top:2px; }
+  .mini .s{ font-size:11.5px; color:var(--text-secondary); margin-top:2px; }
+  .drill h4{ font-size:13px; font-weight:700; margin:16px 0 8px; }
+  .hbar-list{ display:flex; flex-direction:column; gap:7px; }
+  .hbar{ display:grid; grid-template-columns:minmax(90px,170px) 1fr 96px; align-items:center; gap:10px; font-size:12.5px; }
+  .hbar .n{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-weight:600; }
+  .hbar .t{ height:9px; background:var(--surface-2); border-radius:999px; overflow:hidden; }
+  .hbar .f{ height:100%; border-radius:999px; background:var(--series-1); }
+  .hbar .f.hi{ background:var(--accent); }
+  .hbar .f.up{ background:var(--good); }
+  .hbar .f.flat{ background:var(--baseline); }
+  .hbar-list.wide .hbar{ grid-template-columns:minmax(70px,110px) 1fr 190px; }
+  .hbar .x .up{ color:var(--good); font-weight:800; }
+  .hbar .x .dn{ color:var(--muted); }
+  @media (max-width:640px){ .hbar-list.wide .hbar{ grid-template-columns:64px 1fr 150px; } }
+  .hbar .x{ text-align:right; font-variant-numeric:tabular-nums; color:var(--text-secondary); }
+  .chips{ display:flex; gap:6px; flex-wrap:wrap; margin-bottom:10px; }
+  .chips button{ border:1px solid var(--border); background:transparent; border-radius:999px; padding:5px 12px; font:inherit; font-size:12px; font-weight:600; color:var(--text-secondary); cursor:pointer; }
+  .chips button[aria-pressed="true"]{ background:var(--accent); border-color:var(--accent); color:#fff; }
+  .two-col{ display:grid; grid-template-columns:1fr 1fr; gap:18px; }
+  @media (max-width:640px){ .two-col{ grid-template-columns:1fr; } .hbar{ grid-template-columns:minmax(70px,120px) 1fr 80px; } }
+  .insight{ font-size:12.5px; line-height:1.7; background:var(--warn-soft); border-radius:10px; padding:10px 12px; margin-top:12px; }
+  .insight b{ color:var(--warn); }
+  .wine-sec{ margin-top:22px; }
+  .wine-sec h3{ font-size:14px; font-weight:700; margin-bottom:10px; }
+  .wine-bar{ display:flex; height:30px; border-radius:8px; overflow:hidden; background:var(--surface-2); margin-top:12px; }
+  .wine-bar > div{ display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:700; color:#fff; white-space:nowrap; overflow:hidden; min-width:0; }
+  .legend-row{ display:flex; gap:14px; font-size:12px; color:var(--text-secondary); margin-top:8px; flex-wrap:wrap; }
+  .sw{ display:inline-block; width:10px; height:10px; border-radius:3px; margin-right:5px; vertical-align:-1px; }
+  .badge{ display:inline-block; font-size:11px; padding:2px 8px; border-radius:999px; background:var(--surface-2); color:var(--text-secondary); font-weight:700; vertical-align:2px; }
+  .badge.lo{ background:var(--warn-soft); color:var(--warn); }
+  .badge.ai{ background:var(--accent-soft); color:var(--accent); }
+  .ai-out{ font-size:13px; line-height:1.8; white-space:pre-wrap; background:var(--surface-2); border-radius:10px; padding:12px 14px; margin-top:10px; }
+  .file-btn:disabled{ opacity:.5; cursor:default; }
+  .footnote{ font-size:12px; color:var(--muted); line-height:1.7; }
+  .footnote b{ color:var(--text-secondary); }
+
+  /* 歷史報表：月份按鈕 */
+  .mgrid{ display:flex; flex-direction:column; gap:8px; margin-top:12px; }
+  .myear{ display:grid; grid-template-columns:48px repeat(12,1fr); gap:4px; align-items:center; }
+  .myear .yl{ font-size:12px; font-weight:800; color:var(--text-secondary); font-variant-numeric:tabular-nums; }
+  .mbtn{ border:1px solid var(--border); background:var(--surface-2); border-radius:8px; padding:7px 0; font:inherit; font-size:12px; font-weight:600; color:var(--text-primary); cursor:pointer; min-width:0; }
+  .mbtn:hover:not(:disabled){ border-color:var(--accent); color:var(--accent); }
+  .mbtn:disabled{ opacity:.35; cursor:default; background:transparent; }
+  .mbtn[aria-pressed="true"]{ background:var(--accent); border-color:var(--accent); color:#fff; }
+  @media (max-width:560px){ .myear{ grid-template-columns:repeat(6,1fr); } .myear .yl{ grid-column:1 / -1; } }
+  .hist-cmp{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-top:14px; font-size:13px; }
+  .hist-cmp select, .fld select, .fld input{ font:inherit; font-size:13px; padding:5px 8px; border-radius:8px; border:1px solid var(--border); background:var(--surface-2); color:var(--text-primary); max-width:100%; }
+  .hist-msg{ font-size:12.5px; color:var(--warn); margin-top:8px; min-height:1em; }
+
+  /* 欄位對應視窗 */
+  dialog.map-dlg{ border:1px solid var(--border); border-radius:16px; background:var(--surface); color:var(--text-primary); padding:20px; width:min(680px, calc(100vw - 32px)); max-height:calc(100vh - 48px); overflow:auto; box-shadow:var(--shadow); }
+  dialog.map-dlg::backdrop{ background:rgba(0,0,0,.45); }
+  .dlg-title{ font-size:16px; font-weight:800; margin-bottom:4px; }
+  .fld{ display:flex; align-items:center; gap:8px; font-size:13px; margin-top:10px; flex-wrap:wrap; }
+  .mapfld-label{ min-width:8em; font-weight:600; }
+  .req{ color:var(--warn); }
+  .fld-row{ font-size:13px; margin-top:12px; display:flex; gap:14px; flex-wrap:wrap; align-items:center; font-weight:600; }
+  .fld-row label{ font-weight:400; display:flex; gap:4px; align-items:center; }
+  .chk{ display:flex; gap:6px; align-items:center; font-size:13px; margin-top:14px; }
+  .dlg-actions{ display:flex; gap:8px; margin-top:16px; flex-wrap:wrap; align-items:center; }
+  .btn-primary{ border:none; background:var(--accent); color:#fff; padding:8px 18px; border-radius:999px; font:inherit; font-size:13px; font-weight:700; cursor:pointer; }
+  .preview{ margin-top:10px; }
+  .preview th, .preview td{ white-space:nowrap; text-align:left !important; }
+  .map-msg{ font-size:12.5px; color:var(--warn); margin-top:10px; line-height:1.6; min-height:1em; }
+</style>
+
+<div class="wrap">
+
+  <div class="top">
+    <div class="eyebrow">POS報表 → 下一季主打推薦</div>
+    <h1 class="title">餐飲AI助理</h1>
+    <div class="subtitle">一次丟進去好幾份 POS 匯出的 Excel（營運總覽、商品排行……），自動整理成一份完整報表，並推薦「下一季」適合主打的銷售商品，作為換季備貨、開發新品的參考。每個月的報表都會存起來，想看哪個月，點一下就調出來。</div>
+  </div>
+
+
+
+  <div class="toolbar">
+    <button class="file-btn" id="btnExpandAll" type="button">全部展開</button>
+    <button class="file-btn" id="btnCollapseAll" type="button">全部收起</button>
+  </div>
+
+  <div class="card" id="srcCard" data-open="1">
+    <div class="card-head">
+      <div class="card-title">資料來源</div>
+      <div class="card-note" id="sourceNote">目前使用：示範資料</div>
+    </div>
+    <div class="source-row">
+      <div class="seg">
+        <button id="btnDemo" aria-pressed="true" type="button">使用示範資料</button>
+        <button id="btnUpload" aria-pressed="false" type="button">上傳我的報表</button>
+      </div>
+      <input type="file" id="fileInput" accept=".csv,.xlsx,.xls" multiple hidden>
+    </div>
+    <div class="hint">可以一次選多個檔案（.xlsx / .xls / .csv），例如「營運總覽」+「商品排行」，甚至好幾個月份一起選。欄位名稱看不懂時，會跳出視窗請你指定是哪一欄，選過一次就會記住。</div>
+    <div class="warn" id="parseWarn"></div>
+    <div class="file-chips" id="fileChips" hidden></div>
+  </div>
+
+  <div class="card" id="histCard" data-open="1">
+    <div class="card-head">
+      <div class="card-title">歷史報表</div>
+      <div class="card-note" id="histNote">還沒有存任何月份</div>
+    </div>
+    <div class="hint" style="margin-top:0">每次上傳後，每個月整理好的報表會自動存起來。想看哪個月，點一下就切換；灰色的月份代表還沒有報表。</div>
+    <div class="chips" id="histQuick" style="margin-top:12px; margin-bottom:0">
+      <button type="button" data-q="all" aria-pressed="false">全部月份</button>
+      <button type="button" data-q="last" aria-pressed="false">上個月</button>
+      <button type="button" data-q="season" aria-pressed="false">本季</button>
+      <button type="button" data-q="yoy" aria-pressed="false">去年同月</button>
+    </div>
+    <div class="mgrid" id="histGrid"></div>
+    <div class="hist-msg" id="histMsg"></div>
+    <div class="hist-cmp">
+      <label><input type="checkbox" id="cmpOn"> 跟另一個月比較</label>
+      <select id="cmpSel" aria-label="要比較的月份"></select>
+    </div>
+    <div id="cmpOut"></div>
+    <div class="db-status db-pending" id="histDbStatus">● 正在連線資料庫…</div>
+  </div>
+
+  <div class="card" id="overviewCard" data-open="1">
+    <div class="card-head">
+      <div class="card-title">全店營運總覽</div>
+      <div class="card-note" id="overviewNote">示範資料 · 12個月</div>
+    </div>
+    <div class="stats">
+      <div class="stat drillable" data-drill="rev" role="button" tabindex="0" aria-expanded="false">
+        <div class="label" id="statRevLabel">總營業額</div>
+        <div class="value" id="statRev">—</div>
+        <div class="more">點開看細節 ▾</div>
+      </div>
+      <div class="stat drillable" data-drill="qty" role="button" tabindex="0" aria-expanded="false">
+        <div class="label" id="statQtyLabel">總銷售量</div>
+        <div class="value" id="statQty">— <span class="unit">份</span></div>
+        <div class="more">點開看細節 ▾</div>
+      </div>
+      <div class="stat drillable" data-drill="items" role="button" tabindex="0" aria-expanded="false">
+        <div class="label">品項數</div>
+        <div class="value" id="statItems">—</div>
+        <div class="more">點開看細節 ▾</div>
+      </div>
+      <div class="stat drillable" data-drill="season" role="button" tabindex="0" aria-expanded="false">
+        <div class="label" id="statSummerShareLabel">下一季佔全年營業額</div>
+        <div class="value" id="statSummerShare">—</div>
+        <div class="more">點開看細節 ▾</div>
+      </div>
+    </div>
+    <div class="drill" id="drillPanel" hidden></div>
+  </div>
+
+  <div class="card" id="trendCard">
+    <div class="card-head">
+      <div class="card-title" id="trendTitle">每月營業額趨勢</div>
+      <div class="card-note">滑到線上可看每個月的數字</div>
+    </div>
+    <div class="chart-wrap">
+      <svg id="trendChart" viewBox="0 0 800 240" style="width:100%; height:auto; display:block;"></svg>
+      <div class="tooltip" id="trendTooltip"></div>
+    </div>
+    <div class="legend-note" id="legendNote">深色的點是下一季的月份</div>
+  </div>
+
+  <div class="card" id="reconCard" hidden>
+    <div class="card-head">
+      <div class="card-title">兩份報表對得起來嗎？</div>
+      <div class="card-note">同一個月，「營運總覽」跟「商品排行」加總後的營業額互相比對</div>
+    </div>
+    <div class="recon-wrap">
+      <table class="recon-table" id="reconTable">
+        <thead><tr><th>月份</th><th>營運總覽營業額</th><th>商品排行加總</th><th>差距</th></tr></thead>
+        <tbody id="reconBody"></tbody>
+      </table>
+    </div>
+    <div class="hint" id="reconHint"></div>
+  </div>
+
+  <div class="card" id="rankCard">
+    <div class="card-head">
+      <div class="card-title">下一季推薦主打商品 Top 5</div>
+      <div class="card-note" id="rankCardNote">依「下一季平均銷量 ÷ 其他月份平均銷量」排序</div>
+    </div>
+    <div class="warn" id="rankDisclaimer"></div>
+    <div class="rank-list" id="rankList"></div>
+    <div class="footnote" id="footnoteText" style="margin-top:14px">
+      <b>推薦邏輯很單純：</b>把每個品項在下一季這三個月的平均銷量，拿去跟其他月份的平均銷量比，比值越高，代表這個品項越「一到那個季節就特別賣」。這是一個簡單的算法，實際判斷時，資料量、氣候、促銷活動等因素都還需要一起考慮。
+    </div>
+    <div class="log-actions"><button class="file-btn" id="btnAiRec" type="button" hidden>請 AI 寫下一季備貨建議</button></div>
+    <div class="ai-out" id="aiRecOut" hidden></div>
+  </div>
+
+  <div class="card" id="wineCard" hidden>
+    <div class="card-head">
+      <div class="card-title">酒水分析 <span class="badge ai">加值功能</span></div>
+      <div class="card-note" id="wineNote"></div>
+    </div>
+    <div class="hint" style="margin-top:0">為酒款很多的店（例如高階日式料理）設計：自動把品項分成清酒等級、洋酒、招待、服務費⋯⋯看出客人自帶酒的比例、招待送出多少、哪個等級的酒最好賣。</div>
+
+    <div class="wine-sec">
+      <h3>客人自帶 vs 店內購買（以瓶數為主）</h3>
+      <div class="stats" id="byobStats"></div>
+      <div class="wine-bar" id="byobBar"></div>
+      <div class="legend-row" id="byobLegend"></div>
+      <div class="recon-wrap" style="margin-top:12px">
+        <table class="recon-table">
+          <thead><tr><th>期間</th><th>店內售出瓶數</th><th>客人自帶瓶數</th><th>自帶占比（瓶）</th><th>自帶占比（金額）</th></tr></thead>
+          <tbody id="byobBody"></tbody>
+        </table>
+      </div>
+      <div class="hint" id="byobHint"></div>
+    </div>
+
+    <div class="wine-sec">
+      <h3>行銷／招待支出</h3>
+      <div class="recon-wrap">
+        <table class="recon-table">
+          <thead><tr><th>品項</th><th>送出數量</th><th>帳面金額</th></tr></thead>
+          <tbody id="mktBody"></tbody>
+        </table>
+      </div>
+      <div class="hint">POS 報表只記錄「送出去幾份」，沒有進貨成本，所以帳面金額多半是 0。要算出招待真正花了多少錢，需要再補上每個品項的成本價。</div>
+    </div>
+
+    <div class="wine-sec">
+      <h3>酒款等級分布</h3>
+      <div class="recon-wrap">
+        <table class="recon-table">
+          <thead><tr><th>類別／等級</th><th>品項數</th><th>瓶（杯）數</th><th>銷售額</th><th>最熱賣</th></tr></thead>
+          <tbody id="gradeBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="wine-sec">
+      <h3>系統從品名判斷不出來的品項 <span class="badge" id="unkCount">0</span></h3>
+      <div class="hint" style="margin-top:0">品名裡沒寫等級的酒，可以交給 AI 依照它認識的酒造與酒款判斷；AI 也不確定的，會標成「請人工確認」，不會硬猜。</div>
+      <div class="log-actions"><button class="file-btn" id="btnAiClassify" type="button" hidden>用 AI 判斷這些品項</button></div>
+      <div class="hint" id="aiStatus"></div>
+      <div class="recon-wrap">
+        <table class="recon-table">
+          <thead><tr><th>品項</th><th class="tl">判斷結果</th><th class="tl">可信度</th><th class="tl">依據</th></tr></thead>
+          <tbody id="unkBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="wine-sec">
+      <h3>進貨方向建議</h3>
+      <div class="hint" id="ruleSuggest" style="margin-top:0"></div>
+      <div class="log-actions"><button class="file-btn" id="btnAiSuggest" type="button" hidden>請 AI 根據銷售結構給建議</button></div>
+      <div class="ai-out" id="aiSuggestOut" hidden></div>
+    </div>
+  </div>
+
+  <div class="card" id="logCard">
+    <div class="card-head">
+      <div class="card-title">執行紀錄</div>
+      <div class="card-note" id="logNote">目前 0 筆</div>
+    </div>
+    <div class="hint">每一次「切換示範資料」或「上傳報表」都會留下一筆紀錄——處理了哪些檔案、辨識成什麼報表類型、成功還是失敗，方便追蹤資料來源，也方便除錯。</div>
+    <div class="db-status db-pending" id="logDbStatus">● 正在連線資料庫…</div>
+    <div class="log-wrap">
+      <table class="log-table" id="logTable" hidden>
+        <thead><tr><th>時間</th><th>動作</th><th>檔案</th><th>結果</th></tr></thead>
+        <tbody id="logBody"></tbody>
+      </table>
+    </div>
+    <div class="empty-note" id="logEmpty">還沒有任何紀錄</div>
+    <div class="log-actions">
+      <button class="file-btn" id="btnExportLog" type="button">下載紀錄檔（.txt）</button>
+      <button class="file-btn" id="btnClearLog" type="button">清空畫面上的紀錄</button>
+    </div>
+  </div>
+
+</div>
+
+<dialog class="map-dlg" id="mapDlg" aria-labelledby="mapTitle">
+  <div class="dlg-title" id="mapTitle">有些欄位我看不懂，請幫我確認</div>
+  <div class="hint" id="mapFile" style="margin-top:0"></div>
+  <label class="fld"><span class="mapfld-label">欄位名稱在第幾列</span><select id="mapHeaderRow"></select></label>
+  <div class="recon-wrap"><table class="recon-table preview" id="mapPreview"></table></div>
+  <div class="fld-row">這是哪一種報表？
+    <label><input type="radio" name="mapKind" value="daily" checked> 每日營運總覽（每一列是一天）</label>
+    <label><input type="radio" name="mapKind" value="product"> 商品排行（每一列是一個商品）</label>
+  </div>
+  <div id="mapFields"></div>
+  <label class="fld" id="mapMonthWrap" hidden><span class="mapfld-label">這是哪個月份 <span class="req">*</span></span><input type="month" id="mapMonth"></label>
+  <label class="chk"><input type="checkbox" id="mapRemember" checked> 記住這個格式，下次自動套用</label>
+  <div class="map-msg" id="mapMsg" role="status"></div>
+  <div class="dlg-actions">
+    <button type="button" class="file-btn" id="mapAi" hidden>讓 AI 幫我猜</button>
+    <span style="flex:1"></span>
+    <button type="button" class="file-btn" id="mapSkip">略過這個檔案</button>
+    <button type="button" class="btn-primary" id="mapOk">確認</button>
+  </div>
+</dialog>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+(function(){
+  "use strict";
+
+  var MONTH_LABELS = ["1月","2月","3月","4月","5月","6月","7月","8月","9月","10月","11月","12月"];
+
+  // 季節定義（月份索引 0=1月...11=12月）：春3-5、夏6-8、秋9-11、冬12-2
+  var SEASON_NAMES = ["春季","夏季","秋季","冬季"];
+  var SEASON_MONTHS = [[2,3,4],[5,6,7],[8,9,10],[11,0,1]];
+  function currentSeasonIndex(monthIdx){
+    for (var s=0;s<4;s++){ if (SEASON_MONTHS[s].indexOf(monthIdx) !== -1) return s; }
+    return 0;
+  }
+  // 「下一季」永遠是相對「今天」動態算出來的，不寫死是夏天
+  var TODAY_MONTH = new Date().getMonth(); // 0-11
+  var NEXT_SEASON_IDX = (currentSeasonIndex(TODAY_MONTH) + 1) % 4;
+  var TARGET_SEASON_NAME = SEASON_NAMES[NEXT_SEASON_IDX];
+  var TARGET_MONTH_NUMS = SEASON_MONTHS[NEXT_SEASON_IDX].map(function(i){ return i+1; }); // 1-12
+
+  // ---------------- 示範資料（12個月、一間虛構小吃店） ----------------
+  var DEMO_PRODUCTS_RAW = [
+    { name:"芒果冰沙", price:90,  monthly:[5,8,15,35,90,260,340,310,120,30,10,6] },
+    { name:"剉冰",     price:60,  monthly:[20,25,40,70,130,320,420,400,180,60,25,18] },
+    { name:"檸檬愛玉", price:50,  monthly:[15,18,30,55,100,240,300,280,140,50,20,12] },
+    { name:"涼麵",     price:70,  monthly:[40,42,60,90,150,260,300,280,160,80,45,38] },
+    { name:"生啤酒",   price:80,  monthly:[60,65,80,110,160,240,290,270,170,100,70,90] },
+    { name:"薑母鴨",   price:380, monthly:[180,150,60,20,5,2,1,1,5,30,120,220] },
+    { name:"麻辣鍋",   price:450, monthly:[140,120,90,70,60,55,50,55,65,90,130,170] },
+    { name:"滷肉飯",   price:45,  monthly:[290,280,300,310,305,300,310,300,295,300,310,320] },
+    { name:"炒飯",     price:65,  monthly:[220,210,230,225,220,230,235,225,220,225,230,240] },
+    { name:"貢丸湯",   price:40,  monthly:[150,145,140,130,125,120,118,120,130,140,155,165] }
+  ];
+  function buildDemo(){
+    var demoYear = "2025";
+    var months = [];
+    for (var m=1;m<=12;m++){ months.push(demoYear + "-" + (m<10?"0"+m:m)); }
+    var productMonthly = {}; // name -> {monthKey: qty}
+    var revMonthly = {}; // monthKey -> revenue (from daily-style rollup)
+    var qtyMonthly = {}; // monthKey -> qty
+    months.forEach(function(mk){ revMonthly[mk]=0; qtyMonthly[mk]=0; });
+    DEMO_PRODUCTS_RAW.forEach(function(p){
+      productMonthly[p.name] = {};
+      p.monthly.forEach(function(q, idx){
+        var mk = months[idx];
+        productMonthly[p.name][mk] = q;
+        revMonthly[mk] += q * p.price;
+        qtyMonthly[mk] += q;
+      });
+    });
+    return {
+      label: "示範資料（虛構小吃店）",
+      months: months,
+      hasAmount: true,
+      productMonthly: productMonthly,
+      revMonthly: revMonthly,
+      qtyMonthly: qtyMonthly,
+      recon: [],
+      productFiles: [],
+      daily: null,
+      demoPrices: true,
+      files: []
+    };
+  }
+  var DEMO = buildDemo();
+  var state = { dataset: DEMO };
+  var seriesColors = ["--series-1","--series-2","--series-3","--series-4","--series-5"];
+
+  // ---------------- 執行紀錄（Execution Log） ----------------
+  // 這次開啟頁面產生的紀錄（本次工作階段）
+  var executionLog = []; // { time:Date, action, fileName, status:"ok"|"fail", detail }
+  // 從資料庫讀回來的「以前」的紀錄
+  var pastLog = [];
+  // 按「清空畫面」的時間點：只影響畫面顯示，資料庫裡的紀錄不會被刪
+  var viewClearedAt = null;
+
+  // ---- 資料庫設定 ----
+  // 每次開啟頁面 = 一份文件（logs/<工作階段編號>），裡面存這次的所有紀錄。
+  // 這樣不會每一行紀錄都變成一份文件，資料庫不會被塞爆。
+  var SESSION_START = new Date();
+  var SESSION_ID = "s" + SESSION_START.getTime().toString(36) + Math.random().toString(36).slice(2,6);
+  var MAX_ENTRIES_PER_SESSION = 500;   // 單次最多存 500 筆，避免文件過大
+  var HISTORY_SESSIONS = 30;           // 開頁時讀回最近 30 次的紀錄
+  var logDb = null;                    // 資料庫物件；null 代表目前無法使用
+  var dbStatus = "pending";            // pending（連線中）/ on（已連上）/ off（無法使用）
+  var dbSaving = false, dbDirty = false;
+
+  function fmtLogTime(d){
+    function pad(n){ return (n<10?"0":"")+n; }
+    return d.getFullYear()+"/"+pad(d.getMonth()+1)+"/"+pad(d.getDate())+" "+pad(d.getHours())+":"+pad(d.getMinutes())+":"+pad(d.getSeconds());
+  }
+
+  // 全部紀錄 = 以前的 + 這次的，依時間排序
+  function allLogEntries(){
+    return pastLog.concat(executionLog).sort(function(a,b){ return a.time - b.time; });
+  }
+  // 畫面上要顯示的紀錄（扣掉「清空畫面」之前的）
+  function visibleLogEntries(){
+    var all = allLogEntries();
+    if (!viewClearedAt) return all;
+    return all.filter(function(e){ return e.time > viewClearedAt; });
+  }
+
+  function logAppend(action, fileName, status, detail){
+    executionLog.push({ time:new Date(), action:action, fileName:fileName||"", status:status||"ok", detail:detail||"" });
+    renderLog();
+    var ls = document.querySelector("#logCard .card-sum"); if (ls) ls.textContent = allLogEntries().length + " 筆紀錄";
+    saveLogToDb();
+  }
+
+  // 把這次的紀錄存進資料庫。
+  // 規則：同一份文件一次只寫一次；寫的途中又有新紀錄，就等這次寫完再補寫一次。
+  function saveLogToDb(){
+    if (!logDb) return;
+    if (dbSaving){ dbDirty = true; return; }
+    dbSaving = true; dbDirty = false;
+    var payload = {
+      sessionId: SESSION_ID,
+      startedAt: SESSION_START.toISOString(),
+      updatedAt: new Date().toISOString(),
+      entries: executionLog.slice(-MAX_ENTRIES_PER_SESSION).map(function(e){
+        return { time:e.time.toISOString(), action:e.action, fileName:e.fileName, status:e.status, detail:e.detail };
+      })
+    };
+    logDb.doc("logs/" + SESSION_ID).set(payload).then(function(){
+      setDbStatus("on");
+    }).catch(function(err){
+      setDbStatus("error", err);
+    }).then(function(){
+      dbSaving = false;
+      if (dbDirty) saveLogToDb();
+    });
+  }
+
+  // 開頁時讀回以前的紀錄
+  function loadPastLogs(){
+    return logDb.collection("logs").orderBy("startedAt","desc").limit(HISTORY_SESSIONS).get().then(function(snap){
+      var out = [];
+      snap.docs.forEach(function(doc){
+        var d = doc.data();
+        if (!d || d.sessionId === SESSION_ID || !Array.isArray(d.entries)) return;
+        d.entries.forEach(function(e){
+          var t = new Date(e && e.time);
+          if (isNaN(t)) return; // 時間格式不對的就跳過（防呆）
+          out.push({ time:t, action:String(e.action||""), fileName:String(e.fileName||""), status:e.status==="fail"?"fail":"ok", detail:String(e.detail||"") });
+        });
+      });
+      pastLog = out;
+    });
+  }
+
+  function setDbStatus(s, err){
+    dbStatus = s;
+    var hsEl = document.getElementById("histDbStatus");
+    if (hsEl){
+      hsEl.className = "db-status " + (s === "on" ? "db-on" : s === "pending" ? "db-pending" : "db-off");
+      hsEl.textContent = s === "on" ? "● 每個月的報表都存在雲端資料庫，重新整理、換電腦都翻得到"
+        : s === "pending" ? "● 正在連線資料庫…"
+        : "● 目前無法使用雲端資料庫，歷史報表只保留到關閉頁面為止";
+    }
+    var el = document.getElementById("logDbStatus");
+    if (!el) return;
+    el.className = "db-status " + (s === "on" ? "db-on" : s === "pending" ? "db-pending" : "db-off");
+    if (s === "on") el.textContent = "● 已存進雲端資料庫：重新整理、關掉頁面、換電腦都不會消失";
+    else if (s === "pending") el.textContent = "● 正在連線資料庫…";
+    else if (s === "error") el.textContent = "● 資料庫寫入失敗（" + ((err && err.code) || "未知原因") + "），紀錄暫時只存在這個頁面，請記得下載備份";
+    else el.textContent = "● 這個檢視環境無法使用資料庫（例如未登入），紀錄只存在這個頁面，關掉就會消失";
+  }
+
+  function initLogDb(){
+    if (typeof window.claude === "undefined" || typeof window.claude.use !== "function"){ setDbStatus("off"); return; }
+    setDbStatus("pending");
+    var p;
+    try { p = window.claude.use("db"); } catch(e){ setDbStatus("off"); return; }
+    p.then(function(db){
+      if (!db){ setDbStatus("off"); return; }
+      logDb = db;
+      try { initHistoryDb(db); } catch(e){ /* 歷史報表失敗不影響其他功能 */ }
+      return loadPastLogs().catch(function(){ /* 讀不到舊紀錄不影響新紀錄 */ }).then(function(){
+        renderLog();
+        setSum("logCard", allLogEntries().length + " 筆紀錄");
+        saveLogToDb(); // 把連上資料庫之前產生的紀錄也補存進去
+      });
+    }, function(){ setDbStatus("off"); });
+  }
+
+  function renderLog(){
+    var table = document.getElementById("logTable");
+    var body = document.getElementById("logBody");
+    var note = document.getElementById("logNote");
+    var empty = document.getElementById("logEmpty");
+    if (!table) return; // 尚未渲染到畫面上時先跳過
+    var shown = visibleLogEntries();
+    var total = allLogEntries().length;
+    note.textContent = "目前共 " + total + " 筆" +
+      (pastLog.length ? "（含以前的 " + pastLog.length + " 筆）" : "") +
+      (shown.length>50 ? "，畫面只顯示最新 50 筆" : "");
+    if (!shown.length){
+      table.hidden = true; empty.hidden = false; return;
+    }
+    table.hidden = false; empty.hidden = true;
+    body.innerHTML = "";
+    var recent = shown.slice(-50).slice().reverse();
+    recent.forEach(function(e){
+      var tr = document.createElement("tr");
+      var td1 = document.createElement("td"); td1.textContent = fmtLogTime(e.time);
+      var td2 = document.createElement("td"); td2.textContent = e.action;
+      var td3 = document.createElement("td"); td3.textContent = e.fileName || "—"; td3.title = e.fileName || "";
+      var td4 = document.createElement("td"); td4.textContent = e.detail; if (e.status === "fail") td4.className = "log-fail";
+      tr.appendChild(td1); tr.appendChild(td2); tr.appendChild(td3); tr.appendChild(td4);
+      body.appendChild(tr);
+    });
+  }
+
+  function getDownloadsApi(){
+    if (typeof window.claude === "undefined" || typeof window.claude.use !== "function"){
+      return Promise.resolve(null);
+    }
+    try { return window.claude.use("downloads"); } catch(e){ return Promise.resolve(null); }
+  }
+
+  function downloadLog(){
+    var all = allLogEntries();
+    if (!all.length) return;
+    var lines = ["時間\t動作\t檔案\t結果"];
+    all.forEach(function(e){
+      lines.push([fmtLogTime(e.time), e.action, e.fileName, (e.status==="fail"?"[失敗] ":"") + e.detail].join("\t"));
+    });
+    var text = lines.join("\n");
+    var stamp = fmtLogTime(new Date()).replace(/[\/: ]/g,"-");
+    var filename = "餐飲AI助理_執行紀錄_" + stamp + ".txt";
+    var note = document.getElementById("logNote");
+    getDownloadsApi().then(function(downloads){
+      if (!downloads){
+        if (note) note.textContent = "這個檢視環境目前不支援下載檔案，請改用瀏覽器分頁開啟頁面後再試一次。";
+        return;
+      }
+      return downloads.save({ filename:filename, data:text });
+    }).catch(function(err){
+      if (note) note.textContent = "下載失敗：" + (err && err.message ? err.message : "已取消或發生未知錯誤");
+    });
+  }
+
+  function fmtInt(n){ return Math.round(n).toLocaleString("zh-Hant-TW"); }
+  function fmtMoney(n){ return "NT$" + Math.round(n).toLocaleString("zh-Hant-TW"); }
+  function monthLabelOf(mk){ // "2026-08" -> "2026/8"
+    var parts = mk.split("-");
+    return parts[0] + "/" + parseInt(parts[1],10);
+  }
+  function monthNumOf(mk){ return parseInt(mk.split("-")[1],10); } // 1-12
+
+  // ---------------- 統計、排行的共用計算 ----------------
+  function monthsTotal(dataset){
+    var totalRev = 0, totalQty = 0;
+    dataset.months.forEach(function(mk){
+      totalRev += dataset.revMonthly[mk] || 0;
+      totalQty += dataset.qtyMonthly[mk] || 0;
+    });
+    return { totalRev:totalRev, totalQty:totalQty };
+  }
+
+  function seasonRatios(dataset){
+    var names = Object.keys(dataset.productMonthly);
+    var targetMonths = dataset.months.filter(function(mk){ return TARGET_MONTH_NUMS.indexOf(monthNumOf(mk)) !== -1; });
+    var otherMonths = dataset.months.filter(function(mk){ return TARGET_MONTH_NUMS.indexOf(monthNumOf(mk)) === -1; });
+    // 排除「不是商品」的項目（服務費、招待、員工優惠、場地費），以及量太少、排名沒有意義的品項
+    var minTotal = Math.max(12, dataset.months.length); // 平均每月至少 1 份
+    var skipped = 0;
+    names = names.filter(function(name){
+      var g = classifyItem(name).group;
+      if (g === "行銷" || g === "自帶" || /場地清潔費|餐飲費|服務費/.test(name)) return false;
+      var rec = dataset.productMonthly[name], tot = 0;
+      Object.keys(rec).forEach(function(mk){ tot += rec[mk]; });
+      if (tot < minTotal){ skipped++; return false; }
+      return true;
+    });
+    var list = names.map(function(name){
+      var rec = dataset.productMonthly[name];
+      var tSum = 0; targetMonths.forEach(function(mk){ tSum += rec[mk] || 0; });
+      var oSum = 0; otherMonths.forEach(function(mk){ oSum += rec[mk] || 0; });
+      var tAvg = targetMonths.length ? tSum/targetMonths.length : 0;
+      var oAvg = otherMonths.length ? oSum/otherMonths.length : 0;
+      var ratio = oAvg > 0 ? (tAvg/oAvg) : (tAvg > 0 ? 99 : 0);
+      return { name:name, ratio:ratio, tAvg:tAvg, oAvg:oAvg };
+    });
+    list.sort(function(a,b){ return b.ratio - a.ratio; });
+    return { list:list, targetMonths:targetMonths, otherMonths:otherMonths, skipped:skipped, minTotal:minTotal };
+  }
+
+  // ---------------- 畫面渲染 ----------------
+  function renderStats(dataset){
+    var tot = monthsTotal(dataset);
+    var names = Object.keys(dataset.productMonthly);
+    var targetMonths = dataset.months.filter(function(mk){ return TARGET_MONTH_NUMS.indexOf(monthNumOf(mk)) !== -1; });
+    var targetRev = 0, targetQty = 0;
+    targetMonths.forEach(function(mk){ targetRev += dataset.revMonthly[mk]||0; targetQty += dataset.qtyMonthly[mk]||0; });
+
+    // 商品層級的總銷售量（優先），沒有商品資料時才退回用「來客數」當替代指標
+    var productQtyTotal = 0;
+    names.forEach(function(n){
+      var rec = dataset.productMonthly[n];
+      Object.keys(rec).forEach(function(mk){ productQtyTotal += rec[mk]; });
+    });
+
+    document.getElementById("sourceNote").textContent = "目前使用：" + dataset.label;
+    document.getElementById("overviewNote").textContent = dataset.label + " · 涵蓋 " + dataset.months.length + " 個月";
+    document.getElementById("statSummerShareLabel").textContent = TARGET_SEASON_NAME + "月份佔總營業額";
+
+    if (dataset.hasAmount){
+      document.getElementById("statRevLabel").textContent = "總營業額";
+      document.getElementById("statRev").textContent = fmtMoney(tot.totalRev);
+      document.getElementById("statSummerShare").textContent = tot.totalRev > 0 ? Math.round(targetRev/tot.totalRev*100) + "%" : "—";
+    } else {
+      document.getElementById("statRevLabel").textContent = "總銷售量（無金額資料）";
+      document.getElementById("statRev").textContent = fmtInt(productQtyTotal || tot.totalQty) + " 份";
+      document.getElementById("statSummerShare").textContent = tot.totalQty > 0 ? Math.round(targetQty/tot.totalQty*100) + "%" : "—";
+    }
+
+    if (names.length){
+      document.getElementById("statQtyLabel").textContent = "商品銷售量";
+      document.getElementById("statQty").innerHTML = fmtInt(productQtyTotal) + ' <span class="unit">份</span>';
+    } else {
+      document.getElementById("statQtyLabel").textContent = "總來客數";
+      document.getElementById("statQty").innerHTML = fmtInt(tot.totalQty) + ' <span class="unit">人</span>';
+    }
+    document.getElementById("statItems").textContent = names.length || "—";
+    document.getElementById("trendTitle").textContent = dataset.hasAmount ? "每月營業額趨勢" : "每月銷售量趨勢（無金額資料）";
+  }
+
+  function renderTrend(dataset){
+    var svg = document.getElementById("trendChart");
+    var tooltip = document.getElementById("trendTooltip");
+    var wrap = svg.parentElement;
+    svg.innerHTML = "";
+
+    var months = dataset.months;
+    if (!months.length){
+      svg.style.display = "none";
+      if (!document.getElementById("trendEmpty")){
+        var e = document.createElement("div");
+        e.id = "trendEmpty"; e.className = "empty-note"; e.textContent = "還沒有可以畫趨勢圖的月份資料";
+        wrap.appendChild(e);
+      }
+      return;
+    }
+    svg.style.display = "block";
+    var emptyEl = document.getElementById("trendEmpty");
+    if (emptyEl) emptyEl.remove();
+
+    var series = months.map(function(mk){ return dataset.hasAmount ? (dataset.revMonthly[mk]||0) : (dataset.qtyMonthly[mk]||0); });
+    var n = months.length;
+
+    var W=800,H=240,padL=54,padR=16,padT=16,padB=28;
+    var innerW = W-padL-padR, innerH = H-padT-padB;
+    var maxV = Math.max.apply(null, series) * 1.12 || 1;
+    var step = n>1 ? innerW/(n-1) : 0;
+
+    function x(i){ return n>1 ? padL + step*i : padL + innerW/2; }
+    function y(v){ return padT + innerH - (v/maxV)*innerH; }
+
+    var ns = "http://www.w3.org/2000/svg";
+    function el(tag, attrs){
+      var e = document.createElementNS(ns, tag);
+      for (var k in attrs) e.setAttribute(k, attrs[k]);
+      return e;
+    }
+
+    for (var g=0; g<=3; g++){
+      var gv = maxV * g/3;
+      var gy = y(gv);
+      svg.appendChild(el("line", {x1:padL, x2:W-padR, y1:gy, y2:gy, class:"grid-line"}));
+      var lbl = el("text", {x: padL-8, y: gy+4, class:"axis-label", "text-anchor":"end"});
+      lbl.textContent = dataset.hasAmount ? ("$"+fmtInt(gv/1000)+"k") : fmtInt(gv);
+      svg.appendChild(lbl);
+    }
+    svg.appendChild(el("line", {x1:padL, x2:W-padR, y1:padT+innerH, y2:padT+innerH, class:"baseline"}));
+
+    months.forEach(function(mk,i){
+      var anchor = i===0 ? "start" : (i===n-1 ? "end" : "middle");
+      var t = el("text", {x:x(i), y:H-8, class:"axis-label", "text-anchor":anchor});
+      t.textContent = n>18 ? "" : monthLabelOf(mk);
+      svg.appendChild(t);
+    });
+
+    if (n>1){
+      var areaD = "M" + x(0) + "," + (padT+innerH);
+      series.forEach(function(v,i){ areaD += " L" + x(i) + "," + y(v); });
+      areaD += " L" + x(n-1) + "," + (padT+innerH) + " Z";
+      svg.appendChild(el("path", {d:areaD, class:"trend-area"}));
+
+      var lineD = "";
+      series.forEach(function(v,i){ lineD += (i===0?"M":"L") + x(i) + "," + y(v); });
+      svg.appendChild(el("path", {d:lineD, class:"trend-line"}));
+    }
+
+    var hoverLine = el("line", {x1:padL, x2:padL, y1:padT, y2:padT+innerH, class:"hover-line"});
+    svg.appendChild(hoverLine);
+
+    series.forEach(function(v,i){
+      var isTarget = TARGET_MONTH_NUMS.indexOf(monthNumOf(months[i])) !== -1;
+      var dot = el("circle", {cx:x(i), cy:y(v), r:5, class:"trend-dot" + (isTarget?" target":"")});
+      svg.appendChild(dot);
+    });
+
+    var hit = el("rect", {x:padL, y:0, width: Math.max(innerW,1), height:H, fill:"transparent"});
+    svg.appendChild(hit);
+
+    function showAt(i){
+      hoverLine.setAttribute("x1", x(i));
+      hoverLine.setAttribute("x2", x(i));
+      hoverLine.style.opacity = 1;
+      var rect = svg.getBoundingClientRect();
+      var scale = rect.width / W;
+      tooltip.style.left = (x(i) * scale) + "px";
+      tooltip.style.top = (y(series[i]) * scale) + "px";
+      tooltip.textContent = monthLabelOf(months[i]) + "：" + (dataset.hasAmount ? fmtMoney(series[i]) : fmtInt(series[i])+"份");
+      tooltip.classList.add("show");
+    }
+    function hide(){ hoverLine.style.opacity = 0; tooltip.classList.remove("show"); }
+    hit.addEventListener("mousemove", function(evt){
+      var rect = svg.getBoundingClientRect();
+      var relX = (evt.clientX - rect.left) / rect.width * W;
+      var i = n>1 ? Math.round((relX - padL) / step) : 0;
+      i = Math.max(0, Math.min(n-1, i));
+      showAt(i);
+    });
+    hit.addEventListener("mouseleave", hide);
+    hit.addEventListener("touchstart", function(evt){
+      var t = evt.touches[0];
+      var rect = svg.getBoundingClientRect();
+      var relX = (t.clientX - rect.left) / rect.width * W;
+      var i = n>1 ? Math.round((relX - padL) / step) : 0;
+      i = Math.max(0, Math.min(n-1, i));
+      showAt(i);
+    }, {passive:true});
+
+    document.getElementById("legendNote").textContent = "深色的點是下一季（" + TARGET_SEASON_NAME + "）的月份";
+  }
+
+  function renderRanking(dataset){
+    if (dataset.viewMode === "subset"){ renderSnapshotRec(dataset); return; }
+    var result = seasonRatios(dataset);
+    var disclaimer = document.getElementById("rankDisclaimer");
+    document.getElementById("rankCardNote").textContent = "依「下一季（" + TARGET_SEASON_NAME + "）平均銷量 ÷ 其他月份平均銷量」排序";
+
+    if (!result.targetMonths.length){
+      disclaimer.innerHTML = "<b>還沒辦法推薦：</b>目前的資料裡沒有任何一個下一季（" + TARGET_SEASON_NAME + "）的月份，系統無法知道哪些商品在" + TARGET_SEASON_NAME + "特別好賣。請上傳包含去年" + TARGET_SEASON_NAME + "（" + TARGET_MONTH_NUMS.join("、") + " 月）的商品排行報表。";
+      disclaimer.classList.add("show");
+    } else if (result.otherMonths.length < 2){
+      disclaimer.innerHTML = "<b>資料還不夠判斷季節性：</b>目前只有 " + dataset.months.length + " 個月的商品資料，下一季（" + TARGET_SEASON_NAME + "）以外只有 " + result.otherMonths.length + " 個月可以拿來比較。下面的推薦僅供參考，還不是可靠的季節性結論——需要更多不同月份的商品報表才會準。";
+      disclaimer.classList.add("show");
+    } else if (dataset.hasMultiMonthProduct){
+      disclaimer.innerHTML = "<b>注意：</b>上傳的商品排行是「好幾個月合在一起」的報表（例如季報），系統把銷量平均分攤到每個月來計算，推薦排名是近似值。" +
+        (result.skipped ? "另外有 " + result.skipped + " 個品項總銷量不到 " + result.minTotal + " 份（平均每月不到 1 份），量太少排名沒有意義，先排除。" : "");
+      disclaimer.classList.add("show");
+    } else {
+      disclaimer.classList.remove("show");
+    }
+
+    var ranked = result.targetMonths.length ? result.list.slice(0,5) : [];
+    state.lastRank = { ds:dataset, result:result, ranked:ranked };
+    var aiOut = document.getElementById("aiRecOut");
+    if (state.aiRecFor !== dataset){ aiOut.hidden = true; aiOut.textContent = ""; }
+    updateAiRecBtn();
+    var list = document.getElementById("rankList");
+    list.innerHTML = "";
+
+    if (!ranked.length){
+      var e = document.createElement("div");
+      e.className = "empty-note";
+      e.textContent = result.list.length ? "資料裡沒有下一季的月份，暫時無法推薦" : "還沒有商品層級的資料可以推薦（需要「商品排行」這種報表）";
+      list.appendChild(e);
+      document.getElementById("footnoteText").hidden = true;
+      return;
+    }
+    document.getElementById("footnoteText").hidden = false;
+    document.getElementById("footnoteText").innerHTML = "<b>推薦邏輯很單純：</b>把每個品項在下一季（" + TARGET_SEASON_NAME + "）這幾個月的平均銷量，拿去跟其他月份的平均銷量比，比值越高，代表這個品項越「一到" + TARGET_SEASON_NAME + "就特別賣」，就越適合在下一季主打。這是一個簡單的算法，實際判斷時，資料量、氣候、促銷活動等因素都還需要一起考慮。";
+    drawRankRows(ranked, TARGET_SEASON_NAME);
+  }
+
+  function drawRankRows(ranked, seasonName){
+    var list = document.getElementById("rankList");
+    var maxRatio = ranked[0] ? ranked[0].ratio : 1;
+    ranked.forEach(function(item, idx){
+      var row = document.createElement("div");
+      row.className = "rank-row";
+
+      var iEl = document.createElement("div");
+      iEl.className = "rank-idx";
+      iEl.textContent = "0" + (idx+1);
+
+      var nEl = document.createElement("div");
+      nEl.className = "rank-name";
+      nEl.textContent = item.name;
+
+      var trackEl = document.createElement("div");
+      trackEl.className = "rank-track";
+      var fillEl = document.createElement("div");
+      fillEl.className = "rank-fill";
+      var pct = maxRatio > 0 ? Math.max(6, (item.ratio/maxRatio*100)) : 0;
+      fillEl.style.width = pct + "%";
+      fillEl.style.background = "var(" + seriesColors[idx % seriesColors.length] + ")";
+      trackEl.appendChild(fillEl);
+
+      var mEl = document.createElement("div");
+      mEl.className = "rank-mult";
+      mEl.textContent = Number(item.ratio).toFixed(1) + "×";
+
+      var dEl = document.createElement("div");
+      dEl.className = "rank-detail";
+      dEl.textContent = seasonName + "平均每月賣 " + fmtInt(item.tAvg) + " 份，其他月份平均 " + fmtInt(item.oAvg) + " 份";
+
+      row.appendChild(iEl); row.appendChild(nEl); row.appendChild(trackEl); row.appendChild(mEl); row.appendChild(dEl);
+      list.appendChild(row);
+    });
+  }
+
+  function renderRecon(dataset){
+    var card = document.getElementById("reconCard");
+    var body = document.getElementById("reconBody");
+    var hint = document.getElementById("reconHint");
+    if (!dataset.recon || !dataset.recon.length){ card.hidden = true; return; }
+    card.hidden = false;
+    body.innerHTML = "";
+    var anyGap = false;
+    dataset.recon.forEach(function(r){
+      var tr = document.createElement("tr");
+      var gapPct = r.dailyRev > 0 ? Math.abs(r.dailyRev - r.productRev) / r.dailyRev * 100 : 0;
+      if (gapPct >= 3) anyGap = true;
+      tr.innerHTML = "<td>" + (r.label || monthLabelOf(r.month)) + "</td><td>" + fmtMoney(r.dailyRev) + "</td><td>" + fmtMoney(r.productRev) + "</td>" +
+        "<td class=\"" + (gapPct>=3?"gap-hi":"") + "\">" + (gapPct>=3?"+":"") + gapPct.toFixed(1) + "%</td>";
+      body.appendChild(tr);
+    });
+    hint.textContent = anyGap
+      ? "有月份的差距超過3%，可能是服務費、折扣、招待品項等「商品排行」裡沒列出來的部分造成的，建議實際使用時跟老闆確認一下這個差距合不合理，不要假設兩份報表一定會對得起來。"
+      : "兩份報表金額對得起來，落差在3%以內。";
+  }
+
+  function renderAll(){
+    renderStats(state.dataset);
+    renderDrill();
+    renderTrend(state.dataset);
+    renderRecon(state.dataset);
+    renderRanking(state.dataset);
+    try { renderWine(state.dataset); } catch(e){ document.getElementById("wineCard").hidden = true; }
+    if (typeof updateSummaries === "function") updateSummaries();
+  }
+
+  // ================= 酒水分析（加值功能） =================
+  // 先用「品名關鍵字規則」分類，規則判斷不出來的才交給 AI（省時間、省 AI 用量）
+  var ALC_GROUPS = ["清酒","洋酒","燒酎","風味酒","啤酒"];
+  var SAKE_GRADES = ["純米大吟釀","大吟釀","純米吟釀","吟釀","純米酒","本釀造"];
+  var aiOverrides = {}; // 品名 -> AI 判斷結果
+  var sampleFn = null;  // AI 呼叫函式（環境不支援時維持 null，按鈕隱藏）
+
+  function normName(s){ return String(s||"").replace(/醸/g,"釀").replace(/廃/g,"廢"); }
+
+  function classifyItem(name){
+    var n = normName(name);
+    var glass = /^[\(（]單杯[\)）]/.test(n);
+    function r(group, label){ return { group:group, label:label, glass:glass, source:"規則" }; }
+
+    if (n.indexOf("自帶酒水服務費") !== -1) return r("自帶", "自帶酒水服務費");
+    if (n.indexOf("免收酒水服務費") !== -1) return r("行銷", "免收酒水服務費");
+    if (/招待|員工優惠/.test(n)) return r("行銷", n);
+    if (/套餐|餐盒|料理|鰻魚飯|壽司|烏魚子|起司|場地清潔費|餐飲費|魔鏡/.test(n) || n.trim() === "單點") return r("餐點", "餐點／其他");
+    if (/可樂|Coca-Cola|Coffee|咖啡|果汁|Juice|礦泉水|氣泡水/i.test(n)) return r("非酒", "無酒精飲料");
+    if (/燒酎|焼酎/.test(n)) return r("燒酎", "燒酎");
+    if (/梅酒|柚子酒|蜜桃酒|梅乃酒|果實酒/.test(n)) return r("風味酒", "梅酒／水果酒");
+    if (/啤酒|Beer|MALT'S/i.test(n)) return r("啤酒", "啤酒");
+    for (var i=0;i<SAKE_GRADES.length;i++){
+      // 「特別純米」「純米」都算純米酒等級
+      if (n.indexOf(SAKE_GRADES[i]) !== -1) return r("清酒", "清酒｜" + SAKE_GRADES[i]);
+    }
+    if (/特別純米|純米/.test(n)) return r("清酒", "清酒｜純米酒");
+    if (/Sauvignon|Chardonnay|Merlot|Riesling|Pinot|Champagne|Garganega|Semillon|Soave|Veltliner|氣泡酒|白中白|葡萄酒|Rosé|ROCOCO|IWA5|Sábalo/i.test(n)) return r("洋酒", "洋酒（葡萄酒／氣泡酒）");
+    return { group:"待判斷", label:"待判斷", glass:glass, source:"規則" };
+  }
+
+  // 規則判斷不出來時，套用 AI 的判斷結果
+  function classifyWithAi(name){
+    var base = classifyItem(name);
+    if (base.group !== "待判斷") return base;
+    var ai = aiOverrides[name];
+    if (!ai) return base;
+    var cat = ai.category, conf = ai.confidence;
+    if (cat === "unknown" || conf === "low") return { group:"待判斷", label:"請人工確認", glass:base.glass, source:"AI", ai:ai };
+    var map = { "洋酒":"洋酒（葡萄酒／氣泡酒）", "燒酎":"燒酎", "風味酒":"梅酒／水果酒", "啤酒":"啤酒", "非酒類":"無酒精飲料" };
+    if (cat === "清酒"){
+      var g = SAKE_GRADES.indexOf(ai.grade) !== -1 ? ai.grade : (ai.grade === "普通酒" ? "普通酒" : "等級未標示");
+      return { group:"清酒", label:"清酒｜" + g, glass:base.glass, source:"AI", ai:ai };
+    }
+    if (cat === "非酒類") return { group:"非酒", label:map[cat], glass:base.glass, source:"AI", ai:ai };
+    if (map[cat]) return { group:cat, label:map[cat], glass:base.glass, source:"AI", ai:ai };
+    return { group:"待判斷", label:"請人工確認", glass:base.glass, source:"AI", ai:ai };
+  }
+
+  function analyzeWine(dataset){
+    var files = dataset.productFiles || [];
+    if (!files.length) return null;
+    var items = {};   // 品名 -> {qty, rev, cls}
+    var periods = [];
+    var alcCount = 0, hasByob = false;
+
+    files.forEach(function(f){
+      var pr = { label:f.label, inBottles:0, inRev:0, byob:0, byobFee:0, waived:0, glass:0 };
+      Object.keys(f.products).forEach(function(name){
+        var q = f.products[name].qty || 0, rv = f.products[name].rev || 0;
+        var cls = classifyWithAi(name);
+        if (!items[name]) items[name] = { qty:0, rev:0, cls:cls };
+        items[name].qty += q; items[name].rev += rv; items[name].cls = cls;
+
+        if (ALC_GROUPS.indexOf(cls.group) !== -1){
+          if (cls.glass) pr.glass += q; else { pr.inBottles += q; pr.inRev += rv; }
+        }
+        if (cls.group === "自帶"){ pr.byob += q; pr.byobFee += rv; hasByob = true; }
+        if (normName(name).indexOf("免收酒水服務費") !== -1){ pr.waived += q; hasByob = true; }
+      });
+      periods.push(pr);
+    });
+
+    Object.keys(items).forEach(function(n){ if (ALC_GROUPS.indexOf(items[n].cls.group) !== -1) alcCount++; });
+    return { items:items, periods:periods, alcCount:alcCount, hasByob:hasByob };
+  }
+
+  function pctStr(a, b){ return b > 0 ? (a/b*100).toFixed(1) + "%" : "—"; }
+  function tdText(text, cls){ var td = document.createElement("td"); td.textContent = text; if (cls) td.className = cls; return td; }
+
+  function renderWine(dataset){
+    var card = document.getElementById("wineCard");
+    var w = analyzeWine(dataset);
+    // 酒款太少、也沒有自帶服務費的店，不顯示這張卡
+    if (!w || (w.alcCount < 5 && !w.hasByob)){ card.hidden = true; return; }
+    card.hidden = false;
+    document.getElementById("wineNote").textContent = "共 " + w.periods.length + " 份商品報表 · " + w.alcCount + " 款酒";
+
+    // ---- 1. 自帶 vs 店內 ----
+    var T = { inB:0, inR:0, byob:0, fee:0, waived:0, glass:0 };
+    var body = document.getElementById("byobBody");
+    body.innerHTML = "";
+    w.periods.forEach(function(p){
+      T.inB += p.inBottles; T.inR += p.inRev; T.byob += p.byob; T.fee += p.byobFee; T.waived += p.waived; T.glass += p.glass;
+      var self = p.byob + p.waived;
+      var tr = document.createElement("tr");
+      tr.appendChild(tdText(p.label));
+      tr.appendChild(tdText(fmtInt(p.inBottles)));
+      tr.appendChild(tdText(fmtInt(self) + (p.waived ? "（免收 " + fmtInt(p.waived) + "）" : "")));
+      tr.appendChild(tdText(pctStr(self, self + p.inBottles)));
+      tr.appendChild(tdText(pctStr(p.byobFee, p.byobFee + p.inRev)));
+      body.appendChild(tr);
+    });
+    var selfAll = T.byob + T.waived;
+    var stats = document.getElementById("byobStats");
+    stats.innerHTML = "";
+    [["店內售出（瓶）", fmtInt(T.inB)], ["客人自帶（瓶）", fmtInt(selfAll)],
+     ["自帶占比（瓶數）", pctStr(selfAll, selfAll + T.inB)], ["自帶占比（金額）", pctStr(T.fee, T.fee + T.inR)]].forEach(function(s){
+      var d = document.createElement("div"); d.className = "stat";
+      var l = document.createElement("div"); l.className = "label"; l.textContent = s[0];
+      var v = document.createElement("div"); v.className = "value"; v.textContent = s[1];
+      d.appendChild(l); d.appendChild(v); stats.appendChild(d);
+    });
+    var bar = document.getElementById("byobBar");
+    bar.innerHTML = "";
+    var totB = selfAll + T.inB;
+    [[T.inB, "var(--series-1)", "店內"], [T.byob, "var(--series-2)", "自帶"], [T.waived, "var(--series-4)", "免收"]].forEach(function(seg){
+      if (!seg[0] || !totB) return;
+      var d = document.createElement("div");
+      d.style.width = (seg[0]/totB*100) + "%";
+      d.style.background = seg[1];
+      d.textContent = seg[0]/totB >= 0.08 ? seg[2] + " " + Math.round(seg[0]/totB*100) + "%" : "";
+      bar.appendChild(d);
+    });
+    document.getElementById("byobLegend").innerHTML =
+      '<span><span class="sw" style="background:var(--series-1)"></span>店內售出的瓶裝酒</span>' +
+      '<span><span class="sw" style="background:var(--series-2)"></span>自帶（有收開瓶服務費）</span>' +
+      '<span><span class="sw" style="background:var(--series-4)"></span>自帶（免收服務費，列入行銷）</span>';
+    document.getElementById("byobHint").textContent =
+      "瓶數 = 每一筆「自帶酒水服務費」算一瓶（店家一瓶一瓶收）；店內只算瓶裝酒，" + fmtInt(T.glass) + " 杯單杯酒另外不計入。" +
+      "金額比例是「開瓶服務費收入 ÷（服務費＋店內酒水營收）」，因為服務費遠低於一瓶酒的售價，金額占比天生會比瓶數占比低，判讀時以瓶數為主。";
+
+    // ---- 2. 行銷／招待 ----
+    var mkt = {};
+    Object.keys(w.items).forEach(function(n){
+      var it = w.items[n];
+      if (it.cls.group === "行銷"){ mkt[n] = it; }
+    });
+    var mBody = document.getElementById("mktBody");
+    mBody.innerHTML = "";
+    var mNames = Object.keys(mkt).sort(function(a,b){ return mkt[b].qty - mkt[a].qty; });
+    if (!mNames.length){
+      var tr0 = document.createElement("tr"); tr0.appendChild(tdText("沒有找到招待／優惠類品項", "tl")); mBody.appendChild(tr0);
+    }
+    mNames.forEach(function(n){
+      var tr = document.createElement("tr");
+      tr.appendChild(tdText(n)); tr.appendChild(tdText(fmtInt(mkt[n].qty))); tr.appendChild(tdText(fmtMoney(mkt[n].rev)));
+      mBody.appendChild(tr);
+    });
+
+    // ---- 3. 等級分布 ----
+    var groups = {};
+    Object.keys(w.items).forEach(function(n){
+      var it = w.items[n];
+      if (ALC_GROUPS.indexOf(it.cls.group) === -1) return;
+      var g = groups[it.cls.label] || (groups[it.cls.label] = { label:it.cls.label, group:it.cls.group, count:0, qty:0, rev:0, top:null });
+      g.count++; g.qty += it.qty; g.rev += it.rev;
+      if (!g.top || it.qty > g.top.qty) g.top = { name:n, qty:it.qty };
+    });
+    var gList = Object.keys(groups).map(function(k){ return groups[k]; }).sort(function(a,b){ return b.rev - a.rev; });
+    var gBody = document.getElementById("gradeBody");
+    gBody.innerHTML = "";
+    gList.forEach(function(g){
+      var tr = document.createElement("tr");
+      tr.appendChild(tdText(g.label)); tr.appendChild(tdText(g.count)); tr.appendChild(tdText(fmtInt(g.qty)));
+      tr.appendChild(tdText(fmtMoney(g.rev))); tr.appendChild(tdText(g.top ? g.top.name : "—"));
+      gBody.appendChild(tr);
+    });
+
+    // ---- 4. 判斷不出來的品項 ----
+    var unk = Object.keys(w.items).filter(function(n){ return w.items[n].cls.group === "待判斷" || w.items[n].cls.source === "AI"; })
+      .sort(function(a,b){ return w.items[b].qty - w.items[a].qty; });
+    var pending = unk.filter(function(n){ return !aiOverrides[n]; });
+    document.getElementById("unkCount").textContent = pending.length ? (pending.length + " 項待判斷") : "已全部處理";
+    var btnAi = document.getElementById("btnAiClassify");
+    btnAi.hidden = !sampleFn || !pending.length;
+    var uBody = document.getElementById("unkBody");
+    uBody.innerHTML = "";
+    if (!unk.length){
+      var trn = document.createElement("tr"); trn.appendChild(tdText("所有品項都已從品名判斷出種類", "tl")); uBody.appendChild(trn);
+    }
+    unk.forEach(function(n){
+      var it = w.items[n], ai = it.cls.ai;
+      var tr = document.createElement("tr");
+      tr.appendChild(tdText(n));
+      if (!ai){
+        tr.appendChild(tdText("尚未判斷", "tl")); tr.appendChild(tdText("—", "tl")); tr.appendChild(tdText(sampleFn ? "可按上方按鈕交給 AI" : "這個環境無法使用 AI，請人工標註", "tl"));
+      } else {
+        tr.appendChild(tdText(it.cls.label, "tl"));
+        var tdc = document.createElement("td"); tdc.className = "tl";
+        var b = document.createElement("span");
+        b.className = "badge" + (ai.confidence === "high" ? " ai" : (ai.confidence === "low" || ai.category === "unknown" ? " lo" : ""));
+        b.textContent = { high:"高", medium:"中", low:"低" }[ai.confidence] || "低";
+        tdc.appendChild(b); tr.appendChild(tdc);
+        tr.appendChild(tdText(ai.reason || "", "tl"));
+      }
+      uBody.appendChild(tr);
+    });
+
+    // ---- 5. 進貨方向（規則版，不需要 AI 也看得到） ----
+    var sake = gList.filter(function(g){ return g.group === "清酒"; }).sort(function(a,b){ return b.qty - a.qty; });
+    var rs = document.getElementById("ruleSuggest");
+    if (sake.length){
+      var best = sake[0];
+      var tops = Object.keys(w.items).filter(function(n){ return w.items[n].cls.label === best.label; })
+        .sort(function(a,b){ return w.items[b].qty - w.items[a].qty; }).slice(0,3);
+      rs.textContent = "清酒裡賣最多的是「" + best.label.replace("清酒｜","") + "」等級，共 " + fmtInt(best.qty) + " 瓶（杯），前三名：" + tops.join("、") +
+        "。補貨或引進新酒時，可以優先找同等級、相近風格的酒款。";
+    } else {
+      rs.textContent = "目前沒有足夠的清酒資料可以給建議。";
+    }
+    document.getElementById("btnAiSuggest").hidden = !sampleFn;
+    state.lastWine = { w:w, gList:gList, T:T };
+  }
+
+  function aiErrorText(e){
+    var code = e && e.code;
+    if (code === "not_granted") return "你沒有允許這個頁面使用 AI，AI 功能先停用；其他分析不受影響。";
+    if (code === "rate_limited") return "AI 呼叫太頻繁，請稍等一下再按一次。";
+    if (code === "cancelled") return "已取消。";
+    return "AI 暫時無法使用（" + (code || "未知錯誤") + "），其他分析不受影響。";
+  }
+
+  function runAiClassify(){
+    var lw = state.lastWine; if (!lw || !sampleFn) return;
+    var names = Object.keys(lw.w.items).filter(function(n){ return lw.w.items[n].cls.group === "待判斷" && !aiOverrides[n]; }).slice(0, 60);
+    if (!names.length) return;
+    var btn = document.getElementById("btnAiClassify"), status = document.getElementById("aiStatus");
+    btn.disabled = true;
+    status.textContent = "AI 判斷中（約 10–60 秒）⋯⋯";
+    var prompt =
+      "你是日本酒與葡萄酒的專業採購。以下是一家高階日式料理店 POS 報表裡的品項名稱，系統無法從名稱判斷種類，請依你對酒造與酒款的知識判斷每一項。\n" +
+      "規則：\n1. 只有確實認識這支酒時才給等級；不確定就把 category 設為 \"unknown\"、confidence 設為 \"low\"，絕對不要猜。\n" +
+      "2. category 只能是：清酒、洋酒、燒酎、風味酒、啤酒、非酒類、unknown。\n" +
+      "3. 清酒的 grade 只能是：純米大吟釀、大吟釀、純米吟釀、吟釀、純米酒、本釀造、普通酒、未知；非清酒填 \"\"。\n" +
+      "4. confidence 只能是 high、medium、low。\n5. reason 用繁體中文一句話，25 字以內，說明判斷依據。\n" +
+      "只回傳 JSON，不要其他文字，格式：{\"items\":[{\"name\":\"原始品名（一字不改）\",\"category\":\"\",\"grade\":\"\",\"confidence\":\"\",\"reason\":\"\"}]}\n\n品項：\n" +
+      names.join("\n");
+    sampleFn.json(prompt, { modelTier:"default" }).then(function(res){
+      var list = (res && res.items) || [];
+      var got = 0;
+      list.forEach(function(x){
+        if (x && x.name && names.indexOf(x.name) !== -1){ aiOverrides[x.name] = x; got++; }
+      });
+      // AI 漏回的品項，一律標成請人工確認
+      names.forEach(function(n){ if (!aiOverrides[n]) aiOverrides[n] = { name:n, category:"unknown", grade:"", confidence:"low", reason:"AI 沒有回傳這一項" }; });
+      var unsure = names.filter(function(n){ var a = aiOverrides[n]; return a.category === "unknown" || a.confidence === "low"; }).length;
+      status.textContent = "AI 判斷完成：" + names.length + " 項中，" + (names.length - unsure) + " 項有結果，" + unsure + " 項請人工確認。";
+      logAppend("AI 判斷酒款", "", "ok", "送出 " + names.length + " 項，" + (names.length - unsure) + " 項有結果，" + unsure + " 項需人工確認");
+      renderWine(state.dataset);
+    }).catch(function(e){
+      status.textContent = aiErrorText(e);
+      logAppend("AI 判斷酒款", "", "fail", aiErrorText(e));
+      if (e && e.code === "not_granted"){ sampleFn = null; renderWine(state.dataset); }
+    }).then(function(){ btn.disabled = false; });
+  }
+
+  function runAiSuggest(){
+    var lw = state.lastWine; if (!lw || !sampleFn) return;
+    var btn = document.getElementById("btnAiSuggest"), out = document.getElementById("aiSuggestOut");
+    btn.disabled = true; out.hidden = false; out.textContent = "AI 思考中⋯⋯";
+    var topItems = Object.keys(lw.w.items).filter(function(n){ return ALC_GROUPS.indexOf(lw.w.items[n].cls.group) !== -1; })
+      .sort(function(a,b){ return lw.w.items[b].qty - lw.w.items[a].qty; }).slice(0, 12)
+      .map(function(n){ var it = lw.w.items[n]; return "- " + n + "｜" + it.cls.label + "｜" + fmtInt(it.qty) + " 瓶（杯）｜" + fmtMoney(it.rev); });
+    var grades = lw.gList.map(function(g){ return "- " + g.label + "：" + g.count + " 款，" + fmtInt(g.qty) + " 瓶（杯），" + fmtMoney(g.rev); });
+    var selfAll = lw.T.byob + lw.T.waived;
+    var prompt =
+      "你是餐廳酒水進貨顧問。以下是一家高階日式料理店的酒水銷售資料（" + lw.w.periods.length + " 份商品報表）。\n" +
+      "請給老闆 3 點具體的進貨方向建議，每點不超過兩句，用繁體中文，純文字條列（1. 2. 3.）。\n" +
+      "只能根據下面的資料推論，不要編造價格、成本或資料裡沒有的數字；資料不足以下結論的地方，直接寫「資料不足」。\n\n" +
+      "【類別／等級分布】\n" + grades.join("\n") + "\n\n【銷量前 12 名】\n" + topItems.join("\n") + "\n\n" +
+      "【客人自帶】自帶 " + fmtInt(selfAll) + " 瓶、店內售出瓶裝酒 " + fmtInt(lw.T.inB) + " 瓶，自帶占比 " + pctStr(selfAll, selfAll + lw.T.inB) + "（以瓶數計）。";
+    sampleFn(prompt, { modelTier:"default", onText:function(x){ out.textContent = x.text; } }).then(function(res){
+      out.textContent = res.text + "\n\n（AI 根據上方銷售資料產生，僅供參考，進貨前請再確認成本與供貨狀況。）";
+      logAppend("AI 進貨建議", "", "ok", "已產生建議");
+    }).catch(function(e){
+      out.textContent = (e && e.text ? e.text + "\n\n" : "") + aiErrorText(e);
+      logAppend("AI 進貨建議", "", "fail", aiErrorText(e));
+      if (e && e.code === "not_granted"){ sampleFn = null; renderWine(state.dataset); }
+    }).then(function(){ btn.disabled = false; });
+  }
+
+  document.getElementById("btnAiClassify").addEventListener("click", runAiClassify);
+  document.getElementById("btnAiSuggest").addEventListener("click", runAiSuggest);
+
+  // 環境支援 AI 時才把 AI 按鈕亮起來；不支援就只用規則判斷
+  if (typeof window.claude !== "undefined" && typeof window.claude.use === "function"){
+    try {
+      window.claude.use("sample").then(function(fn){
+        sampleFn = fn || null;
+        if (sampleFn && !document.getElementById("wineCard").hidden) renderWine(state.dataset);
+        try { updateAiRecBtn(); } catch(e){ /* ignore */ }
+      }).catch(function(){ sampleFn = null; });
+    } catch(e){ sampleFn = null; }
+  }
+
+
+  // ================= 全店營運總覽：點開看細節（Drill-down） =================
+  state.drill = null;      // 目前展開的是哪一格：rev / qty / items / season
+  state.qtyFilter = "全部";
+
+  function esc(t){ return String(t).replace(/[&<>"]/g, function(c){ return { "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;" }[c]; }); }
+
+  // 給總覽用的大分類（比酒水分析更粗）
+  function displayGroup(name){
+    var g = classifyItem(name).group;
+    if (ALC_GROUPS.indexOf(g) !== -1) return "酒類";
+    if (g === "餐點") return "餐點";
+    if (g === "非酒") return "無酒精飲料";
+    if (g === "自帶") return "開瓶服務費";
+    if (g === "行銷") return "招待／優惠";
+    if (/飯|麵|湯|鍋|冰|沙|愛玉|便當|壽司|排|丼|拉麵|咖哩/.test(name)) return "餐點";
+    if (aiOverrides[name] && aiOverrides[name].category && aiOverrides[name].category !== "unknown") return aiOverrides[name].category === "非酒類" ? "無酒精飲料" : "酒類";
+    return "其他／未分類";
+  }
+  var NON_PRODUCT = ["開瓶服務費","招待／優惠"];
+
+  // 每個品項整段期間的總量、總額
+  function productTotals(ds){
+    var out = {};
+    if (ds.productFiles && ds.productFiles.length){
+      ds.productFiles.forEach(function(f){
+        Object.keys(f.products).forEach(function(n){
+          var o = out[n] || (out[n] = { qty:0, rev:0, periods:0 });
+          o.qty += f.products[n].qty || 0; o.rev += f.products[n].rev || 0; o.periods++;
+        });
+      });
+    } else if (ds.demoPrices){
+      DEMO_PRODUCTS_RAW.forEach(function(p){
+        var q = p.monthly.reduce(function(a,b){ return a+b; }, 0);
+        out[p.name] = { qty:q, rev:q*p.price, periods:12 };
+      });
+    } else {
+      Object.keys(ds.productMonthly).forEach(function(n){
+        var q = 0; Object.keys(ds.productMonthly[n]).forEach(function(mk){ q += ds.productMonthly[n][mk]; });
+        out[n] = { qty:q, rev:0, periods:1 };
+      });
+    }
+    return out;
+  }
+
+  function miniHtml(items){
+    return '<div class="mini-stats">' + items.map(function(m){
+      return '<div class="mini"><div class="l">' + esc(m[0]) + '</div><div class="v">' + esc(m[1]) + '</div>' + (m[2] ? '<div class="s">' + esc(m[2]) + '</div>' : '') + '</div>';
+    }).join("") + '</div>';
+  }
+  function hbarHtml(rows, fmt, wide){ // rows: [{name, val, hi, cls, noteHtml}]
+    var max = rows.reduce(function(a,r){ return Math.max(a, r.val); }, 0) || 1;
+    return '<div class="hbar-list' + (wide ? ' wide' : '') + '">' + rows.map(function(r){
+      var cls = r.cls ? " " + r.cls : (r.hi ? " hi" : "");
+      return '<div class="hbar"><div class="n" title="' + esc(r.name) + '">' + esc(r.name) + '</div><div class="t"><div class="f' + cls + '" style="width:' + Math.max(2, r.val/max*100) + '%"></div></div><div class="x">' + esc(fmt(r.val)) + (r.noteHtml || '') + '</div></div>';
+    }).join("") + '</div>';
+  }
+  function stackHtml(parts){ // [{name, val, color}]
+    var tot = parts.reduce(function(a,p){ return a + p.val; }, 0) || 1;
+    var bar = '<div class="wine-bar">' + parts.filter(function(p){ return p.val > 0; }).map(function(p){
+      var pc = p.val/tot*100;
+      return '<div style="width:' + pc + '%;background:' + p.color + '" title="' + esc(p.name) + ' ' + pc.toFixed(1) + '%">' + (pc >= 9 ? esc(p.name) + " " + Math.round(pc) + "%" : "") + '</div>';
+    }).join("") + '</div>';
+    var legend = '<div class="legend-row">' + parts.filter(function(p){ return p.val > 0; }).map(function(p){
+      return '<span><span class="sw" style="background:' + p.color + '"></span>' + esc(p.name) + ' ' + (p.val/tot*100).toFixed(1) + '%</span>';
+    }).join("") + '</div>';
+    return bar + legend;
+  }
+
+  // ---- 1. 營業額 ----
+  function drillRev(ds){
+    var ms = ds.months, val = function(mk){ return ds.hasAmount ? (ds.revMonthly[mk]||0) : (ds.qtyMonthly[mk]||0); };
+    var fmtV = ds.hasAmount ? fmtMoney : function(v){ return fmtInt(v) + " 份"; };
+    if (!ms.length) return '<div class="empty-note">還沒有資料</div>';
+    var tot = 0; ms.forEach(function(mk){ tot += val(mk); });
+    var sorted = ms.slice().sort(function(a,b){ return val(b) - val(a); });
+    var hi = sorted[0], lo = sorted[sorted.length-1];
+    var mini = [["每月平均", fmtV(tot/ms.length), ms.length + " 個月"], ["最高的月份", monthLabelOf(hi), fmtV(val(hi))], ["最低的月份", monthLabelOf(lo), fmtV(val(lo))]];
+    if (ds.daily){
+      var open = 0, days = 0, cust = 0, disc = 0;
+      ms.forEach(function(mk){ open += ds.daily.open[mk]||0; days += ds.daily.days[mk]||0; cust += ds.qtyMonthly[mk]||0; disc += ds.daily.disc[mk]||0; });
+      mini.push(["營業天數", fmtInt(open) + " 天", "共 " + fmtInt(days) + " 天，公休 " + fmtInt(days-open) + " 天"]);
+      mini.push(["營業日平均", fmtMoney(open ? tot/open : 0), "只算有營業的日子"]);
+      if (ds.daily.hasCust){
+        mini.push(["總來客數", fmtInt(cust) + " 人", "平均每天 " + (open ? (cust/open).toFixed(1) : "—") + " 人"]);
+        mini.push(["平均客單價", fmtMoney(cust ? tot/cust : 0), "營業額 ÷ 來客數"]);
+      }
+      if (ds.daily.hasDisc) mini.push(["折扣總額", fmtMoney(disc), tot ? "佔營業額 " + (disc/tot*100).toFixed(1) + "%" : ""]);
+    }
+    var html = miniHtml(mini);
+
+    // 年度比較：月份數不同時，比「每月平均」才公平
+    var byYear = {};
+    ms.forEach(function(mk){ var y = mk.split("-")[0]; var o = byYear[y] || (byYear[y] = { n:0, sum:0, months:{} }); o.n++; o.sum += val(mk); o.months[mk.split("-")[1]] = val(mk); });
+    var years = Object.keys(byYear).sort();
+    if (years.length > 1){
+      html += '<h4>年度比較</h4><div class="recon-wrap"><table class="recon-table"><thead><tr><th>年份</th><th>有資料的月份</th><th>合計</th><th>每月平均</th><th>同期成長</th></tr></thead><tbody>';
+      years.forEach(function(y, i){
+        var yoy = "—";
+        if (i > 0){
+          var prev = byYear[years[i-1]], cur = byYear[y], a = 0, b = 0, n = 0;
+          Object.keys(cur.months).forEach(function(m){ if (prev.months[m] !== undefined){ a += cur.months[m]; b += prev.months[m]; n++; } });
+          if (n && b) yoy = ((a-b)/b*100 >= 0 ? "+" : "") + ((a-b)/b*100).toFixed(1) + "%（" + n + " 個月對比）";
+        }
+        html += '<tr><td>' + y + '</td><td>' + byYear[y].n + '</td><td>' + esc(fmtV(byYear[y].sum)) + '</td><td>' + esc(fmtV(byYear[y].sum/byYear[y].n)) + '</td><td>' + esc(yoy) + '</td></tr>';
+      });
+      html += '</tbody></table></div><div class="hint">「同期成長」只拿兩年都有資料的同一批月份來比，避免拿 12 個月去跟 3 個月比。</div>';
+    }
+
+    // 每個月跟「去年同一個月」比：有成長才標綠色；沒有去年資料的月份用灰色
+    var upCount = 0, cmpCount = 0, bestUp = null;
+    var monthRows = ms.map(function(mk){
+      var y = +mk.split("-")[0], m = mk.split("-")[1];
+      var prevMk = (y-1) + "-" + m;
+      var row = { name:monthLabelOf(mk), val:val(mk), cls:"flat", noteHtml:' <span class="dn">無去年同月</span>' };
+      if (ds.revMonthly[prevMk] !== undefined || ds.qtyMonthly[prevMk] !== undefined){
+        var pv = val(prevMk);
+        if (pv > 0){
+          var g = (val(mk) - pv) / pv * 100;
+          cmpCount++;
+          if (g > 0){
+            upCount++;
+            row.cls = "up"; row.noteHtml = ' <span class="up">▲' + g.toFixed(1) + '%</span>';
+            if (!bestUp || g > bestUp.g) bestUp = { mk:mk, prev:prevMk, g:g };
+          } else {
+            row.cls = ""; row.noteHtml = ' <span class="dn">▼' + Math.abs(g).toFixed(1) + '%</span>';
+          }
+        }
+      }
+      return row;
+    });
+    html += '<h4>每個月份（綠色＝比去年同月賺更多）</h4>' + hbarHtml(monthRows, fmtV, true);
+    if (cmpCount){
+      html += '<div class="hint">有去年同月可以比的 ' + cmpCount + ' 個月裡，' + upCount + ' 個月成長。' +
+        (bestUp ? '成長最多的是 ' + monthLabelOf(bestUp.mk) + '，比 ' + monthLabelOf(bestUp.prev) + ' 多了 ' + bestUp.g.toFixed(1) + '%。' : '') +
+        '灰色的月份沒有去年同月資料，無法比較。</div>';
+    } else {
+      html += '<div class="hint">目前資料不滿兩年，沒有「去年同月」可以比較，所以都是灰色。</div>';
+    }
+
+    var avg = tot/ms.length;
+    if (val(lo) < avg * 0.75){
+      html += '<div class="insight"><b>值得注意：</b>' + monthLabelOf(lo) + ' 比平均低了 ' + Math.round((1 - val(lo)/avg)*100) + '%。如果這個月有公休、整修或資料不完整，數字本身沒問題；如果都沒有，就值得回頭查原因。</div>';
+    }
+    return html;
+  }
+
+  // ---- 2. 銷售量 ----
+  function drillQty(ds){
+    var pt = productTotals(ds), names = Object.keys(pt);
+    if (!names.length) return '<div class="empty-note">需要「商品排行」類的報表才看得到品項細節</div>';
+    var groups = {}; names.forEach(function(n){ var g = displayGroup(n); (groups[g] = groups[g] || []).push(n); });
+    var filters = ["全部"].concat(["餐點","酒類","無酒精飲料","其他／未分類"].filter(function(g){ return groups[g]; }));
+    if (filters.indexOf(state.qtyFilter) === -1) state.qtyFilter = "全部";
+    var pool = names.filter(function(n){
+      var g = displayGroup(n);
+      if (NON_PRODUCT.indexOf(g) !== -1) return false;
+      return state.qtyFilter === "全部" || g === state.qtyFilter;
+    });
+    var html = '<div class="chips" id="qtyChips">' + filters.map(function(f){
+      return '<button type="button" data-f="' + esc(f) + '" aria-pressed="' + (f === state.qtyFilter) + '">' + esc(f) + '</button>';
+    }).join("") + '</div>';
+
+    var byQty = pool.slice().sort(function(a,b){ return pt[b].qty - pt[a].qty; }).slice(0,10);
+    var byRev = pool.slice().sort(function(a,b){ return pt[b].rev - pt[a].rev; }).slice(0,10);
+    var hasRev = pool.some(function(n){ return pt[n].rev > 0; });
+    html += '<div class="two-col"><div><h4 style="margin-top:4px">賣最多份 Top 10</h4>' + hbarHtml(byQty.map(function(n){ return { name:n, val:pt[n].qty }; }), function(v){ return fmtInt(v) + " 份"; }) + '</div>';
+    html += '<div><h4 style="margin-top:4px">賺最多錢 Top 10</h4>' + (hasRev ? hbarHtml(byRev.map(function(n){ return { name:n, val:pt[n].rev, hi:true }; }), fmtMoney) : '<div class="empty-note">報表沒有金額欄位</div>') + '</div></div>';
+
+    // 兩張榜單差很多時，提醒「量」和「錢」不是同一件事
+    var onlyQty = byQty.filter(function(n){ return byRev.indexOf(n) === -1; });
+    if (hasRev && onlyQty.length >= 3){
+      html += '<div class="insight"><b>量大不等於錢多：</b>' + onlyQty.slice(0,3).map(esc).join("、") + ' 賣很多份，卻沒擠進營收前 10，通常是單價低的品項（例如水、單杯酒）。看熱銷時要分清楚是在看「份數」還是「營收」。</div>';
+    }
+
+    var colors = { "餐點":"var(--series-1)", "酒類":"var(--series-2)", "無酒精飲料":"var(--series-3)", "開瓶服務費":"var(--series-4)", "招待／優惠":"var(--series-5)", "其他／未分類":"var(--muted)" };
+    if (hasRev){
+      var parts = Object.keys(groups).map(function(g){ var v = 0; groups[g].forEach(function(n){ v += pt[n].rev; }); return { name:g, val:v, color:colors[g] || "var(--muted)" }; })
+        .sort(function(a,b){ return b.val - a.val; });
+      html += '<h4>營收從哪裡來</h4>' + stackHtml(parts);
+    }
+    html += '<div class="hint">服務費、招待、員工優惠不是「商品」，不列入上面的排行。</div>';
+    return html;
+  }
+
+  // ---- 3. 品項數 ----
+  function drillItems(ds){
+    var pt = productTotals(ds), names = Object.keys(pt);
+    if (!names.length) return '<div class="empty-note">需要「商品排行」類的報表才看得到品項細節</div>';
+    var cnt = {}; names.forEach(function(n){ var g = displayGroup(n); cnt[g] = (cnt[g]||0) + 1; });
+    var html = '<h4 style="margin-top:0">各類別有幾個品項</h4>' + hbarHtml(Object.keys(cnt).sort(function(a,b){ return cnt[b]-cnt[a]; }).map(function(g){ return { name:g, val:cnt[g] }; }), function(v){ return v + " 項"; });
+
+    // 80/20：前 20% 品項貢獻多少營收
+    var prods = names.filter(function(n){ return NON_PRODUCT.indexOf(displayGroup(n)) === -1 && pt[n].rev > 0; })
+      .sort(function(a,b){ return pt[b].rev - pt[a].rev; });
+    if (prods.length >= 5){
+      var total = prods.reduce(function(a,n){ return a + pt[n].rev; }, 0);
+      var top20n = Math.max(1, Math.round(prods.length * 0.2)), top20 = 0;
+      prods.slice(0, top20n).forEach(function(n){ top20 += pt[n].rev; });
+      var acc = 0, k80 = 0;
+      for (var i=0;i<prods.length;i++){ acc += pt[prods[i]].rev; k80 = i+1; if (acc >= total*0.8) break; }
+      var tail = prods.filter(function(n){ return pt[n].rev < total * 0.001; });
+      html += '<h4>80/20 法則：營收集中在少數品項嗎？</h4>' + miniHtml([
+        ["前 20% 品項（" + top20n + " 項）", (top20/total*100).toFixed(1) + "%", "貢獻的營收比例"],
+        ["湊到 80% 營收需要", k80 + " 項", "佔品項數 " + (k80/prods.length*100).toFixed(0) + "%"],
+        ["營收不到千分之一的品項", tail.length + " 項", "長尾品項"]
+      ]);
+      html += '<div class="insight"><b>怎麼看：</b>前 20% 的品項貢獻 ' + (top20/total*100).toFixed(0) + '% 營收' +
+        (top20/total >= 0.7 ? '，營收高度集中在少數招牌品項，這些品項缺貨或品質出問題的影響會很大。' : '，營收分散得還算平均，不太依賴單一品項。') +
+        (tail.length ? '另外有 ' + tail.length + ' 個品項幾乎沒有貢獻營收，可以檢討是否值得繼續備貨。' : '') + '</div>';
+    }
+
+    // 新上架 / 最近沒賣（需要 2 份以上的商品報表）
+    var pf = ds.productFiles || [];
+    if (pf.length >= 3){
+      var last = pf[pf.length-1], earlier = {}, recent = {};
+      pf.slice(0, -1).forEach(function(f){ Object.keys(f.products).forEach(function(n){ earlier[n] = true; }); });
+      // 「最近」= 最後一個月往前推 3 個月內開始的報表（月報、季報混用時也公平）
+      var lastMk = ds.months[ds.months.length-1], ly = +lastMk.split("-")[0], lm = +lastMk.split("-")[1] - 2;
+      if (lm < 1){ lm += 12; ly--; }
+      var cutoff = ly + "-" + (lm<10?"0"+lm:lm);
+      var recentFiles = pf.filter(function(f){ return (f.end || f.start) >= cutoff; });
+      if (!recentFiles.length) recentFiles = [last];
+      recentFiles.forEach(function(f){ Object.keys(f.products).forEach(function(n){ recent[n] = true; }); });
+      var isProd = function(n){ return NON_PRODUCT.indexOf(displayGroup(n)) === -1; };
+      var newOnes = Object.keys(last.products).filter(function(n){ return !earlier[n] && isProd(n); });
+      var gone = Object.keys(earlier).filter(function(n){ return !recent[n] && isProd(n); }).sort(function(a,b){ return pt[b].qty - pt[a].qty; });
+      html += '<div class="two-col"><div><h4>最新一期（' + esc(last.label) + '）才出現的品項：' + newOnes.length + ' 項</h4>' +
+        (newOnes.length ? hbarHtml(newOnes.slice(0,8).map(function(n){ return { name:n, val:last.products[n].qty }; }), function(v){ return fmtInt(v) + " 份"; }) : '<div class="hint">沒有新品項</div>') + '</div>' +
+        '<div><h4>涵蓋最近 3 個月的報表裡都沒出現的品項：' + gone.length + ' 項</h4>' +
+        (gone.length ? hbarHtml(gone.slice(0,8).map(function(n){ return { name:n, val:pt[n].qty }; }), function(v){ return "過去共 " + fmtInt(v) + " 份"; }) : '<div class="hint">沒有</div>') + '</div></div>';
+      html += '<div class="hint">「沒賣」可能是下架、缺貨、季節限定，或只是名稱改了（例如多一個空格），需要人工確認。</div>';
+    }
+    return html;
+  }
+
+  // ---- 4. 季節 ----
+  function drillSeason(ds){
+    var val = function(mk){ return ds.hasAmount ? (ds.revMonthly[mk]||0) : (ds.qtyMonthly[mk]||0); };
+    var fmtV = ds.hasAmount ? fmtMoney : function(v){ return fmtInt(v) + " 份"; };
+    var rows = SEASON_NAMES.map(function(nm, si){
+      var mks = ds.months.filter(function(mk){ return SEASON_MONTHS[si].indexOf(monthNumOf(mk)-1) !== -1; });
+      var sum = 0; mks.forEach(function(mk){ sum += val(mk); });
+      return { name:nm, n:mks.length, sum:sum, avg: mks.length ? sum/mks.length : 0, hi: si === NEXT_SEASON_IDX };
+    });
+    var tot = rows.reduce(function(a,r){ return a + r.sum; }, 0);
+    var html = '<div class="recon-wrap"><table class="recon-table"><thead><tr><th>季節</th><th>有資料的月份</th><th>合計</th><th>佔比</th><th>每月平均</th></tr></thead><tbody>' +
+      rows.map(function(r){ return '<tr><td>' + r.name + (r.hi ? ' <span class="badge ai">下一季</span>' : '') + '</td><td>' + r.n + '</td><td>' + esc(fmtV(r.sum)) + '</td><td>' + (tot ? (r.sum/tot*100).toFixed(1) + "%" : "—") + '</td><td>' + esc(r.n ? fmtV(r.avg) : "—") + '</td></tr>'; }).join("") +
+      '</tbody></table></div>';
+    html += '<h4>每月平均（比較公平的比法）</h4>' + hbarHtml(rows.filter(function(r){ return r.n; }).map(function(r){ return { name:r.name, val:r.avg, hi:r.hi }; }), fmtV);
+    var withData = rows.filter(function(r){ return r.n; }).sort(function(a,b){ return b.avg - a.avg; });
+    var uneven = rows.some(function(r){ return r.n && r.n !== rows.filter(function(x){ return x.n; })[0].n; });
+    if (withData.length >= 2){
+      var best = withData[0], worst = withData[withData.length-1];
+      html += '<div class="insight"><b>怎麼看：</b>以每月平均來看，' + best.name + '最旺、' + worst.name + '最淡，相差 ' + Math.round((best.avg/worst.avg - 1)*100) + '%。' +
+        (uneven ? '各季節的月份數不一樣，所以「佔比」會被月份數影響，請以「每月平均」為準。' : '') + '</div>';
+    }
+    return html;
+  }
+
+  var DRILL_TITLES = { rev:"營業額細節", qty:"銷售量細節", items:"品項細節", season:"季節細節" };
+  function renderDrill(){
+    var panel = document.getElementById("drillPanel");
+    var ds = state.dataset;
+    Array.prototype.forEach.call(document.querySelectorAll("[data-drill]"), function(el){
+      el.setAttribute("aria-expanded", String(el.getAttribute("data-drill") === state.drill));
+      var more = el.querySelector(".more"); if (more) more.textContent = el.getAttribute("data-drill") === state.drill ? "收起 ▴" : "點開看細節 ▾";
+    });
+    if (!state.drill){ panel.hidden = true; panel.innerHTML = ""; return; }
+    var body = "";
+    try {
+      body = state.drill === "rev" ? drillRev(ds) : state.drill === "qty" ? drillQty(ds) : state.drill === "items" ? drillItems(ds) : drillSeason(ds);
+    } catch(e){ body = '<div class="empty-note">這份資料暫時算不出細節（' + esc(e.message) + '）</div>'; }
+    panel.innerHTML = '<div class="drill-head"><div class="drill-title">' + DRILL_TITLES[state.drill] + '</div><button type="button" class="drill-close" id="drillClose">收起</button></div>' + body;
+    panel.hidden = false;
+  }
+
+  function toggleDrill(key){
+    state.drill = state.drill === key ? null : key;
+    renderDrill();
+    if (state.drill) logAppend("查看細節", "", "ok", DRILL_TITLES[key]);
+  }
+  Array.prototype.forEach.call(document.querySelectorAll("[data-drill]"), function(el){
+    el.addEventListener("click", function(){ toggleDrill(el.getAttribute("data-drill")); });
+    el.addEventListener("keydown", function(e){ if (e.key === "Enter" || e.key === " "){ e.preventDefault(); toggleDrill(el.getAttribute("data-drill")); } });
+  });
+  document.getElementById("drillPanel").addEventListener("click", function(e){
+    var t = e.target;
+    if (t.id === "drillClose"){ state.drill = null; renderDrill(); return; }
+    if (t.closest && t.closest("#qtyChips") && t.getAttribute("data-f")){ state.qtyFilter = t.getAttribute("data-f"); renderDrill(); }
+  });
+
+
+
+  // ================= 卡片收合（點標題展開／收起） =================
+  function setOpen(head, body, open){
+    head.setAttribute("aria-expanded", String(open));
+    body.hidden = !open;
+  }
+  function makeCardCollapsible(card){
+    var head = card.querySelector(":scope > .card-head");
+    if (!head || head.classList.contains("toggle")) return;
+    var body = document.createElement("div");
+    body.className = "card-body";
+    while (head.nextSibling) body.appendChild(head.nextSibling);
+    card.appendChild(body);
+    // 標題右側：原本的說明文字 + 收起時才顯示的摘要 + 箭頭
+    var right = document.createElement("div"); right.className = "head-right";
+    var note = head.querySelector(".card-note"); if (note) right.appendChild(note);
+    var sum = document.createElement("span"); sum.className = "card-sum"; right.appendChild(sum);
+    var chev = document.createElement("span"); chev.className = "chev"; chev.textContent = "▾"; chev.setAttribute("aria-hidden","true"); right.appendChild(chev);
+    head.appendChild(right);
+    head.classList.add("toggle");
+    head.setAttribute("role","button"); head.setAttribute("tabindex","0");
+    setOpen(head, body, card.getAttribute("data-open") === "1");
+    function flip(){ setOpen(head, body, head.getAttribute("aria-expanded") !== "true"); }
+    head.addEventListener("click", flip);
+    head.addEventListener("keydown", function(e){ if (e.key === "Enter" || e.key === " "){ e.preventDefault(); flip(); } });
+  }
+  function makeSecCollapsible(sec, open){
+    var h = sec.querySelector(":scope > h3");
+    if (!h || h.classList.contains("toggle")) return;
+    var body = document.createElement("div"); body.className = "sec-body";
+    while (h.nextSibling) body.appendChild(h.nextSibling);
+    sec.appendChild(body);
+    var chev = document.createElement("span"); chev.className = "chev"; chev.textContent = "▾"; chev.setAttribute("aria-hidden","true");
+    h.appendChild(chev);
+    h.classList.add("toggle"); h.setAttribute("role","button"); h.setAttribute("tabindex","0");
+    setOpen(h, body, open);
+    function flip(){ setOpen(h, body, h.getAttribute("aria-expanded") !== "true"); }
+    h.addEventListener("click", flip);
+    h.addEventListener("keydown", function(e){ if (e.key === "Enter" || e.key === " "){ e.preventDefault(); flip(); } });
+  }
+  Array.prototype.forEach.call(document.querySelectorAll(".wrap > .card"), makeCardCollapsible);
+  Array.prototype.forEach.call(document.querySelectorAll("#wineCard .wine-sec"), function(sec, i){ makeSecCollapsible(sec, i === 0); });
+
+  function setAll(open){
+    Array.prototype.forEach.call(document.querySelectorAll(".card-head.toggle, .wine-sec h3.toggle"), function(h){
+      setOpen(h, h.nextElementSibling && h.nextElementSibling.matches(".card-body,.sec-body") ? h.nextElementSibling : h.parentNode.querySelector(":scope > .card-body, :scope > .sec-body"), open);
+    });
+  }
+  document.getElementById("btnExpandAll").addEventListener("click", function(){ setAll(true); });
+  document.getElementById("btnCollapseAll").addEventListener("click", function(){ setAll(false); });
+
+  // 收起時標題旁顯示的一句話重點
+  function setSum(cardId, text){
+    var c = document.getElementById(cardId); if (!c) return;
+    var s = c.querySelector(".card-sum"); if (s) s.textContent = text || "";
+  }
+  function updateSummaries(){
+    var ds = state.dataset;
+    try {
+      setSum("srcCard", ds.label);
+      var tot = monthsTotal(ds);
+      setSum("overviewCard", (ds.hasAmount ? fmtMoney(tot.totalRev) : fmtInt(tot.totalQty) + " 份") + " · " + ds.months.length + " 個月");
+      if (ds.months.length){
+        var v = function(mk){ return ds.hasAmount ? (ds.revMonthly[mk]||0) : (ds.qtyMonthly[mk]||0); };
+        var hi = ds.months.slice().sort(function(a,b){ return v(b)-v(a); })[0];
+        setSum("trendCard", "最高：" + monthLabelOf(hi) + " " + (ds.hasAmount ? fmtMoney(v(hi)) : fmtInt(v(hi)) + " 份"));
+      }
+      if (ds.recon && ds.recon.length){
+        var gaps = ds.recon.map(function(r){ return r.dailyRev ? (r.dailyRev - r.productRev)/r.dailyRev*100 : 0; });
+        setSum("reconCard", "落差 " + Math.min.apply(null,gaps).toFixed(1) + "%～" + Math.max.apply(null,gaps).toFixed(1) + "%");
+      }
+      if (ds.viewMode === "subset"){
+        var rr = ds.snapshotRec;
+        setSum("rankCard", rr && rr.items && rr.items[0] ? "當時推薦第 1 名：" + rr.items[0].name : "沒有當時的推薦");
+      } else {
+        var top = seasonRatios(ds).list[0];
+        setSum("rankCard", top && seasonRatios(ds).targetMonths.length ? "推薦第 1 名：" + top.name : "暫時無法推薦");
+      }
+      if (state.lastWine && !document.getElementById("wineCard").hidden){
+        var T = state.lastWine.T, self = T.byob + T.waived;
+        setSum("wineCard", "自帶占比 " + pctStr(self, self + T.inB) + "（瓶數）");
+      }
+      setSum("logCard", allLogEntries().length + " 筆紀錄");
+    } catch(e){ /* 摘要失敗不影響主畫面 */ }
+  }
+
+  // ---------------- 檔案解析：CSV / Excel 都吃，多檔一次丟 ----------------
+  function sheetToRows(workbook){
+    var wsName = workbook.SheetNames[0];
+    var ws = workbook.Sheets[wsName];
+    return XLSX.utils.sheet_to_json(ws, { header:1, raw:true, defval:"" });
+  }
+
+  function parseCsvRows(text){
+    var lines = text.split(/\r\n|\n|\r/).filter(function(l){ return l.length>0; });
+    return lines.map(function(l){ return l.split(","); });
+  }
+
+  function excelDateToYMD(v){
+    // 支援 Excel 序列日期數字，或字串日期
+    if (typeof v === "number"){
+      var d = new Date(Math.round((v - 25569) * 86400 * 1000));
+      return { y:d.getUTCFullYear(), m:d.getUTCMonth()+1 };
+    }
+    var s = String(v||"").trim();
+    var m1 = s.match(/(\d{4})[\/\-](\d{1,2})/);
+    if (m1) return { y:parseInt(m1[1],10), m:parseInt(m1[2],10) };
+    return null;
+  }
+
+  // 從檔名抓出期間：「商品排行_2024-10-01_2024-12-31」→ 2024-10、2024-11、2024-12 三個月
+  function periodFromFilename(name){
+    var re = /(\d{4})[\-\/]?(\d{2})[\-\/]?(\d{2})/g, found = [], m;
+    while ((m = re.exec(name)) !== null){ found.push({ y:parseInt(m[1],10), m:parseInt(m[2],10) }); }
+    if (!found.length){
+      var re2 = /(\d{4})[\-\/](\d{1,2})(?!\d)/g;
+      while ((m = re2.exec(name)) !== null){ found.push({ y:parseInt(m[1],10), m:parseInt(m[2],10) }); }
+    }
+    if (!found.length) return null;
+    var a = found[0], b = found.length > 1 ? found[found.length-1] : found[0];
+    var months = [], y = a.y, mo = a.m, guard = 0;
+    while ((y < b.y || (y === b.y && mo <= b.m)) && guard < 60){
+      months.push(y + "-" + (mo<10?"0"+mo:mo));
+      mo++; if (mo > 12){ mo = 1; y++; } guard++;
+    }
+    if (!months.length) months = [a.y + "-" + (a.m<10?"0"+a.m:a.m)];
+    var label = months.length === 1 ? monthLabelOf(months[0]) : (monthLabelOf(months[0]) + "–" + monthLabelOf(months[months.length-1]));
+    return { months:months, label:label };
+  }
+
+  function monthFromFilename(name){
+    var m = name.match(/(\d{4})[\-\/]?(\d{2})[\-\/]?(\d{2})/);
+    if (m) return { y:parseInt(m[1],10), m:parseInt(m[2],10) };
+    return null;
+  }
+
+  function findColIdx(headers, mustContainAny, mustNotContain){
+    for (var i=0;i<headers.length;i++){
+      var h = String(headers[i]||"");
+      var hit = mustContainAny.some(function(k){ return h.indexOf(k) !== -1; });
+      var bad = (mustNotContain||[]).some(function(k){ return h.indexOf(k) !== -1; });
+      if (hit && !bad) return i;
+    }
+    return -1;
+  }
+  function findExactIdx(headers, exact){
+    for (var i=0;i<headers.length;i++){ if (String(headers[i]||"") === exact) return i; }
+    return -1;
+  }
+
+  // ================= 欄位辨識：記住的格式 → 內建對照表 → 問老闆 =================
+  // 內建對照表（同義詞表）：左邊是系統要的欄位，右邊是各家 POS 可能的寫法
+  var SYN = {
+    date:["日期","交易日","營業日","Date"],
+    rev:["營業額","營收","銷貨總計","銷售總額","實收金額","實收","Revenue","Sales"],
+    cust:["來客數","來客","人數","客數","Guests"],
+    disc:["折扣"],
+    name:["名稱","商品","品項","品名","Item"],
+    qty:["銷售量","銷量","數量","份數","Qty","Quantity"],
+    amt:["銷售額","金額","小計","Amount"]
+  };
+  var NOT_CHANGE = ["變化","%","％","率"];
+  var FIELD_LABELS = { date:"日期", rev:"營業額", cust:"來客數", disc:"折扣金額", name:"商品名稱", qty:"銷售量", amt:"銷售額" };
+  var KIND_FIELDS = { daily:[["date",1],["rev",1],["cust",0],["disc",0]], product:[["name",1],["qty",1],["amt",0]] };
+  var KIND_NAMES = { daily:"營運總覽", product:"商品排行" };
+  var savedMaps = []; // 老闆指定過的格式：[{fp, kind, cols:{欄位: 欄位名稱}, savedAt}]
+
+  function cleanHeaders(row){ return (row||[]).map(function(h){ return String(h == null ? "" : h).trim(); }); }
+  function fingerprint(headers){ return headers.filter(function(h){ return h; }).join("｜"); }
+  function numVal(v){
+    if (typeof v === "number") return v;
+    var s = String(v == null ? "" : v).replace(/NT\$|NT|\$|元|,|\s/g, "");
+    if (s === "") return NaN;
+    var n = Number(s);
+    return isNaN(n) ? NaN : n;
+  }
+  function normMap(map){
+    var cols = {};
+    KIND_FIELDS[map.kind].forEach(function(p){
+      var v = map.cols ? map.cols[p[0]] : -1;
+      cols[p[0]] = (typeof v === "number" && v >= 0) ? v : -1;
+    });
+    return { kind:map.kind, cols:cols };
+  }
+
+  function autoMapHeaders(headers){
+    var date = findColIdx(headers, SYN.date), rev = findColIdx(headers, SYN.rev, NOT_CHANGE);
+    if (date !== -1 && rev !== -1){
+      return normMap({ kind:"daily", cols:{ date:date, rev:rev, cust:findColIdx(headers, SYN.cust, ["率"]), disc:findColIdx(headers, SYN.disc) } });
+    }
+    var name = findColIdx(headers, SYN.name), qty = findColIdx(headers, SYN.qty, NOT_CHANGE);
+    if (name !== -1 && qty !== -1){
+      var amt = findExactIdx(headers, "銷售額");
+      if (amt === -1) amt = findColIdx(headers, SYN.amt, NOT_CHANGE);
+      return normMap({ kind:"product", cols:{ name:name, qty:qty, amt:amt } });
+    }
+    return null;
+  }
+
+  function savedMapFor(headers){
+    var fp = fingerprint(headers);
+    for (var i=savedMaps.length-1; i>=0; i--){
+      var m = savedMaps[i];
+      if (m.fp !== fp || !KIND_FIELDS[m.kind]) continue;
+      var cols = {}, ok = true;
+      KIND_FIELDS[m.kind].forEach(function(p){
+        var nm = m.cols[p[0]];
+        cols[p[0]] = nm ? headers.indexOf(nm) : -1;
+        if (p[1] && cols[p[0]] === -1) ok = false;
+      });
+      if (ok) return { kind:m.kind, cols:cols };
+    }
+    return null;
+  }
+
+  // 前 10 列裡找「欄位名稱列」：報表最上面常有店名、日期區間這種標題列
+  function detectHeaderRow(rows){
+    var lim = Math.min(10, rows.length);
+    for (var h=0; h<lim; h++){
+      var headers = cleanHeaders(rows[h]);
+      var m = savedMapFor(headers);
+      if (m) return { h:h, map:m, source:"記住的格式" };
+      m = autoMapHeaders(headers);
+      if (m) return { h:h, map:m, source:"內建對照表" };
+    }
+    return null;
+  }
+  function guessHeaderRow(rows){
+    var lim = Math.min(10, rows.length);
+    for (var h=0; h<lim; h++){
+      var texts = cleanHeaders(rows[h]).filter(function(c){ return c && isNaN(numVal(c)); });
+      if (texts.length >= 2) return h;
+    }
+    return 0;
+  }
+
+  function extractWith(fileName, rows, h, map, manualMonth){
+    var c = map.cols;
+    var body = rows.slice(h+1).filter(function(r){ return r && r.length && r.some(function(x){ return String(x).trim() !== ""; }); });
+    function col(r, k){ return c[k] > -1 ? r[c[k]] : undefined; }
+
+    if (map.kind === "daily"){
+      // 類型一：每日營運總覽
+      var revByMonth = {}, qtyByMonth = {}, discByMonth = {}, openByMonth = {}, daysByMonth = {};
+      body.forEach(function(r){
+        var dm = excelDateToYMD(col(r, "date"));
+        if (!dm) return;
+        var mk = dm.y + "-" + (dm.m<10?"0"+dm.m:dm.m);
+        var rev = numVal(col(r, "rev")) || 0;
+        var cust = c.cust > -1 ? (numVal(col(r, "cust")) || 0) : 0;
+        revByMonth[mk] = (revByMonth[mk]||0) + rev;
+        qtyByMonth[mk] = (qtyByMonth[mk]||0) + cust;
+        discByMonth[mk] = (discByMonth[mk]||0) + (c.disc > -1 ? (numVal(col(r, "disc")) || 0) : 0);
+        daysByMonth[mk] = (daysByMonth[mk]||0) + 1;
+        if (rev > 0) openByMonth[mk] = (openByMonth[mk]||0) + 1;
+      });
+      var months = Object.keys(revByMonth);
+      if (!months.length) return { ok:false, reason:"有找到日期／營業額欄位，但沒有讀到任何有效的一列資料（日期格式可能看不懂）" };
+      return { ok:true, type:"daily", typeName:"營運總覽", months:months, revByMonth:revByMonth, custByMonth:qtyByMonth, discByMonth:discByMonth, openByMonth:openByMonth, daysByMonth:daysByMonth, hasCust: c.cust > -1, hasDisc: c.disc > -1 };
+    }
+
+    // 類型二：商品排行（單一期間的快照，月份從檔名猜，猜不到就問老闆）
+    var period = manualMonth ? periodFromFilename(manualMonth) : periodFromFilename(fileName);
+    if (!period) return { ok:false, needsMonth:true, reason:"這是商品排行類的報表，但檔名裡找不到日期，沒辦法判斷是哪個月份" };
+    var mk2 = period.months[0];
+    var products = {};
+    body.forEach(function(r){
+      var nm = String(col(r, "name") == null ? "" : col(r, "name")).replace(/[\s　]+/g, " ").replace(/\s*\(\s*/g, "(").trim(); // 統一空白，避免同一品項因多一個空格被拆成兩個
+      if (!nm) return;
+      var q = numVal(col(r, "qty")) || 0;
+      var rv = c.amt > -1 ? (numVal(col(r, "amt")) || 0) : 0;
+      if (!products[nm]) products[nm] = { qty:0, rev:0 };
+      products[nm].qty += q;
+      products[nm].rev += rv;
+    });
+    if (!Object.keys(products).length) return { ok:false, reason:"有找到商品欄位，但沒有讀到任何有效的一列資料" };
+    return { ok:true, type:"product", typeName:"商品排行", month:mk2, periodMonths:period.months, periodLabel:period.label, products:products, hasRev: c.amt > -1 };
+  }
+
+  function classifyAndExtract(fileName, rows){
+    if (!rows.length) return { ok:false, reason:"檔案是空的" };
+    var det = detectHeaderRow(rows);
+    if (!det) return { ok:false, needsMapping:true, rows:rows, reason:"欄位名稱跟內建對照表對不上，看不出這是「營運總覽」還是「商品排行」" };
+    var r = extractWith(fileName, rows, det.h, det.map);
+    r.mapSource = det.source;
+    if (!r.ok && r.needsMonth){ r.needsMapping = true; r.rows = rows; r.preset = det; }
+    return r;
+  }
+
+  function mergeParsedFiles(parsedList){
+    var dailyRevByMonth = {}, dailyQtyByMonth = {};
+    var productMonthly = {}; // name -> {month: qty}
+    var productPeriods = []; // 每份商品報表的期間 + 銷售額加總（拿來對帳）
+    var productFiles = [];   // 每份商品報表原樣保留（酒水分析用）
+    var hasMultiMonthProduct = false;
+    var dailyExtra = { disc:{}, open:{}, days:{}, hasCust:false, hasDisc:false };
+    var allMonthsSet = {};
+
+    parsedList.forEach(function(p){
+      if (!p.ok) return;
+      if (p.type === "daily"){
+        p.months.forEach(function(mk){
+          dailyRevByMonth[mk] = (dailyRevByMonth[mk]||0) + p.revByMonth[mk];
+          dailyQtyByMonth[mk] = (dailyQtyByMonth[mk]||0) + (p.custByMonth[mk]||0);
+          dailyExtra.disc[mk] = (dailyExtra.disc[mk]||0) + (p.discByMonth[mk]||0);
+          dailyExtra.open[mk] = (dailyExtra.open[mk]||0) + (p.openByMonth[mk]||0);
+          dailyExtra.days[mk] = (dailyExtra.days[mk]||0) + (p.daysByMonth[mk]||0);
+          if (p.hasCust) dailyExtra.hasCust = true;
+          if (p.hasDisc) dailyExtra.hasDisc = true;
+          allMonthsSet[mk] = true;
+        });
+      } else if (p.type === "product"){
+        var pm = p.periodMonths || [p.month];
+        pm.forEach(function(mk){ allMonthsSet[mk] = true; });
+        var monthRevSum = 0;
+        Object.keys(p.products).forEach(function(name){
+          if (!productMonthly[name]) productMonthly[name] = {};
+          // 一份報表涵蓋好幾個月（例如季報）時，銷量平均分攤到每個月（近似值）
+          var share = p.products[name].qty / pm.length;
+          pm.forEach(function(mk){ productMonthly[name][mk] = (productMonthly[name][mk]||0) + share; });
+          monthRevSum += p.products[name].rev;
+        });
+        if (pm.length > 1) hasMultiMonthProduct = true;
+        if (p.hasRev){
+          productPeriods.push({ months:pm, label:p.periodLabel || monthLabelOf(p.month), productRev:monthRevSum });
+        }
+        productFiles.push({ label:p.periodLabel || monthLabelOf(p.month), start:pm[0], end:pm[pm.length-1], products:p.products });
+      }
+    });
+
+    var months = Object.keys(allMonthsSet).sort();
+    var recon = [];
+    // 對帳改成「同一段期間」比：商品報表涵蓋哪幾個月，就把營運總覽那幾個月加總起來比
+    productPeriods.sort(function(a,b){ return a.months[0] < b.months[0] ? -1 : 1; });
+    productPeriods.forEach(function(pp){
+      var allHave = pp.months.every(function(mk){ return dailyRevByMonth[mk] !== undefined; });
+      if (!allHave) return;
+      var d = 0; pp.months.forEach(function(mk){ d += dailyRevByMonth[mk]; });
+      recon.push({ label:pp.label, dailyRev:d, productRev:pp.productRev });
+    });
+    productFiles.sort(function(a,b){ return a.start < b.start ? -1 : 1; });
+
+    var hasAmount = Object.keys(dailyRevByMonth).length > 0;
+
+    return {
+      label: "你上傳的報表",
+      months: months,
+      hasAmount: hasAmount,
+      productMonthly: productMonthly,
+      revMonthly: dailyRevByMonth,
+      qtyMonthly: dailyQtyByMonth,
+      recon: recon,
+      productFiles: productFiles,
+      hasMultiMonthProduct: hasMultiMonthProduct,
+      daily: Object.keys(dailyExtra.days).length ? dailyExtra : null,
+      files: parsedList
+    };
+  }
+
+  function byId(id){ return document.getElementById(id); }
+  var appDb = null; // 雲端資料庫；null 代表只存在這個頁面
+
+  // ================= 欄位對應視窗（認不得的欄位問老闆） =================
+  var dlg = { item:null, resolve:null, confirmWarn:false };
+
+  function loadMappings(db){
+    return db.doc("settings/columnMappings").get().then(function(d){
+      var data = d && d.exists ? d.data() : null;
+      if (data && Array.isArray(data.maps)){
+        savedMaps = data.maps.filter(function(m){ return m && typeof m.fp === "string" && KIND_FIELDS[m.kind] && m.cols && typeof m.cols === "object"; });
+      }
+    }).catch(function(){ /* 讀不到就用內建對照表 */ });
+  }
+  function rememberMapping(headers, map){
+    var cols = {};
+    KIND_FIELDS[map.kind].forEach(function(p){ cols[p[0]] = map.cols[p[0]] > -1 ? headers[map.cols[p[0]]] : ""; });
+    var fp = fingerprint(headers);
+    savedMaps = savedMaps.filter(function(m){ return m.fp !== fp; });
+    savedMaps.push({ fp:fp, kind:map.kind, cols:cols, savedAt:new Date().toISOString() });
+    savedMaps = savedMaps.slice(-100);
+    if (appDb) appDb.doc("settings/columnMappings").set({ maps:savedMaps }).catch(function(){ /* 存不進去，這次頁面內仍然有效 */ });
+  }
+
+  function currentKind(){ var k = document.querySelector('input[name="mapKind"]:checked'); return k ? k.value : "daily"; }
+  function setKind(k){ Array.prototype.forEach.call(document.querySelectorAll('input[name="mapKind"]'), function(x){ x.checked = x.value === k; }); }
+  function dlgHeaderRow(){ return +byId("mapHeaderRow").value || 0; }
+  function currentHeaders(){ return cleanHeaders(dlg.item.rows[dlgHeaderRow()] || []); }
+
+  function buildMapFields(map){
+    var item = dlg.item, h = dlgHeaderRow(), headers = currentHeaders(), kind = currentKind();
+    var rows = item.rows.slice(h+1, h+4);
+    var ncol = headers.length;
+    rows.forEach(function(r){ if (r && r.length > ncol) ncol = r.length; });
+    ncol = Math.min(ncol, 40);
+
+    // 預覽：讓老闆看到真實數字，比看欄位名稱更容易判斷
+    var html = "<thead><tr>";
+    for (var i=0;i<ncol;i++) html += "<th>" + esc(headers[i] || "（第" + (i+1) + "欄）") + "</th>";
+    html += "</tr></thead><tbody>";
+    rows.forEach(function(r){
+      html += "<tr>";
+      for (var j=0;j<ncol;j++){ var v = r ? r[j] : ""; html += "<td>" + esc(v == null ? "" : v) + "</td>"; }
+      html += "</tr>";
+    });
+    byId("mapPreview").innerHTML = html + "</tbody>";
+
+    var auto = map || savedMapFor(headers) || autoMapHeaders(headers);
+    var box = byId("mapFields");
+    box.innerHTML = "";
+    KIND_FIELDS[kind].forEach(function(p){
+      var f = p[0];
+      var lab = document.createElement("label"); lab.className = "fld";
+      var span = document.createElement("span"); span.className = "mapfld-label";
+      span.textContent = FIELD_LABELS[f] + (p[1] ? " " : "（可不選）");
+      if (p[1]){ var star = document.createElement("span"); star.className = "req"; star.textContent = "*"; span.appendChild(star); }
+      var sel = document.createElement("select"); sel.id = "mapF_" + f;
+      var o0 = document.createElement("option"); o0.value = "-1"; o0.textContent = "（不選）"; sel.appendChild(o0);
+      for (var i=0;i<ncol;i++){
+        var o = document.createElement("option"); o.value = String(i);
+        o.textContent = "第 " + (i+1) + " 欄：" + (headers[i] || "（空白）");
+        sel.appendChild(o);
+      }
+      if (auto && auto.kind === kind && auto.cols[f] > -1 && auto.cols[f] < ncol) sel.value = String(auto.cols[f]);
+      lab.appendChild(span); lab.appendChild(sel); box.appendChild(lab);
+    });
+    byId("mapMonthWrap").hidden = kind !== "product" || !!periodFromFilename(item.fileName);
+    dlg.confirmWarn = false;
+  }
+
+  function askMapping(item){
+    return new Promise(function(resolve){
+      dlg.item = item; dlg.resolve = resolve; dlg.confirmWarn = false;
+      var rows = item.rows;
+      byId("mapFile").textContent = "檔案：「" + item.fileName + "」" +
+        (item.needsMonth ? "——欄位看懂了，但檔名裡沒有日期，請告訴我這是哪個月份。" : "——欄位名稱跟內建對照表對不上，請告訴我每一欄是什麼。下面是檔案的前幾列，看數字比較好判斷。");
+      var hs = byId("mapHeaderRow"); hs.innerHTML = "";
+      for (var h=0; h<Math.min(10, rows.length); h++){
+        var o = document.createElement("option"); o.value = String(h); o.textContent = "第 " + (h+1) + " 列"; hs.appendChild(o);
+      }
+      var preset = item.preset;
+      hs.value = String(preset ? preset.h : guessHeaderRow(rows));
+      setKind(preset ? preset.map.kind : (autoMapHeaders(cleanHeaders(rows[+hs.value] || [])) || { kind:"daily" }).kind);
+      buildMapFields(preset ? preset.map : null);
+      byId("mapMonth").value = "";
+      byId("mapMsg").textContent = "";
+      byId("mapAi").hidden = !sampleFn;
+      byId("mapAi").disabled = false;
+      byId("mapRemember").checked = true;
+      var d = byId("mapDlg");
+      if (typeof d.showModal === "function"){ try { d.showModal(); } catch(e){ d.setAttribute("open", ""); } }
+      else d.setAttribute("open", "");
+    });
+  }
+  function closeMap(result){
+    var d = byId("mapDlg");
+    if (typeof d.close === "function" && d.open) d.close(); else d.removeAttribute("open");
+    var r = dlg.resolve; dlg.resolve = null;
+    if (r) r(result);
+  }
+
+  byId("mapHeaderRow").addEventListener("change", function(){ buildMapFields(null); });
+  Array.prototype.forEach.call(document.querySelectorAll('input[name="mapKind"]'), function(x){
+    x.addEventListener("change", function(){ buildMapFields(null); });
+  });
+  byId("mapSkip").addEventListener("click", function(){ closeMap(null); });
+  byId("mapDlg").addEventListener("cancel", function(e){ e.preventDefault(); closeMap(null); });
+  byId("mapOk").addEventListener("click", function(){
+    if (!dlg.item) return;
+    var kind = currentKind(), cols = {}, missing = [];
+    KIND_FIELDS[kind].forEach(function(p){
+      var el = byId("mapF_" + p[0]);
+      var v = el ? parseInt(el.value, 10) : -1;
+      cols[p[0]] = isNaN(v) ? -1 : v;
+      if (p[1] && cols[p[0]] < 0) missing.push(FIELD_LABELS[p[0]]);
+    });
+    var msg = byId("mapMsg");
+    if (missing.length){ msg.textContent = "還沒選：" + missing.join("、"); return; }
+    var month = byId("mapMonth").value;
+    if (kind === "product" && !periodFromFilename(dlg.item.fileName) && !month){ msg.textContent = "請選擇這份商品報表是哪個月份。"; return; }
+    // 合理性檢查：營業額／銷售量那一欄，大部分應該是數字
+    var numField = kind === "daily" ? "rev" : "qty";
+    var h = dlgHeaderRow();
+    var sampleRows = dlg.item.rows.slice(h+1, h+21).filter(function(r){ return r && r.some(function(x){ return String(x).trim() !== ""; }); });
+    var numeric = sampleRows.filter(function(r){ return !isNaN(numVal(r[cols[numField]])); }).length;
+    if (sampleRows.length && numeric / sampleRows.length < 0.5 && !dlg.confirmWarn){
+      dlg.confirmWarn = true;
+      msg.textContent = "提醒：你選的「" + FIELD_LABELS[numField] + "」這一欄，大部分不是數字，可能選錯了。確定沒問題的話，再按一次「確認」。";
+      return;
+    }
+    closeMap({ h:h, map:{ kind:kind, cols:cols }, month:month, remember:byId("mapRemember").checked, headers:currentHeaders() });
+  });
+
+  // AI 先猜，老闆確認
+  byId("mapAi").addEventListener("click", function(){
+    if (!sampleFn || !dlg.item) return;
+    var btn = byId("mapAi"), msg = byId("mapMsg");
+    var h = dlgHeaderRow(), headers = currentHeaders(), item = dlg.item;
+    var rows = item.rows.slice(h+1, h+6);
+    btn.disabled = true;
+    msg.textContent = "AI 判斷中（約 10–30 秒）⋯⋯";
+    var prompt =
+      "你在幫餐廳老闆整理 POS 匯出的報表。下面是一份報表的欄位名稱（含欄位編號，從 0 開始）和前幾列資料。\n" +
+      "請判斷：\n1. kind：這是哪一種報表。daily＝每一列是一天，有日期和當天營業額；product＝每一列是一個商品，有商品名稱和銷售數量。\n" +
+      "2. cols：每個項目對應到第幾欄（填欄位編號數字，找不到填 -1）。daily 要找 date（日期）、rev（當日營業額）、cust（來客數）、disc（折扣金額）；product 要找 name（商品名稱）、qty（銷售數量，不是變化量）、amt（銷售金額，不是變化量）。\n" +
+      "3. reason：繁體中文一句話，30 字以內，說明判斷依據。\n" +
+      "只能根據提供的欄位和資料判斷，不確定的項目填 -1，不要猜。\n" +
+      "只回傳 JSON：{\"kind\":\"daily\",\"cols\":{\"date\":-1,\"rev\":-1,\"cust\":-1,\"disc\":-1,\"name\":-1,\"qty\":-1,\"amt\":-1},\"reason\":\"\"}\n\n" +
+      "欄位：\n" + headers.map(function(x, i){ return i + "：" + (x || "（空白）"); }).join("\n") +
+      "\n\n前幾列資料：\n" + rows.map(function(r){ return JSON.stringify(r); }).join("\n");
+    sampleFn.json(prompt, { modelTier:"quick" }).then(function(res){
+      if (dlg.item !== item) return; // 視窗已經換到別的檔案
+      var kind = res && (res.kind === "product" ? "product" : res.kind === "daily" ? "daily" : null);
+      if (!kind) throw { code:"bad_answer" };
+      var cols = {};
+      KIND_FIELDS[kind].forEach(function(p){
+        var v = res.cols ? parseInt(res.cols[p[0]], 10) : -1;
+        cols[p[0]] = (!isNaN(v) && v >= 0 && v < 40) ? v : -1;
+      });
+      setKind(kind);
+      buildMapFields({ kind:kind, cols:cols });
+      msg.textContent = "AI 建議：這是「" + KIND_NAMES[kind] + "」。" + (res.reason ? String(res.reason).slice(0, 60) : "") + "　請確認下拉選單沒問題，再按「確認」。";
+      logAppend("AI 猜欄位", item.fileName, "ok", "AI 判斷為「" + KIND_NAMES[kind] + "」，等老闆確認");
+    }).catch(function(e){
+      msg.textContent = e && e.code === "bad_answer" ? "AI 沒辦法判斷這份報表，請自己選。" : aiErrorText(e);
+      if (e && e.code === "not_granted"){ sampleFn = null; btn.hidden = true; }
+    }).then(function(){ btn.disabled = false; });
+  });
+
+  // ================= 歷史報表（每個月存一份整理好的報表） =================
+  var snapStore = {};          // "2026-09" -> 該月整理好的報表
+  state.view = null;           // null＝目前資料；{type:"all"}、{type:"month", mk}、{type:"range", mks, label}
+  state.userTouched = false;   // 老闆動過畫面後，就不自動切換
+  state.lastRecMonth = null;   // 最新的推薦存在哪個月份
+
+  function mkAdd(mk, n){
+    var y = +mk.split("-")[0], m = +mk.split("-")[1] - 1 + n;
+    y += Math.floor(m / 12); m = ((m % 12) + 12) % 12 + 1;
+    return y + "-" + (m<10?"0"+m:m);
+  }
+  function todayMk(){ var d = new Date(), m = d.getMonth()+1; return d.getFullYear() + "-" + (m<10?"0"+m:m); }
+  function snapMonths(){ return Object.keys(snapStore).sort(); }
+  function r2(x){ return Math.round(x*100)/100; }
+  function monthsBetween(a, b){ var out = [], mk = a, g = 0; while (mk <= b && g < 120){ out.push(mk); mk = mkAdd(mk, 1); g++; } return out.length ? out : [a]; }
+  function seasonMonthsOf(mk){
+    var y = +mk.split("-")[0], m = +mk.split("-")[1];
+    var si = currentSeasonIndex(m-1), startM = SEASON_MONTHS[si][0] + 1;
+    var startY = (si === 3 && m <= 2) ? y-1 : y;
+    var s = startY + "-" + (startM<10?"0"+startM:startM);
+    return [s, mkAdd(s,1), mkAdd(s,2)];
+  }
+  function setHistMsg(t){ var el = byId("histMsg"); if (el) el.textContent = t || ""; }
+
+  function snapshotsFromDataset(ds, fileNames){
+    var out = {}, now = new Date().toISOString();
+    ds.months.forEach(function(mk){
+      var s = { month:mk, savedAt:now, files:fileNames.slice(0, 20) };
+      if (ds.revMonthly[mk] !== undefined){
+        var dx = ds.daily;
+        s.daily = { rev:ds.revMonthly[mk]||0, cust:ds.qtyMonthly[mk]||0,
+          disc: dx ? (dx.disc[mk]||0) : 0, open: dx ? (dx.open[mk]||0) : 0, days: dx ? (dx.days[mk]||0) : 0,
+          hasCust: !!(dx && dx.hasCust), hasDisc: !!(dx && dx.hasDisc) };
+      }
+      var prods = {};
+      (ds.productFiles || []).forEach(function(f){
+        var pm = monthsBetween(f.start, f.end || f.start);
+        if (pm.indexOf(mk) === -1) return;
+        Object.keys(f.products).forEach(function(n){
+          var p = prods[n] || (prods[n] = [0, 0]);
+          p[0] += (f.products[n].qty||0) / pm.length;
+          p[1] += (f.products[n].rev||0) / pm.length;
+        });
+      });
+      var names = Object.keys(prods);
+      // 存成陣列 [品名, 份數, 金額]，品名裡有特殊符號也沒關係
+      if (names.length) s.products = names.map(function(n){ return [n, r2(prods[n][0]), r2(prods[n][1])]; });
+      out[mk] = s;
+    });
+    return out;
+  }
+  function mergeSnap(old, neu){
+    var s = {};
+    if (old) Object.keys(old).forEach(function(k){ s[k] = old[k]; });
+    s.month = neu.month; s.savedAt = neu.savedAt; s.files = neu.files;
+    if (neu.daily) s.daily = neu.daily;        // 同一個月再上傳：以最新一次為準
+    if (neu.products) s.products = neu.products;
+    return s;
+  }
+
+  function datasetFromSnapshots(mks, label){
+    mks = mks.filter(function(mk){ return snapStore[mk]; }).sort();
+    var ds = { label:label, months:mks.slice(), hasAmount:false, productMonthly:{}, revMonthly:{}, qtyMonthly:{}, recon:[], productFiles:[], daily:null, files:[], fromHistory:true };
+    var dx = { disc:{}, open:{}, days:{}, hasCust:false, hasDisc:false }, anyDaily = false;
+    mks.forEach(function(mk){
+      var s = snapStore[mk];
+      if (s.daily){
+        anyDaily = true;
+        ds.revMonthly[mk] = s.daily.rev || 0; ds.qtyMonthly[mk] = s.daily.cust || 0;
+        dx.disc[mk] = s.daily.disc || 0; dx.open[mk] = s.daily.open || 0; dx.days[mk] = s.daily.days || 0;
+        if (s.daily.hasCust) dx.hasCust = true;
+        if (s.daily.hasDisc) dx.hasDisc = true;
+      }
+      if (Array.isArray(s.products) && s.products.length){
+        var products = {}, pr = 0;
+        s.products.forEach(function(p){
+          if (!Array.isArray(p)) return;
+          var nm = String(p[0]), q = +p[1] || 0, rv = +p[2] || 0;
+          products[nm] = { qty:q, rev:rv }; pr += rv;
+          (ds.productMonthly[nm] = ds.productMonthly[nm] || {})[mk] = q;
+        });
+        ds.productFiles.push({ label:monthLabelOf(mk), start:mk, end:mk, products:products });
+        if (s.daily && pr > 0) ds.recon.push({ label:monthLabelOf(mk), dailyRev:s.daily.rev || 0, productRev:pr });
+      }
+    });
+    ds.hasAmount = anyDaily;
+    ds.daily = anyDaily ? dx : null;
+    return ds;
+  }
+
+  function computeRec(ds){
+    var r = seasonRatios(ds);
+    if (!r.list.length || !r.targetMonths.length) return null;
+    var ms = ds.months;
+    return { season:TARGET_SEASON_NAME, basedOn:monthLabelOf(ms[0]) + "～" + monthLabelOf(ms[ms.length-1]), months:ms.length,
+      lowData: r.otherMonths.length < 2, at:new Date().toISOString(),
+      items: r.list.slice(0,5).map(function(it){ return { name:it.name, ratio:r2(it.ratio), tAvg:r2(it.tAvg), oAvg:r2(it.oAvg) }; }) };
+  }
+  function latestProductMonth(){ var ms = snapMonths().filter(function(mk){ return snapStore[mk].products; }); return ms[ms.length-1] || null; }
+
+  var persistChain = Promise.resolve();
+  function persistSnap(mk){
+    if (!appDb || !snapStore[mk]) return;
+    var data = snapStore[mk];
+    persistChain = persistChain.then(function(){
+      return appDb.doc("reports/" + mk).set(data);
+    }).catch(function(err){
+      setHistMsg("「" + monthLabelOf(mk) + "」存進雲端失敗（" + ((err && err.code) || "未知原因") + "），這次頁面內仍可查看。");
+    });
+  }
+
+  // 上傳後：把每個月存起來，並在「最新的月份」留下當時的推薦
+  function saveUploadToHistory(merged, fileNames){
+    var neu = snapshotsFromDataset(merged, fileNames);
+    var mks = Object.keys(neu).sort();
+    mks.forEach(function(mk){ snapStore[mk] = mergeSnap(snapStore[mk], neu[mk]); });
+    var latest = latestProductMonth();
+    if (latest && neu[latest]){
+      var rec = computeRec(datasetFromSnapshots(snapMonths(), ""));
+      if (rec) snapStore[latest].rec = rec;
+    }
+    state.lastRecMonth = latest;
+    mks.forEach(persistSnap);
+    return mks;
+  }
+
+  function loadSnapshots(db){
+    return db.collection("reports").get().then(function(snap){
+      (snap.docs || []).forEach(function(doc){
+        var d = doc.data();
+        if (!d || typeof d.month !== "string" || !/^\d{4}-\d{2}$/.test(d.month)) return;
+        if (!snapStore[d.month]) snapStore[d.month] = d; // 這次頁面剛上傳的優先
+      });
+      state.lastRecMonth = latestProductMonth();
+    });
+  }
+  function initHistoryDb(db){
+    appDb = db;
+    Promise.all([loadMappings(db), loadSnapshots(db).catch(function(){ setHistMsg("讀取歷史報表失敗，請重新整理頁面再試一次。"); })]).then(function(){
+      renderHistory();
+      // 打開頁面時，有存檔就直接顯示自己店的報表，不顯示示範資料
+      if (!state.userTouched && snapMonths().length) showView({ type:"all", key:"all" }, true);
+    });
+  }
+
+  function showView(view, silent){
+    var mks = snapMonths(), ds;
+    if (view.type === "all"){
+      ds = datasetFromSnapshots(mks, "歷史報表：全部 " + mks.length + " 個月");
+      state.lastRecMonth = latestProductMonth();
+    } else if (view.type === "month"){
+      ds = datasetFromSnapshots([view.mk], "歷史報表：" + monthLabelOf(view.mk));
+      ds.viewMode = "subset"; ds.snapshotMonth = view.mk;
+      ds.snapshotRec = snapStore[view.mk] ? (snapStore[view.mk].rec || null) : null;
+    } else {
+      ds = datasetFromSnapshots(view.mks, "歷史報表：" + view.label);
+      ds.viewMode = "subset";
+      var withRec = ds.months.filter(function(mk){ return snapStore[mk].rec; });
+      ds.snapshotMonth = withRec.length ? withRec[withRec.length-1] : ds.months[ds.months.length-1];
+      ds.snapshotRec = withRec.length ? snapStore[ds.snapshotMonth].rec : null;
+    }
+    if (!ds.months.length){ setHistMsg("這個範圍還沒有任何報表。"); return; }
+    setHistMsg("");
+    state.view = view;
+    state.dataset = ds;
+    state.drill = null;
+    var bd = byId("btnDemo"), bu = byId("btnUpload");
+    if (bd) bd.setAttribute("aria-pressed", "false");
+    if (bu) bu.setAttribute("aria-pressed", "false");
+    var wb = byId("parseWarn"); if (wb) wb.classList.remove("show");
+    renderAll();
+    renderHistory();
+    if (!silent) logAppend("查看歷史報表", "", "ok", ds.label.replace("歷史報表：", ""));
+  }
+
+  function renderHistory(){
+    var grid = byId("histGrid"); if (!grid) return;
+    var mks = snapMonths();
+    var years = {}; mks.forEach(function(mk){ years[mk.split("-")[0]] = true; });
+    years[String(new Date().getFullYear())] = true;
+    var ys = Object.keys(years).sort().reverse();
+    var sel = state.view && state.view.type === "month" ? state.view.mk : null;
+    var inRange = state.view && state.view.type === "range" ? state.view.mks : [];
+    var html = "";
+    ys.forEach(function(y){
+      html += '<div class="myear"><div class="yl">' + y + '</div>';
+      for (var m=1; m<=12; m++){
+        var mk = y + "-" + (m<10?"0"+m:m), has = !!snapStore[mk];
+        var pressed = mk === sel || inRange.indexOf(mk) !== -1;
+        html += '<button type="button" class="mbtn" data-mk="' + mk + '"' + (has ? ' title="查看 ' + monthLabelOf(mk) + ' 的報表"' : ' disabled title="還沒有這個月份的報表"') +
+          ' aria-pressed="' + pressed + '" aria-label="' + y + ' 年 ' + m + ' 月' + (has ? '' : '（沒有報表）') + '">' + m + '月</button>';
+      }
+      html += '</div>';
+    });
+    grid.innerHTML = html;
+    var vk = state.view ? (state.view.key || "") : "";
+    Array.prototype.forEach.call(document.querySelectorAll("#histQuick button"), function(b){ b.setAttribute("aria-pressed", String(b.getAttribute("data-q") === vk)); });
+    byId("histNote").textContent = mks.length ? "已存 " + mks.length + " 個月（" + monthLabelOf(mks[0]) + "～" + monthLabelOf(mks[mks.length-1]) + "）" : "還沒有存任何月份";
+
+    var cs = byId("cmpSel"), cur = cs.value;
+    cs.innerHTML = mks.slice().reverse().map(function(mk){ return '<option value="' + mk + '">' + monthLabelOf(mk) + '</option>'; }).join("");
+    if (cur && snapStore[cur] && cur !== sel) cs.value = cur;
+    else if (sel){
+      var pick = [mkAdd(sel, -12), mkAdd(sel, -1)].filter(function(mk){ return snapStore[mk]; })[0];
+      if (pick) cs.value = pick;
+    }
+    renderCompare();
+    setSum("histCard", sel ? "正在看 " + monthLabelOf(sel) : (state.view && state.view.type !== "month" ? (state.view.label || "全部月份") : (mks.length ? "已存 " + mks.length + " 個月" : "尚無資料")));
+  }
+
+  function monthMetrics(mk){
+    var s = snapStore[mk]; if (!s) return null;
+    var d = s.daily || null, q = 0, top = [], items = null;
+    if (Array.isArray(s.products)){
+      var prods = s.products.filter(function(p){ return NON_PRODUCT.indexOf(displayGroup(String(p[0]))) === -1; });
+      items = prods.length;
+      prods.forEach(function(p){ q += +p[1] || 0; });
+      top = prods.slice().sort(function(a,b){ return b[1] - a[1]; }).slice(0,3).map(function(p){ return String(p[0]); });
+    }
+    return { rev: d ? d.rev : null, cust: d && d.hasCust ? d.cust : null, avg: d && d.hasCust && d.cust ? d.rev / d.cust : null,
+      open: d && d.days ? d.open : null, qty: s.products ? q : null, items: items, top: top };
+  }
+  function renderCompare(){
+    var out = byId("cmpOut"), on = byId("cmpOn").checked;
+    var base = state.view && state.view.type === "month" ? state.view.mk : null;
+    byId("cmpSel").disabled = !on;
+    if (!on){ out.innerHTML = ""; return; }
+    if (!base){ out.innerHTML = '<div class="hint">先在上面點一個月份，再選要跟哪個月比較。</div>'; return; }
+    var other = byId("cmpSel").value;
+    if (!other || other === base){ out.innerHTML = '<div class="hint">請選另一個月份來比較。</div>'; return; }
+    var a = monthMetrics(base), b = monthMetrics(other);
+    if (!a || !b){ out.innerHTML = ""; return; }
+    var rows = [["營業額","rev",fmtMoney], ["來客數","cust",function(v){ return fmtInt(v) + " 人"; }], ["客單價","avg",fmtMoney],
+      ["營業天數","open",function(v){ return fmtInt(v) + " 天"; }], ["商品總銷量","qty",function(v){ return fmtInt(v) + " 份"; }], ["品項數","items",function(v){ return fmtInt(v) + " 項"; }]];
+    var html = '<div class="recon-wrap" style="margin-top:10px"><table class="recon-table"><thead><tr><th>項目</th><th>' + monthLabelOf(base) + '</th><th>' + monthLabelOf(other) + '</th><th>差異</th></tr></thead><tbody>';
+    rows.forEach(function(r){
+      var x = a[r[1]], y = b[r[1]];
+      if (x == null && y == null) return;
+      var diff = (x != null && y != null && y) ? (x - y) / y * 100 : null;
+      html += '<tr><td>' + r[0] + '</td><td>' + (x == null ? "—" : esc(r[2](x))) + '</td><td>' + (y == null ? "—" : esc(r[2](y))) + '</td>' +
+        '<td class="' + (diff != null && diff < 0 ? "gap-hi" : "") + '">' + (diff == null ? "—" : (diff >= 0 ? "+" : "") + diff.toFixed(1) + "%") + '</td></tr>';
+    });
+    html += '</tbody></table></div>';
+    if (a.top.length || b.top.length){
+      html += '<div class="hint">賣最多的前 3 名——' + monthLabelOf(base) + '：' + (a.top.map(esc).join("、") || "—") + '；' + monthLabelOf(other) + '：' + (b.top.map(esc).join("、") || "—") + '</div>';
+    }
+    html += '<div class="hint">差異 ＝（' + monthLabelOf(base) + ' − ' + monthLabelOf(other) + '）÷ ' + monthLabelOf(other) + '；紅字代表比較少。</div>';
+    out.innerHTML = html;
+  }
+
+  byId("histQuick").addEventListener("click", function(e){
+    var b = e.target.closest ? e.target.closest("button[data-q]") : null; if (!b) return;
+    state.userTouched = true;
+    var q = b.getAttribute("data-q");
+    if (!snapMonths().length){ setHistMsg("還沒有任何存檔的月份。先上傳報表，系統會自動把每個月存起來。"); return; }
+    if (q === "all") return showView({ type:"all", key:"all", label:"全部月份" });
+    if (q === "last"){
+      var mk = mkAdd(todayMk(), -1);
+      if (!snapStore[mk]) return setHistMsg("還沒有上個月（" + monthLabelOf(mk) + "）的報表。");
+      return showView({ type:"month", mk:mk, key:"last" });
+    }
+    if (q === "season"){
+      var sm = seasonMonthsOf(todayMk()), have = sm.filter(function(x){ return snapStore[x]; });
+      var lbl = "本季（" + monthLabelOf(sm[0]) + "～" + monthLabelOf(sm[2]) + "）";
+      if (!have.length) return setHistMsg(lbl + "還沒有任何報表。");
+      return showView({ type:"range", mks:have, label:lbl, key:"season" });
+    }
+    if (q === "yoy"){
+      var base = state.view && state.view.type === "month" ? state.view.mk : mkAdd(todayMk(), -1);
+      var t = mkAdd(base, -12);
+      if (!snapStore[t]) return setHistMsg("沒有 " + monthLabelOf(t) + "（" + monthLabelOf(base) + " 的去年同月）的報表。");
+      return showView({ type:"month", mk:t, key:"yoy" });
+    }
+  });
+  byId("histGrid").addEventListener("click", function(e){
+    var b = e.target.closest ? e.target.closest("button[data-mk]") : null;
+    if (!b || b.disabled) return;
+    state.userTouched = true;
+    showView({ type:"month", mk:b.getAttribute("data-mk") });
+  });
+  byId("cmpOn").addEventListener("change", function(){
+    renderCompare();
+    if (byId("cmpOn").checked && state.view && state.view.type === "month" && byId("cmpSel").value)
+      logAppend("比較月份", "", "ok", monthLabelOf(state.view.mk) + " vs " + monthLabelOf(byId("cmpSel").value));
+  });
+  byId("cmpSel").addEventListener("change", renderCompare);
+
+  // ================= 推薦：查看某個月時，顯示「當時」的推薦 =================
+  function renderSnapshotRec(ds){
+    var disclaimer = byId("rankDisclaimer"), list = byId("rankList"), foot = byId("footnoteText"), out = byId("aiRecOut");
+    list.innerHTML = ""; foot.hidden = true;
+    byId("btnAiRec").hidden = true;
+    var rec = ds.snapshotRec;
+    if (!rec || !rec.items || !rec.items.length){
+      disclaimer.classList.remove("show");
+      byId("rankCardNote").textContent = "推薦要用很多個月份一起算";
+      var e = document.createElement("div"); e.className = "empty-note";
+      e.textContent = (ds.snapshotMonth ? monthLabelOf(ds.snapshotMonth) + " " : "") + "沒有存下當時的推薦。想看最新的推薦，請點上方「全部月份」。";
+      list.appendChild(e);
+      out.hidden = true;
+      return;
+    }
+    byId("rankCardNote").textContent = monthLabelOf(ds.snapshotMonth) + " 存檔時的推薦（當時的下一季：" + rec.season + "）";
+    disclaimer.innerHTML = "<b>這是當時的推薦：</b>依 " + esc(rec.basedOn) + " 共 " + rec.months + " 個月的資料算出，之後新增資料也不會改變，方便回頭對照推薦準不準。" +
+      (rec.lowData ? "當時資料還不夠判斷季節性，僅供參考。" : "");
+    disclaimer.classList.add("show");
+    drawRankRows(rec.items, rec.season);
+    if (rec.aiAdvice){ out.hidden = false; out.textContent = rec.aiAdvice; } else { out.hidden = true; out.textContent = ""; }
+  }
+
+  // ================= AI 備貨建議（統計負責算，AI 負責解讀） =================
+  function updateAiRecBtn(){
+    var btn = byId("btnAiRec"); if (!btn) return;
+    var lr = state.lastRank;
+    btn.hidden = !(sampleFn && lr && lr.ranked.length && state.dataset && state.dataset.viewMode !== "subset" && lr.ds === state.dataset);
+  }
+  function runAiRec(){
+    var lr = state.lastRank; if (!lr || !sampleFn) return;
+    var btn = byId("btnAiRec"), out = byId("aiRecOut");
+    btn.disabled = true; out.hidden = false; out.textContent = "AI 思考中⋯⋯";
+    var top = lr.ranked.map(function(it, i){
+      return (i+1) + ". " + it.name + "｜" + TARGET_SEASON_NAME + "平均每月 " + fmtInt(it.tAvg) + " 份，其他月份平均 " + fmtInt(it.oAvg) + " 份（" + it.ratio.toFixed(1) + " 倍）";
+    });
+    var slow = lr.result.list.filter(function(it){ return it.oAvg >= 1; }).slice(-5).reverse().map(function(it){
+      return "- " + it.name + "｜" + TARGET_SEASON_NAME + "平均每月 " + fmtInt(it.tAvg) + " 份，其他月份平均 " + fmtInt(it.oAvg) + " 份";
+    });
+    var prompt =
+      "你是餐廳營運顧問。下面是系統用一家餐廳過去 " + lr.ds.months.length + " 個月的 POS 銷售資料算出來的結果，下一季是" + TARGET_SEASON_NAME + "。\n" +
+      "請給老闆下一季的主打與備貨建議：\n1. 針對推薦主打的商品，給 2–3 點具體做法（例如提早備料、怎麼主打）。\n2. 針對下一季可能變冷門的商品，給 1 點建議。\n" +
+      "規則：每點不超過兩句，繁體中文，純文字條列（1. 2. 3.）。只能根據下面的數字推論，不要編造天氣、價格、成本或資料裡沒有的事；資料不足的地方直接寫「資料不足」。\n\n" +
+      "【推薦主打（" + TARGET_SEASON_NAME + "銷量是平常的幾倍）】\n" + top.join("\n") +
+      "\n\n【下一季可能變冷門】\n" + (slow.join("\n") || "（沒有）") +
+      (lr.result.otherMonths.length < 2 ? "\n\n注意：資料月份很少，季節性判斷不可靠，請在建議裡提醒老闆。" : "");
+    sampleFn(prompt, { modelTier:"default", onText:function(x){ out.textContent = x.text; } }).then(function(res){
+      var text = res.text + "\n\n（AI 根據上方銷售數字產生，僅供參考。）";
+      out.textContent = text;
+      state.aiRecFor = lr.ds;
+      var mk = state.lastRecMonth;
+      if (lr.ds.fromHistory && (!state.view || state.view.type === "all") && mk && snapStore[mk] && snapStore[mk].rec){
+        snapStore[mk].rec.aiAdvice = text;
+        persistSnap(mk);
+      }
+      logAppend("AI 備貨建議", "", "ok", "已產生下一季（" + TARGET_SEASON_NAME + "）主打與備貨建議");
+    }).catch(function(e){
+      out.textContent = (e && e.text ? e.text + "\n\n" : "") + aiErrorText(e);
+      logAppend("AI 備貨建議", "", "fail", aiErrorText(e));
+      if (e && e.code === "not_granted"){ sampleFn = null; updateAiRecBtn(); }
+    }).then(function(){ btn.disabled = false; });
+  }
+  byId("btnAiRec").addEventListener("click", runAiRec);
+
+  // ---------------- 檔案清單 UI ----------------
+  function renderFileChips(parsedList){
+    var box = document.getElementById("fileChips");
+    box.innerHTML = "";
+    if (!parsedList.length){ box.hidden = true; return; }
+    box.hidden = false;
+    parsedList.forEach(function(p){
+      var chip = document.createElement("div");
+      chip.className = "file-chip" + (p.ok ? "" : " fc-bad");
+      var nameEl = document.createElement("div");
+      nameEl.className = "fc-name";
+      nameEl.textContent = p.fileName;
+      var tagEl = document.createElement("div");
+      tagEl.className = "fc-tag";
+      tagEl.textContent = p.ok ? p.typeName : "無法辨識";
+      var monthEl = document.createElement("div");
+      monthEl.className = "fc-month";
+      monthEl.textContent = p.ok ? (p.type==="daily" ? (p.months.length+"個月") : (p.periodLabel || monthLabelOf(p.month))) : (p.reason||"");
+      chip.appendChild(nameEl); chip.appendChild(tagEl); chip.appendChild(monthEl);
+      box.appendChild(chip);
+    });
+  }
+
+  // ---------------- wiring ----------------
+  var btnDemo = document.getElementById("btnDemo");
+  var btnUpload = document.getElementById("btnUpload");
+  var fileInput = document.getElementById("fileInput");
+  var warnBox = document.getElementById("parseWarn");
+
+  btnDemo.addEventListener("click", function(){
+    state.dataset = DEMO;
+    state.view = null; state.userTouched = true;
+    btnDemo.setAttribute("aria-pressed","true");
+    btnUpload.setAttribute("aria-pressed","false");
+    warnBox.classList.remove("show");
+    document.getElementById("fileChips").hidden = true;
+    renderAll(); renderHistory();
+    logAppend("切換資料來源", "", "ok", "改用示範資料（虛構小吃店，12個月）");
+  });
+  btnUpload.addEventListener("click", function(){ fileInput.click(); });
+
+  var btnExportLog = document.getElementById("btnExportLog");
+  var btnClearLog = document.getElementById("btnClearLog");
+  if (btnExportLog) btnExportLog.addEventListener("click", downloadLog);
+  if (btnClearLog) btnClearLog.addEventListener("click", function(){
+    // 只清畫面，不刪資料庫：資料庫裡的紀錄仍可下載
+    viewClearedAt = new Date();
+    renderLog();
+  });
+
+  function readFileAsync(file){
+    return new Promise(function(resolve){
+      var ext = (file.name.split(".").pop()||"").toLowerCase();
+      var reader = new FileReader();
+      reader.onload = function(){
+        try{
+          var rows;
+          if (ext === "csv"){
+            rows = parseCsvRows(String(reader.result||""));
+          } else {
+            if (typeof XLSX === "undefined"){
+              resolve({ ok:false, fileName:file.name, reason:"Excel解析套件載入失敗（可能是網路問題），請改用CSV格式試試看" });
+              return;
+            }
+            var wb = XLSX.read(new Uint8Array(reader.result), { type:"array" });
+            rows = sheetToRows(wb);
+          }
+          var result = classifyAndExtract(file.name, rows);
+          result.fileName = file.name;
+          resolve(result);
+        } catch(e){
+          resolve({ ok:false, fileName:file.name, reason:"讀取檔案時發生錯誤：" + e.message });
+        }
+      };
+      reader.onerror = function(){ resolve({ ok:false, fileName:file.name, reason:"讀取檔案失敗" }); };
+      if (ext === "csv") reader.readAsText(file, "utf-8");
+      else reader.readAsArrayBuffer(file);
+    });
+  }
+
+  fileInput.addEventListener("change", async function(){
+    var files = Array.prototype.slice.call(fileInput.files||[]);
+    fileInput.value = ""; // 同一個檔案可以再選一次
+    if (!files.length) return;
+    state.userTouched = true;
+    // 先記「開始處理」：就算中途當掉，也能從「有開始、沒結束」看出卡在哪一步
+    logAppend("開始處理", files.map(function(f){ return f.name; }).join("、"), "ok", "準備讀取 " + files.length + " 個檔案");
+    var parsedList = await Promise.all(files.map(readFileAsync));
+
+    // 看不懂的檔案：一個一個問老闆
+    for (var i=0; i<parsedList.length; i++){
+      var p = parsedList[i];
+      if (p.ok || !p.needsMapping) continue;
+      var ans = await askMapping(p);
+      if (!ans){
+        parsedList[i] = { ok:false, fileName:p.fileName, reason:"欄位看不懂，老闆選擇略過" };
+        logAppend("欄位對應", p.fileName, "fail", "老闆選擇略過這個檔案");
+        continue;
+      }
+      var r = extractWith(p.fileName, p.rows, ans.h, normMap(ans.map), ans.month);
+      r.fileName = p.fileName;
+      if (r.ok){
+        r.mapSource = "老闆指定";
+        if (ans.remember) rememberMapping(ans.headers, normMap(ans.map));
+        logAppend("欄位對應", p.fileName, "ok", "老闆指定為「" + KIND_NAMES[ans.map.kind] + "」" + (ans.remember ? "，已記住這個格式" : ""));
+      }
+      parsedList[i] = r;
+    }
+
+    renderFileChips(parsedList);
+    var badOnes = parsedList.filter(function(p){ return !p.ok; });
+    var goodOnes = parsedList.filter(function(p){ return p.ok; });
+
+    parsedList.forEach(function(p){
+      if (p.ok){
+        var detail = (p.type === "daily"
+          ? ("辨識為「" + p.typeName + "」，涵蓋 " + p.months.length + " 個月")
+          : ("辨識為「" + p.typeName + "」，期間 " + (p.periodLabel || monthLabelOf(p.month)))) +
+          (p.mapSource ? "（依" + p.mapSource + "）" : "");
+        logAppend("上傳檔案", p.fileName, "ok", detail);
+      } else {
+        logAppend("上傳檔案", p.fileName, "fail", "無法辨識：" + p.reason);
+      }
+    });
+
+    if (!goodOnes.length){
+      warnBox.innerHTML = "<b>這些檔案都沒辦法辨識：</b>" + badOnes.map(function(b){ return esc(b.fileName) + "（" + esc(b.reason) + "）"; }).join("；") + "。已保留原本的資料。";
+      warnBox.classList.add("show");
+      return;
+    }
+
+    if (badOnes.length){
+      warnBox.innerHTML = "<b>有 " + badOnes.length + " 個檔案沒辦法辨識，已略過：</b>" + badOnes.map(function(b){ return esc(b.fileName); }).join("、") + "。其餘檔案已正常合併。";
+      warnBox.classList.add("show");
+    } else {
+      warnBox.classList.remove("show");
+    }
+
+    var merged = mergeParsedFiles(parsedList);
+    var savedMks = saveUploadToHistory(merged, goodOnes.map(function(g){ return g.fileName; }));
+    var allMks = snapMonths();
+    state.dataset = datasetFromSnapshots(allMks, "歷史報表：全部 " + allMks.length + " 個月（含剛上傳的 " + goodOnes.length + " 個檔案）");
+    state.view = { type:"all", key:"all", label:"全部月份" };
+    state.drill = null;
+    btnDemo.setAttribute("aria-pressed","false");
+    btnUpload.setAttribute("aria-pressed","true");
+    renderAll();
+    renderHistory();
+
+    var mergedTot = monthsTotal(merged);
+    logAppend("合併報表", "", "ok",
+      "成功合併 " + goodOnes.length + " / " + parsedList.length + " 個檔案，涵蓋 " + merged.months.length + " 個月" +
+      (merged.hasAmount ? "，總營業額 " + fmtMoney(mergedTot.totalRev) : "") +
+      "；已存進歷史報表 " + savedMks.length + " 個月" + (appDb ? "" : "（未連上雲端，只保留到關閉頁面）"));
+  });
+
+  try { renderAll(); } catch(e){ /* fail quiet, keep static markup visible */ }
+  try { renderLog(); logAppend("系統啟動", "", "ok", "頁面載入完成，預設顯示示範資料"); } catch(e){ /* 紀錄功能失敗不影響主功能 */ }
+  try { initLogDb(); } catch(e){ setDbStatus("off"); }
+  try { renderHistory(); } catch(e){ /* ignore */ }
+})();
+</script>
+
+</body></html>
