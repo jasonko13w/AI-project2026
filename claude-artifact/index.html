@@ -242,7 +242,7 @@
   .banner summary::-webkit-details-marker{ display:none; }
   .banner summary::after{ content:" ▾"; color:var(--accent); }
   .banner[open] summary::after{ content:" ▴"; }
-  .toolbar{ display:flex; gap:8px; justify-content:flex-end; margin-bottom:-8px; }
+  .toolbar{ display:flex; gap:8px; justify-content:flex-end; margin-bottom:-8px; flex-wrap:wrap; }
   .card-head.toggle{ cursor:pointer; margin-bottom:0; user-select:none; border-radius:10px; }
   .card-head.toggle:focus-visible{ outline:2px solid var(--accent); outline-offset:4px; }
   .card-head.toggle:hover .card-title{ color:var(--accent); }
@@ -339,6 +339,102 @@
   .preview{ margin-top:10px; }
   .preview th, .preview td{ white-space:nowrap; text-align:left !important; }
   .map-msg{ font-size:12.5px; color:var(--warn); margin-top:10px; line-height:1.6; min-height:1em; }
+
+  /* ===== 手機版（螢幕寬度 600px 以下自動套用） ===== */
+  @media (max-width:600px){
+  body{ padding-inline:12px; }
+  .wrap{ gap:14px; }
+  .title{ font-size:26px; }
+  .card{ padding:16px 14px; border-radius:14px; }
+  /* 卡片標題列：標題一行、說明換到下一行，箭頭固定在右上角 */
+  .card-head.toggle{ position:relative; padding-right:22px; }
+  .card-head.toggle .chev{ position:absolute; right:0; top:4px; }
+  .head-right{ flex:1 1 100%; justify-content:flex-start; }
+  .card-note, .card-sum{ font-size:12.5px; }
+  /* 總覽 4 格：一排兩格，不准撐破螢幕 */
+  .stats{ grid-template-columns:repeat(2, minmax(0,1fr)); gap:10px; }
+  .stat{ padding:12px; min-width:0; }
+  .stat .value{ font-size:15px; letter-spacing:-.2px; overflow-wrap:anywhere; }
+  .stat .label, .stat .more, .stat .sub{ font-size:12px; }
+  /* 本月重點 */
+  .sum-head{ font-size:17px; }
+  .sum-line{ font-size:13.5px; }
+  /* 長條圖：名稱和數字一行，長條放下一行用滿整個寬度 */
+  .hbar, .hbar-list.wide .hbar{ grid-template-columns:minmax(0,1fr) auto; row-gap:4px; }
+  .hbar .t{ grid-column:1 / -1; order:3; }
+  .hbar .x{ font-size:12.5px; }
+  .two-col{ grid-template-columns:1fr; }
+  .mini-stats{ grid-template-columns:repeat(2, minmax(0,1fr)); }
+  .mini{ min-width:0; }
+  .mini .v{ font-size:14px; letter-spacing:-.2px; overflow-wrap:anywhere; }
+  .mini .l, .mini .s{ font-size:12px; }
+  /* 熱銷排行 */
+  .rank-row{ grid-template-columns:20px 1fr 52px; }
+  .rank-track{ grid-column:1 / -1; order:3; }
+  .rank-detail{ grid-column:1 / -1; }
+  /* 表格：字小一點，必要時在表格裡左右滑 */
+  .recon-table{ font-size:12.5px; }
+  .recon-table th{ font-size:12px; padding:6px; }
+  .log-table th{ font-size:12px; }
+  .recon-table td{ padding:7px 6px; }
+  /* 小字不要小於 12px */
+  .hint, .footnote, .legend-note, .badge, .file-chip, .log-table{ font-size:12px; }
+  .myear{ grid-template-columns:repeat(6,1fr); }
+  .myear .yl{ grid-column:1 / -1; }
+  .store-row select{ min-width:0; flex:1 1 160px; }
+  .toolbar{ justify-content:flex-start; flex-wrap:wrap; }
+  .sum-actions .file-btn, .log-actions .file-btn{ flex:1 1 auto; }
+  }
+  /* ===== 電腦上的「手機預覽」：把畫面縮成手機寬度，套用同一套手機排版 ===== */
+  html.m-preview body{ padding-inline:12px; }
+  html.m-preview .wrap{ gap:14px; }
+  html.m-preview .title{ font-size:26px; }
+  html.m-preview .card{ padding:16px 14px; border-radius:14px; }
+  /* 卡片標題列：標題一行、說明換到下一行，箭頭固定在右上角 */
+  html.m-preview .card-head.toggle{ position:relative; padding-right:22px; }
+  html.m-preview .card-head.toggle .chev{ position:absolute; right:0; top:4px; }
+  html.m-preview .head-right{ flex:1 1 100%; justify-content:flex-start; }
+  html.m-preview .card-note, html.m-preview .card-sum{ font-size:12.5px; }
+  /* 總覽 4 格：一排兩格，不准撐破螢幕 */
+  html.m-preview .stats{ grid-template-columns:repeat(2, minmax(0,1fr)); gap:10px; }
+  html.m-preview .stat{ padding:12px; min-width:0; }
+  html.m-preview .stat .value{ font-size:15px; letter-spacing:-.2px; overflow-wrap:anywhere; }
+  html.m-preview .stat .label, html.m-preview .stat .more, html.m-preview .stat .sub{ font-size:12px; }
+  /* 本月重點 */
+  html.m-preview .sum-head{ font-size:17px; }
+  html.m-preview .sum-line{ font-size:13.5px; }
+  /* 長條圖：名稱和數字一行，長條放下一行用滿整個寬度 */
+  html.m-preview .hbar, html.m-preview .hbar-list.wide .hbar{ grid-template-columns:minmax(0,1fr) auto; row-gap:4px; }
+  html.m-preview .hbar .t{ grid-column:1 / -1; order:3; }
+  html.m-preview .hbar .x{ font-size:12.5px; }
+  html.m-preview .two-col{ grid-template-columns:1fr; }
+  html.m-preview .mini-stats{ grid-template-columns:repeat(2, minmax(0,1fr)); }
+  html.m-preview .mini{ min-width:0; }
+  html.m-preview .mini .v{ font-size:14px; letter-spacing:-.2px; overflow-wrap:anywhere; }
+  html.m-preview .mini .l, html.m-preview .mini .s{ font-size:12px; }
+  /* 熱銷排行 */
+  html.m-preview .rank-row{ grid-template-columns:20px 1fr 52px; }
+  html.m-preview .rank-track{ grid-column:1 / -1; order:3; }
+  html.m-preview .rank-detail{ grid-column:1 / -1; }
+  /* 表格：字小一點，必要時在表格裡左右滑 */
+  html.m-preview .recon-table{ font-size:12.5px; }
+  html.m-preview .recon-table th{ font-size:12px; padding:6px; }
+  html.m-preview .log-table th{ font-size:12px; }
+  html.m-preview .recon-table td{ padding:7px 6px; }
+  /* 小字不要小於 12px */
+  html.m-preview .hint, html.m-preview .footnote, html.m-preview .legend-note, html.m-preview .badge, html.m-preview .file-chip, html.m-preview .log-table{ font-size:12px; }
+  html.m-preview .myear{ grid-template-columns:repeat(6,1fr); }
+  html.m-preview .myear .yl{ grid-column:1 / -1; }
+  html.m-preview .store-row select{ min-width:0; flex:1 1 160px; }
+  html.m-preview .toolbar{ justify-content:flex-start; flex-wrap:wrap; }
+  html.m-preview .sum-actions .file-btn, html.m-preview .log-actions .file-btn{ flex:1 1 auto; }
+
+  html.m-preview body{ background:var(--surface-2); }
+  html.m-preview .wrap{ max-width:390px; background:var(--bg); border:1px solid var(--border); border-radius:28px; padding:18px 12px 28px; box-shadow:var(--shadow); }
+  .preview-tag{ display:none; font-size:12px; font-weight:700; color:var(--accent); align-self:center; margin-right:auto; }
+  html.m-preview .preview-tag{ display:inline; }
+  /* 真的在手機上看時，不需要「手機預覽」按鈕 */
+  @media (max-width:600px){ #btnPreview{ display:none; } }
 </style>
 
 <div class="wrap">
@@ -351,6 +447,8 @@
 
 
   <div class="toolbar">
+    <span class="preview-tag">📱 手機預覽中：老闆用手機看到的樣子</span>
+    <button class="file-btn" id="btnPreview" type="button" aria-pressed="false">📱 手機預覽</button>
     <button class="file-btn" id="btnExpandAll" type="button">全部展開</button>
     <button class="file-btn" id="btnCollapseAll" type="button">全部收起</button>
   </div>
@@ -449,7 +547,7 @@
   <div class="card" id="trendCard" data-open="1">
     <div class="card-head">
       <div class="card-title" id="trendTitle">每月營業額趨勢</div>
-      <div class="card-note">滑到線上可看每個月的數字</div>
+      <div class="card-note">滑到或點一下線上，可看每個月的數字</div>
     </div>
     <div class="chart-wrap">
       <svg id="trendChart" viewBox="0 0 800 240" style="width:100%; height:auto; display:block;"></svg>
@@ -983,7 +1081,11 @@
     var series = months.map(function(mk){ return dataset.hasAmount ? (dataset.revMonthly[mk]||0) : (dataset.qtyMonthly[mk]||0); });
     var n = months.length;
 
-    var W=800,H=240,padL=54,padR=16,padT=16,padB=28;
+    // 窄螢幕（手機、手機預覽）：畫布變窄、字變大、月份只標幾個，縮小後才看得清楚
+    var narrow = (wrap.clientWidth || 800) < 560;
+    var W = narrow ? 420 : 800, H = narrow ? 260 : 240, padL = narrow ? 50 : 54, padR = narrow ? 12 : 16, padT = 16, padB = 28;
+    svg.setAttribute("viewBox", "0 0 " + W + " " + H);
+    var labelEvery = narrow ? Math.max(1, Math.ceil(n / 4)) : (n > 18 ? 0 : 1);
     var innerW = W-padL-padR, innerH = H-padT-padB;
     var maxV = Math.max.apply(null, series) * 1.12 || 1;
     var step = n>1 ? innerW/(n-1) : 0;
@@ -1002,16 +1104,17 @@
       var gv = maxV * g/3;
       var gy = y(gv);
       svg.appendChild(el("line", {x1:padL, x2:W-padR, y1:gy, y2:gy, class:"grid-line"}));
-      var lbl = el("text", {x: padL-8, y: gy+4, class:"axis-label", "text-anchor":"end"});
-      lbl.textContent = dataset.hasAmount ? ("$"+fmtInt(gv/1000)+"k") : fmtInt(gv);
+      var lbl = el("text", {x: padL-8, y: gy+4, class:"axis-label", "text-anchor":"end", style: narrow ? "font-size:15px" : ""});
+      lbl.textContent = dataset.hasAmount ? (narrow ? fmtInt(gv/10000) + "萬" : "$"+fmtInt(gv/1000)+"k") : fmtInt(gv);
       svg.appendChild(lbl);
     }
     svg.appendChild(el("line", {x1:padL, x2:W-padR, y1:padT+innerH, y2:padT+innerH, class:"baseline"}));
 
     months.forEach(function(mk,i){
       var anchor = i===0 ? "start" : (i===n-1 ? "end" : "middle");
-      var t = el("text", {x:x(i), y:H-8, class:"axis-label", "text-anchor":anchor});
-      t.textContent = n>18 ? "" : monthLabelOf(mk);
+      var t = el("text", {x:x(i), y:H-8, class:"axis-label", "text-anchor":anchor, style: narrow ? "font-size:15px" : ""});
+      var showLbl = labelEvery > 0 && (i % labelEvery === 0 || i === n - 1) && !(narrow && i !== n - 1 && n - 1 - i < labelEvery);
+      t.textContent = showLbl ? monthLabelOf(mk) : "";
       svg.appendChild(t);
     });
 
@@ -1267,6 +1370,26 @@
     else if (k === "hist") openCardById("histCard");
     else if (k === "rank") openCardById("rankCard");
   });
+
+  // 手機預覽：電腦上按一下就縮成手機寬度（給 demo 用），再按一下回到電腦版
+  (function(){
+    var btn = document.getElementById("btnPreview");
+    if (!btn) return;
+    btn.addEventListener("click", function(){
+      var on = !document.documentElement.classList.contains("m-preview");
+      document.documentElement.classList.toggle("m-preview", on);
+      btn.setAttribute("aria-pressed", String(on));
+      btn.textContent = on ? "💻 回到電腦版" : "📱 手機預覽";
+      try { renderTrend(state.dataset); } catch(e){ /* 圖畫不出來不影響其他內容 */ }
+      window.scrollTo({ top:0 });
+      if (typeof logAppend === "function") logAppend(on ? "切換手機預覽" : "回到電腦版", "", "ok", on ? "畫面縮成手機寬度" : "畫面回到電腦寬度");
+    });
+    var t = null;
+    window.addEventListener("resize", function(){
+      clearTimeout(t);
+      t = setTimeout(function(){ try { if (!state.dataset.empty) renderTrend(state.dataset); } catch(e){} }, 200);
+    });
+  })();
 
   function renderAll(){
     // 沒有資料：只顯示「請上傳」的提示，其他分析卡片先藏起來
