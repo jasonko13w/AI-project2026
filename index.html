@@ -1,4 +1,4 @@
-<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
 <title>餐飲AI助理</title>
 <style>
   :root{
@@ -100,6 +100,31 @@
     color: var(--text-primary);
   }
   .banner b{ color: var(--accent); }
+  .summary-card{ border:1px solid var(--accent); }
+  .sum-head{ font-size:19px; font-weight:800; line-height:1.5; }
+  .sum-head .up{ color:var(--good); }
+  .sum-head .down{ color:var(--warn); }
+  .sum-line{ font-size:14px; color:var(--text-secondary); line-height:1.7; margin-top:6px; }
+  .sum-line b{ color:var(--text-primary); }
+  .sum-sec{ margin-top:14px; }
+  .sum-sec-title{ font-size:12px; font-weight:700; color:var(--muted); letter-spacing:.04em; margin-bottom:6px; }
+  .sum-alerts{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:6px; }
+  .sum-alerts li{ font-size:13px; line-height:1.6; background:var(--warn-soft); border-radius:8px; padding:7px 10px; }
+  .sum-alerts li.ok{ background:var(--surface-2); color:var(--text-secondary); }
+  .sum-recs{ display:flex; gap:8px; flex-wrap:wrap; }
+  .sum-recs span{ font-size:13px; font-weight:700; background:var(--accent-soft); color:var(--accent); border-radius:999px; padding:4px 12px; }
+  .sum-actions{ display:flex; gap:8px; flex-wrap:wrap; margin-top:14px; }
+  .store-row{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-top:12px; }
+  .store-row label{ font-size:13px; font-weight:700; color:var(--text-secondary); }
+  .store-row select, .store-add input{ font:inherit; font-size:13px; padding:7px 10px; border:1px solid var(--border); border-radius:10px; background:var(--surface); color:var(--text-primary); }
+  .store-row select{ min-width:200px; max-width:100%; }
+  .store-add{ display:flex; gap:8px; flex-wrap:wrap; margin-top:10px; }
+  .store-add input{ flex:1 1 180px; min-width:0; }
+  .empty-state{ text-align:center; padding:28px 20px; }
+  .empty-state .es-title{ font-size:18px; font-weight:800; margin-bottom:8px; }
+  .empty-state .es-text{ color:var(--text-secondary); max-width:52ch; margin:0 auto; }
+  .empty-state .log-actions{ justify-content:center; }
+  .file-btn.es-main{ background:var(--accent); border:1px solid var(--accent); color:#fff; }
 
   .card{
     background: var(--surface);
@@ -149,6 +174,9 @@
   .stat{ background:var(--surface-2); border-radius:12px; padding:14px 14px; display:flex; flex-direction:column; gap:4px; }
   .stat .label{ font-size:12px; color:var(--muted); }
   .stat .value{ font-size:20px; font-weight:800; font-variant-numeric: tabular-nums; }
+  .stat .sub{ font-size:11.5px; font-weight:600; color:var(--text-secondary); }
+  .stat .sub .up{ color:var(--good); }
+  .stat .sub .down{ color:var(--warn); }
   .stat .unit{ font-size:12px; font-weight:600; color:var(--text-secondary); }
   @media (max-width:560px){ .stats{ grid-template-columns:repeat(2,1fr); } }
 
@@ -244,6 +272,10 @@
   .mini .l{ font-size:11.5px; color:var(--muted); }
   .mini .v{ font-size:16px; font-weight:800; font-variant-numeric:tabular-nums; margin-top:2px; }
   .mini .s{ font-size:11.5px; color:var(--text-secondary); margin-top:2px; }
+  .mini .s{ line-height:1.6; }
+  .mini .s .up{ color:var(--good); font-weight:700; }
+  .mini .s .down{ color:var(--warn); font-weight:700; }
+  .mini .s .dn{ color:var(--muted); }
   .drill h4{ font-size:13px; font-weight:700; margin:16px 0 8px; }
   .hbar-list{ display:flex; flex-direction:column; gap:7px; }
   .hbar{ display:grid; grid-template-columns:minmax(90px,170px) 1fr 96px; align-items:center; gap:10px; font-size:12.5px; }
@@ -324,44 +356,54 @@
     <button class="file-btn" id="btnCollapseAll" type="button">全部收起</button>
   </div>
 
+
   <div class="card" id="srcCard" data-open="1">
     <div class="card-head">
-      <div class="card-title">資料來源</div>
-      <div class="card-note" id="sourceNote">目前使用：示範資料</div>
+      <div class="card-title">上傳報表</div>
+      <div class="card-note" id="sourceNote">目前沒有資料</div>
     </div>
     <div class="source-row">
       <div class="seg">
-        <button id="btnDemo" aria-pressed="true" type="button">使用示範資料</button>
+        <button id="btnDemo" aria-pressed="false" type="button">使用示範資料</button>
         <button id="btnUpload" aria-pressed="false" type="button">上傳我的報表</button>
       </div>
       <input type="file" id="fileInput" accept=".csv,.xlsx,.xls" multiple hidden>
     </div>
+    <div class="store-row">
+      <label for="storeSel">分店</label>
+      <select id="storeSel" aria-label="選擇分店"></select>
+      <button class="file-btn" id="btnAddStore" type="button">＋新增分店</button>
+      <button class="file-btn" id="btnRenameStore" type="button">改名</button>
+    </div>
+    <div class="store-add" id="storeForm" hidden>
+      <input id="storeBrand" maxlength="30" placeholder="品牌（例如：品牌A，沒有可空白）" aria-label="品牌">
+      <input id="storeName" maxlength="30" placeholder="分店名稱（例如：南京店）" aria-label="分店名稱">
+      <button class="file-btn es-main" id="btnSaveStore" type="button">新增</button>
+      <button class="file-btn" id="btnCancelStore" type="button">取消</button>
+    </div>
+    <div class="hint" id="storeHint">上傳的報表會存到上面選的分店。檔名寫上店名（例如「品牌A_南京店_業績概況_2026-08-01~2026-08-31.xlsx」）會自動放到那家分店，沒有這家店會自動新增。</div>
     <div class="hint">可以一次選多個檔案（.xlsx / .xls / .csv），例如「營運總覽」+「商品排行」，甚至好幾個月份一起選。欄位名稱看不懂時，會跳出視窗請你指定是哪一欄，選過一次就會記住。</div>
     <div class="warn" id="parseWarn"></div>
     <div class="file-chips" id="fileChips" hidden></div>
   </div>
 
-  <div class="card" id="histCard" data-open="1">
+
+  <div class="banner empty-state" id="emptyState" hidden>
+    <div class="es-title">還沒有資料</div>
+    <div class="es-text">請上傳 POS 匯出的報表（營運總覽、商品排行都可以，好幾個月一起選也行）。只是想先看看效果，可以按「先看示範資料」，那是一間虛構小吃店的數字。</div>
+    <div class="log-actions">
+      <button class="file-btn es-main" id="btnEmptyUpload" type="button">上傳我的報表</button>
+      <button class="file-btn" id="btnEmptyDemo" type="button">先看示範資料</button>
+    </div>
+  </div>
+
+
+  <div class="card summary-card" id="summaryCard" data-open="1" hidden>
     <div class="card-head">
-      <div class="card-title">歷史報表</div>
-      <div class="card-note" id="histNote">還沒有存任何月份</div>
+      <div class="card-title">本月重點</div>
+      <div class="card-note" id="summaryNote"></div>
     </div>
-    <div class="hint" style="margin-top:0">每次上傳後，每個月整理好的報表會自動存起來。想看哪個月，點一下就切換；灰色的月份代表還沒有報表。</div>
-    <div class="chips" id="histQuick" style="margin-top:12px; margin-bottom:0">
-      <button type="button" data-q="all" aria-pressed="false">全部月份</button>
-      <button type="button" data-q="last" aria-pressed="false">上個月</button>
-      <button type="button" data-q="season" aria-pressed="false">本季</button>
-      <button type="button" data-q="yoy" aria-pressed="false">去年同月</button>
-    </div>
-    <div class="mgrid" id="histGrid"></div>
-    <div class="hist-msg" id="histMsg"></div>
-    <div class="hist-cmp">
-      <label><input type="checkbox" id="cmpOn"> 跟另一個月比較</label>
-      <select id="cmpSel" aria-label="要比較的月份"></select>
-    </div>
-    <div id="cmpOut"></div>
-    <div class="db-status db-pending" id="histDbStatus">● 正在連線資料庫…</div>
-    <div class="log-actions"><button class="file-btn" id="btnClearHist" type="button">清除這台裝置的歷史報表</button></div>
+    <div id="summaryBody"></div>
   </div>
 
   <div class="card" id="overviewCard" data-open="1">
@@ -386,15 +428,26 @@
         <div class="more">點開看細節 ▾</div>
       </div>
       <div class="stat drillable" data-drill="season" role="button" tabindex="0" aria-expanded="false">
-        <div class="label" id="statSummerShareLabel">下一季佔全年營業額</div>
+        <div class="label" id="statSummerShareLabel">下一季預估營業額</div>
         <div class="value" id="statSummerShare">—</div>
+        <div class="sub" id="statSeasonSub"></div>
         <div class="more">點開看細節 ▾</div>
       </div>
     </div>
     <div class="drill" id="drillPanel" hidden></div>
   </div>
 
-  <div class="card" id="trendCard">
+
+  <div class="card" id="storeCmpCard" data-open="1" hidden>
+    <div class="card-head">
+      <div class="card-title">分店比較</div>
+      <div class="card-note" id="storeCmpNote"></div>
+    </div>
+    <div id="storeCmpBody"></div>
+  </div>
+
+
+  <div class="card" id="trendCard" data-open="1">
     <div class="card-head">
       <div class="card-title" id="trendTitle">每月營業額趨勢</div>
       <div class="card-note">滑到線上可看每個月的數字</div>
@@ -406,21 +459,8 @@
     <div class="legend-note" id="legendNote">深色的點是下一季的月份</div>
   </div>
 
-  <div class="card" id="reconCard" hidden>
-    <div class="card-head">
-      <div class="card-title">兩份報表對得起來嗎？</div>
-      <div class="card-note">同一個月，「營運總覽」跟「商品排行」加總後的營業額互相比對</div>
-    </div>
-    <div class="recon-wrap">
-      <table class="recon-table" id="reconTable">
-        <thead><tr><th>月份</th><th>營運總覽營業額</th><th>商品排行加總</th><th>差距</th></tr></thead>
-        <tbody id="reconBody"></tbody>
-      </table>
-    </div>
-    <div class="hint" id="reconHint"></div>
-  </div>
 
-  <div class="card" id="rankCard">
+  <div class="card" id="rankCard" data-open="1">
     <div class="card-head">
       <div class="card-title">下一季推薦主打商品 Top 5</div>
       <div class="card-note" id="rankCardNote">依「下一季平均銷量 ÷ 其他月份平均銷量」排序</div>
@@ -433,6 +473,46 @@
     <div class="log-actions"><button class="file-btn" id="btnAiRec" type="button" hidden>請 AI 寫下一季備貨建議</button></div>
     <div class="ai-out" id="aiRecOut" hidden></div>
   </div>
+
+
+  <div class="card" id="histCard">
+    <div class="card-head">
+      <div class="card-title">歷史報表（切換月份）</div>
+      <div class="card-note" id="histNote">還沒有存任何月份</div>
+    </div>
+    <div class="hint" style="margin-top:0">每次上傳後，每個月整理好的報表會自動存起來。想看哪個月，點一下就切換；灰色的月份代表還沒有報表。</div>
+    <div class="chips" id="histQuick" style="margin-top:12px; margin-bottom:0">
+      <button type="button" data-q="all" aria-pressed="false">全部月份</button>
+      <button type="button" data-q="last" aria-pressed="false">上個月</button>
+      <button type="button" data-q="season" aria-pressed="false">本季</button>
+      <button type="button" data-q="yoy" aria-pressed="false">去年同月</button>
+    </div>
+    <div class="mgrid" id="histGrid"></div>
+    <div class="hist-msg" id="histMsg"></div>
+    <div class="hist-cmp">
+      <label><input type="checkbox" id="cmpOn"> 跟另一個月比較</label>
+      <select id="cmpSel" aria-label="要比較的月份"></select>
+    </div>
+    <div id="cmpOut"></div>
+    <div class="db-status db-pending" id="histDbStatus">● 正在連線資料庫…</div>
+    <div class="log-actions"><button class="file-btn" id="btnClearHist" type="button">清除所有歷史報表</button></div>
+  </div>
+
+
+  <div class="card" id="reconCard" hidden>
+    <div class="card-head">
+      <div class="card-title">數字檢查</div>
+      <div class="card-note">同一個月，兩種報表的營業額應該差不多；差太多會標紅字</div>
+    </div>
+    <div class="recon-wrap">
+      <table class="recon-table" id="reconTable">
+        <thead><tr><th>月份</th><th>營運總覽營業額</th><th>商品排行加總</th><th>差距</th></tr></thead>
+        <tbody id="reconBody"></tbody>
+      </table>
+    </div>
+    <div class="hint" id="reconHint"></div>
+  </div>
+
 
   <div class="card" id="wineCard" hidden>
     <div class="card-head">
@@ -497,9 +577,10 @@
     </div>
   </div>
 
+
   <div class="card" id="logCard">
     <div class="card-head">
-      <div class="card-title">執行紀錄</div>
+      <div class="card-title">系統紀錄（查問題用）</div>
       <div class="card-note" id="logNote">目前 0 筆</div>
     </div>
     <div class="hint">每一次「切換示範資料」或「上傳報表」都會留下一筆紀錄——處理了哪些檔案、辨識成什麼報表類型、成功還是失敗，方便追蹤資料來源，也方便除錯。</div>
@@ -605,7 +686,9 @@
     };
   }
   var DEMO = buildDemo();
-  var state = { dataset: DEMO };
+  // 沒有任何資料時用的空資料：畫面改成顯示「請上傳報表」，不再自動帶出示範資料，避免老闆誤以為是自己的數字
+  var EMPTY = { label:"目前沒有資料", months:[], hasAmount:false, productMonthly:{}, revMonthly:{}, qtyMonthly:{}, recon:[], productFiles:[], daily:null, files:[], empty:true };
+  var state = { dataset: EMPTY };
   var seriesColors = ["--series-1","--series-2","--series-3","--series-4","--series-5"];
 
   // ---------------- 執行紀錄（Execution Log） ----------------
@@ -698,7 +781,7 @@
       hsEl.className = "db-status " + (s === "on" ? "db-on" : s === "pending" ? "db-pending" : "db-off");
       hsEl.textContent = s === "on" ? "● 每個月的報表都存在雲端資料庫，重新整理、換電腦都翻得到"
         : s === "pending" ? "● 正在連線資料庫…"
-        : "● 歷史報表存在這台裝置的瀏覽器裡：換手機或電腦就看不到，清除瀏覽器資料也會消失";
+        : (appDb ? "● 歷史報表存在這台裝置的瀏覽器裡：換手機或電腦就看不到，清除瀏覽器資料也會消失" : "● 這個瀏覽器不能存資料（例如無痕視窗），歷史報表只保留到關閉頁面為止");
     }
     var el = document.getElementById("logDbStatus");
     if (!el) return;
@@ -706,11 +789,66 @@
     if (s === "on") el.textContent = "● 已存進雲端資料庫：重新整理、關掉頁面、換電腦都不會消失";
     else if (s === "pending") el.textContent = "● 正在連線資料庫…";
     else if (s === "error") el.textContent = "● 資料庫寫入失敗（" + ((err && err.code) || "未知原因") + "），紀錄暫時只存在這個頁面，請記得下載備份";
-    else el.textContent = "● 公開試用版不保存執行紀錄，關掉頁面就會消失；需要的話請先下載";
+    else el.textContent = "● 公開試用版不保存系統紀錄，關掉頁面就會消失；需要的話請先下載";
+  }
+
+  // ===== 公開試用版：用這台裝置的瀏覽器（localStorage）當資料庫，介面跟雲端資料庫一樣 =====
+  var LS_PREFIX = "canyin_v2:";
+  function makeLocalDb(){
+    try { var t = "__canyin_test"; localStorage.setItem(t, "1"); localStorage.removeItem(t); } catch(e){ return null; }
+    function key(path){ return LS_PREFIX + path; }
+    function read(path){ try { var v = localStorage.getItem(key(path)); return v ? JSON.parse(v) : null; } catch(e){ return null; } }
+    function snapOf(path){ var d = read(path); return { id:path.split("/").pop(), exists:d !== null, data:function(){ return d || undefined; } }; }
+    function docRef(path){
+      return {
+        path:path,
+        get:function(){ return Promise.resolve(snapOf(path)); },
+        set:function(d){
+          try { localStorage.setItem(key(path), JSON.stringify(d)); return Promise.resolve(); }
+          catch(e){ return Promise.reject({ code:"quota_exceeded", message:"瀏覽器儲存空間不足" }); }
+        },
+        delete:function(){ try { localStorage.removeItem(key(path)); } catch(e){} return Promise.resolve(); }
+      };
+    }
+    function coll(cp){
+      var q = {
+        where:function(){ return q; }, orderBy:function(){ return q; }, limit:function(){ return q; },
+        doc:function(id){ return docRef(cp + "/" + id); },
+        get:function(){
+          var depth = cp.split("/").length + 1, docs = [];
+          for (var i=0;i<localStorage.length;i++){
+            var k = localStorage.key(i);
+            if (!k || k.indexOf(LS_PREFIX + cp + "/") !== 0) continue;
+            var path = k.slice(LS_PREFIX.length);
+            if (path.split("/").length === depth) docs.push(snapOf(path));
+          }
+          return Promise.resolve({ docs:docs, size:docs.length, empty:!docs.length });
+        }
+      };
+      return q;
+    }
+    // 舊版試用版的資料（canyin_reports_v1 / canyin_maps_v1）搬到新格式，只搬一次
+    try {
+      if (!localStorage.getItem(LS_PREFIX + "__migrated")){
+        var oldSnap = JSON.parse(localStorage.getItem("canyin_reports_v1") || "null");
+        if (oldSnap && typeof oldSnap === "object") Object.keys(oldSnap).forEach(function(mk){
+          if (/^\d{4}-\d{2}$/.test(mk) && oldSnap[mk] && !localStorage.getItem(key("reports/" + mk))) localStorage.setItem(key("reports/" + mk), JSON.stringify(oldSnap[mk]));
+        });
+        var oldMaps = JSON.parse(localStorage.getItem("canyin_maps_v1") || "null");
+        if (Array.isArray(oldMaps) && !localStorage.getItem(key("settings/columnMappings"))) localStorage.setItem(key("settings/columnMappings"), JSON.stringify({ maps:oldMaps }));
+        localStorage.setItem(LS_PREFIX + "__migrated", "1");
+      }
+    } catch(e){ /* 搬不過去就算了，不影響使用 */ }
+    return { doc:docRef, collection:coll };
   }
 
   function initLogDb(){
-    if (typeof window.claude === "undefined" || typeof window.claude.use !== "function"){ setDbStatus("off"); return; }
+    if (typeof window.claude === "undefined" || typeof window.claude.use !== "function"){
+      var ldb = makeLocalDb();
+      if (ldb){ try { initHistoryDb(ldb); } catch(e){ /* 歷史報表失敗不影響其他功能 */ } }
+      setDbStatus("off");
+      return;
+    }
     setDbStatus("pending");
     var p;
     try { p = window.claude.use("db"); } catch(e){ setDbStatus("off"); return; }
@@ -848,16 +986,25 @@
 
     document.getElementById("sourceNote").textContent = "目前使用：" + dataset.label;
     document.getElementById("overviewNote").textContent = dataset.label + " · 涵蓋 " + dataset.months.length + " 個月";
-    document.getElementById("statSummerShareLabel").textContent = TARGET_SEASON_NAME + "月份佔總營業額";
+    // 下一季預估：去年同季 × (1 + 最近成長率)；細節在「下一季預估」裡
+    var sf = null; try { sf = seasonForecast(dataset); } catch(e){ sf = null; }
+    document.getElementById("statSummerShareLabel").textContent = "預估" + TARGET_SEASON_NAME + (dataset.hasAmount ? "營業額" : "銷售量");
+    var sfVal = document.getElementById("statSummerShare"), sfSub = document.getElementById("statSeasonSub");
+    if (sf && sf.have){
+      sfVal.textContent = dataset.hasAmount ? fmtMoney(sf.total) : fmtInt(sf.total) + " 份";
+      var sfChg = sf.baseTotal ? (sf.total / sf.baseTotal - 1) * 100 : null;
+      sfSub.innerHTML = sf.g === null ? "照去年同季，沒有成長率可調整" : sfChg === null ? "" : '<span class="' + (sfChg >= 0 ? "up" : "down") + '">比去年同季 ' + (sfChg >= 0 ? "▲" : "▼") + Math.abs(sfChg).toFixed(1) + '%</span>';
+    } else {
+      sfVal.textContent = "—";
+      sfSub.textContent = "需要去年" + TARGET_SEASON_NAME + "的報表";
+    }
 
     if (dataset.hasAmount){
       document.getElementById("statRevLabel").textContent = "總營業額";
       document.getElementById("statRev").textContent = fmtMoney(tot.totalRev);
-      document.getElementById("statSummerShare").textContent = tot.totalRev > 0 ? Math.round(targetRev/tot.totalRev*100) + "%" : "—";
     } else {
       document.getElementById("statRevLabel").textContent = "總銷售量（無金額資料）";
       document.getElementById("statRev").textContent = fmtInt(productQtyTotal || tot.totalQty) + " 份";
-      document.getElementById("statSummerShare").textContent = tot.totalQty > 0 ? Math.round(targetQty/tot.totalQty*100) + "%" : "—";
     }
 
     if (names.length){
@@ -1080,8 +1227,120 @@
       : "兩份報表金額對得起來，落差在3%以內。";
   }
 
+  // ================= 本月重點：一打開就看到上個月怎麼樣、要注意什麼、下一季主打什麼 =================
+  function renderSummary(ds){
+    var card = document.getElementById("summaryCard"), body = document.getElementById("summaryBody");
+    if (!ds || ds.empty || !ds.months.length){ card.hidden = true; return; }
+    card.hidden = false;
+    var c = revCtx(ds), mk = ds.months[ds.months.length - 1];
+    var fmtV = ds.hasAmount ? fmtMoney : function(v){ return fmtInt(v) + " 份"; };
+    var rev = c.rev(mk), ly = mkAdd(mk, -12), pm = mkAdd(mk, -1);
+    var revLy = c.rev(ly), revPm = c.rev(pm);
+    var who = isBrandView() ? brandOfSel() + " 全部分店" : (ds.fromHistory ? storeLabel(storeById(state.storeSel)) : "");
+    document.getElementById("summaryNote").textContent = (who ? who + " · " : "") + (ds.months.length === 1 ? "正在看 " + monthLabelOf(mk) : "最新月份 " + monthLabelOf(mk));
+
+    function chg(label, a, b){
+      var p = pctChange(a, b); if (p === null) return "";
+      return '<span class="' + (p >= 0 ? "up" : "down") + '">' + label + (p >= 0 ? " ▲" : " ▼") + Math.abs(p).toFixed(1) + '%</span>';
+    }
+    // 第一行：這個月做多少、跟去年同月／上個月比
+    var cmp = [chg("比去年同月", rev, revLy), chg("比上個月", rev, revPm)].filter(Boolean);
+    var html = '<div class="sum-head">' + esc(monthLabelOf(mk)) + (ds.hasAmount ? " 營業額 " : " 銷售量 ") + esc(fmtV(rev || 0)) +
+      (cmp.length ? "，" + cmp.join("，") : "") + '</div>';
+
+    // 第二行：變化主要來自來客數還是客單價（用字保守：這是數字拆解，不是原因）
+    var cust = c.cust(mk);
+    var base = revLy !== null && c.cust(ly) ? { mk:ly, rev:revLy, cust:c.cust(ly) } : (revPm !== null && c.cust(pm) ? { mk:pm, rev:revPm, cust:c.cust(pm) } : null);
+    if (ds.hasAmount && cust && base){
+      var avg = rev / cust, avgB = base.rev / base.cust;
+      var cy = pctChange(cust, base.cust), ay = pctChange(avg, avgB);
+      var bigger = Math.abs(cy) >= Math.abs(ay) ? "來客數" : "客單價";
+      html += '<div class="sum-line">跟 ' + esc(monthLabelOf(base.mk)) + ' 比：來客數' + (cy >= 0 ? "多 " : "少 ") + Math.abs(cy).toFixed(1) + '%（' + fmtInt(cust) + ' 人），客單價' +
+        (ay >= 0 ? "高 " : "低 ") + Math.abs(ay).toFixed(1) + '%（' + esc(fmtMoney(avg)) + '）。營業額的變化主要來自<b>' + bigger + '</b>。</div>';
+    } else if (revLy === null && revPm === null){
+      html += '<div class="sum-line">還沒有上個月或去年同月的報表，所以沒辦法比較。</div>';
+    }
+
+    // 要注意的事
+    var alerts = [];
+    var known = knownMonths(ds).filter(function(x){ return c.rev(x) !== null || (snapStore[x] && snapStore[x].products); });
+    if (known.length >= 2){
+      var missing = monthsBetween(known[0], known[known.length - 1]).filter(function(x){ return known.indexOf(x) === -1; });
+      if (missing.length) alerts.push("有 " + missing.length + " 個月還沒上傳報表：" + missing.slice(0, 4).map(monthLabelOf).join("、") + (missing.length > 4 ? " 等" : "") + "。這些月份的比較會不準。");
+    }
+    // 兩種報表的落差：很多店每個月都固定差一個比例（例如 10% 服務費），那是正常的；
+    // 只有「這個月跟平常差很多」才提醒，避免每個月都跳警告，老闆看久了就不看了
+    var reconSrc = ds.fromHistory && ds.months.length < snapMonths().length ? datasetFromSnapshots(snapMonths(), "").recon : ds.recon;
+    var gaps = (reconSrc || []).filter(function(r){ return r.dailyRev > 0; }).map(function(r){ return { label:r.label, g:(r.dailyRev - r.productRev) / r.dailyRev * 100 }; });
+    var infoLine = "";
+    if (gaps.length){
+      var sortedG = gaps.map(function(x){ return x.g; }).sort(function(x, y){ return x - y; });
+      var med = sortedG[Math.floor(sortedG.length / 2)];
+      var tgt = gaps.filter(function(x){ return x.label === monthLabelOf(mk); })[0];
+      if (gaps.length >= 3 && Math.abs(med) >= 3) infoLine = "這家店的兩種報表平常就差約 " + med.toFixed(1) + "%（多半是服務費），這是正常的。";
+      if (tgt && Math.abs(tgt.g - med) >= 3 && gaps.length >= 3){
+        alerts.push(esc(tgt.label) + " 兩種報表差了 " + tgt.g.toFixed(1) + "%，跟平常（約 " + med.toFixed(1) + "%）不一樣，建議確認是不是有退款、招待或漏上傳。");
+      } else if (gaps.length < 3 && tgt && Math.abs(tgt.g) >= 3){
+        alerts.push(esc(tgt.label) + " 兩種報表差了 " + tgt.g.toFixed(1) + "%，可能是服務費、折扣或招待，建議確認一下。");
+      }
+    }
+    if (isBrandView()){
+      var lack = storesOfBrand(brandOfSel()).filter(function(s){ return !(storeSnaps[s.id] && storeSnaps[s.id][mk]); });
+      if (lack.length) alerts.push(lack.map(function(s){ return esc(s.name); }).join("、") + " 還沒有 " + monthLabelOf(mk) + " 的報表，全品牌加總會偏低。");
+    }
+    html += '<div class="sum-sec"><div class="sum-sec-title">要注意</div><ul class="sum-alerts">' +
+      (alerts.length ? alerts.map(function(a){ return '<li>⚠ ' + a + '</li>'; }).join("") : '<li class="ok">沒有發現需要特別注意的地方。</li>') +
+      (infoLine ? '<li class="ok">' + infoLine + '</li>' : '') + '</ul></div>';
+
+    // 下一季：預估營業額＋建議主打
+    var recBase = ds.fromHistory && ds.months.length < snapMonths().length ? datasetFromSnapshots(snapMonths(), "") : ds;
+    var sr = seasonRatios(recBase), recs = sr.list.filter(function(it){ return it.ratio > 1; }).slice(0, 3);
+    var sf = null; try { sf = seasonForecast(ds); } catch(e){ sf = null; }
+    var nextLine = "";
+    if (sf && sf.have){
+      var fc = sf.baseTotal ? (sf.total / sf.baseTotal - 1) * 100 : null;
+      nextLine = '<div class="sum-line">預估' + TARGET_SEASON_NAME + '營業額約 <b>' + esc(fmtV(sf.total)) + '</b>' + (fc !== null && sf.g !== null ? '（比去年同季' + (fc >= 0 ? "多 " : "少 ") + Math.abs(fc).toFixed(1) + '%）' : '') + '，這是參考值。</div>';
+    }
+    html += '<div class="sum-sec"><div class="sum-sec-title">下一季（' + TARGET_SEASON_NAME + '）</div>' + nextLine +
+      (recs.length ? '<div class="sum-line" style="margin-bottom:6px">過去一到' + TARGET_SEASON_NAME + '就特別好賣，可以考慮主打：</div><div class="sum-recs">' + recs.map(function(it){ return '<span>' + esc(it.name) + '</span>'; }).join("") + '</div>' +
+        (sr.otherMonths.length < 2 ? '<div class="hint">資料月份還太少，這個推薦僅供參考。</div>' : '')
+        : '<div class="sum-line">需要「商品排行」報表，才能推薦要主打什麼。</div>') + '</div>';
+
+    html += '<div class="sum-actions"><button class="file-btn" type="button" data-sum="rev">看營業額細節</button>' +
+      '<button class="file-btn" type="button" data-sum="hist">切換月份</button>' +
+      (recs.length ? '<button class="file-btn" type="button" data-sum="rank">看完整推薦</button>' : '') + '</div>';
+    body.innerHTML = html;
+  }
+  // 打開某張卡片並捲過去
+  function openCardById(id){
+    var card = document.getElementById(id); if (!card) return;
+    var head = card.querySelector(":scope > .card-head.toggle"), b = card.querySelector(":scope > .card-body");
+    if (head && b && typeof setOpen === "function") setOpen(head, b, true);
+    card.scrollIntoView({ behavior:"smooth", block:"start" });
+  }
+  document.getElementById("summaryBody").addEventListener("click", function(e){
+    var b = e.target.closest ? e.target.closest("button[data-sum]") : null; if (!b) return;
+    var k = b.getAttribute("data-sum");
+    if (k === "rev"){ if (state.drill !== "rev") toggleDrill("rev"); openCardById("overviewCard"); }
+    else if (k === "hist") openCardById("histCard");
+    else if (k === "rank") openCardById("rankCard");
+  });
+
   function renderAll(){
+    // 沒有資料：只顯示「請上傳」的提示，其他分析卡片先藏起來
+    var isEmpty = !!state.dataset.empty;
+    var es = document.getElementById("emptyState"); if (es) es.hidden = !isEmpty;
+    ["overviewCard","trendCard","rankCard"].forEach(function(id){ var el = document.getElementById(id); if (el) el.hidden = isEmpty; });
+    if (isEmpty){
+      ["reconCard","wineCard","storeCmpCard","summaryCard"].forEach(function(id){ var el = document.getElementById(id); if (el) el.hidden = true; });
+      document.getElementById("sourceNote").textContent = "目前沒有資料";
+      state.drill = null;
+      if (typeof updateSummaries === "function") updateSummaries();
+      return;
+    }
     renderStats(state.dataset);
+    try { renderSummary(state.dataset); } catch(e){ document.getElementById("summaryCard").hidden = true; }
+    try { renderStoreCompare(state.dataset); } catch(e){ document.getElementById("storeCmpCard").hidden = true; }
     renderDrill();
     renderTrend(state.dataset);
     renderRecon(state.dataset);
@@ -1456,63 +1715,174 @@
   }
 
   // ---- 1. 營業額 ----
-  function drillRev(ds){
-    var ms = ds.months, val = function(mk){ return ds.hasAmount ? (ds.revMonthly[mk]||0) : (ds.qtyMonthly[mk]||0); };
-    var fmtV = ds.hasAmount ? fmtMoney : function(v){ return fmtInt(v) + " 份"; };
-    if (!ms.length) return '<div class="empty-note">還沒有資料</div>';
-    var tot = 0; ms.forEach(function(mk){ tot += val(mk); });
-    var sorted = ms.slice().sort(function(a,b){ return val(b) - val(a); });
-    var hi = sorted[0], lo = sorted[sorted.length-1];
-    var mini = [["每月平均", fmtV(tot/ms.length), ms.length + " 個月"], ["最高的月份", monthLabelOf(hi), fmtV(val(hi))], ["最低的月份", monthLabelOf(lo), fmtV(val(lo))]];
-    if (ds.daily){
-      var open = 0, days = 0, cust = 0, disc = 0;
-      ms.forEach(function(mk){ open += ds.daily.open[mk]||0; days += ds.daily.days[mk]||0; cust += ds.qtyMonthly[mk]||0; disc += ds.daily.disc[mk]||0; });
-      mini.push(["營業天數", fmtInt(open) + " 天", "共 " + fmtInt(days) + " 天，公休 " + fmtInt(days-open) + " 天"]);
-      mini.push(["營業日平均", fmtMoney(open ? tot/open : 0), "只算有營業的日子"]);
-      if (ds.daily.hasCust){
-        mini.push(["總來客數", fmtInt(cust) + " 人", "平均每天 " + (open ? (cust/open).toFixed(1) : "—") + " 人"]);
-        mini.push(["平均客單價", fmtMoney(cust ? tot/cust : 0), "營業額 ÷ 來客數"]);
+  // 單月、多月看的重點不一樣，分成兩種版面；重要的數字放最上面
+
+  // 取得某個月的數字：先看目前這份資料；看歷史報表時，也會去已存的其他月份找（才找得到去年同月、上個月）
+  function revCtx(ds){
+    var inDs = function(mk){ return ds.months.indexOf(mk) !== -1; };
+    var snap = function(mk){ return ds.fromHistory && snapStore[mk] && snapStore[mk].daily ? snapStore[mk].daily : null; };
+    var hasCust = !!(ds.daily && ds.daily.hasCust);
+    return {
+      rev: function(mk){
+        if (inDs(mk)) return ds.hasAmount ? (ds.revMonthly[mk]||0) : (ds.qtyMonthly[mk]||0);
+        var s = snap(mk); return s && ds.hasAmount ? s.rev : null;
+      },
+      cust: function(mk){
+        if (!hasCust) return null;
+        if (inDs(mk)) return ds.qtyMonthly[mk]||0;
+        var s = snap(mk); return s && s.hasCust ? s.cust : null;
+      },
+      open: function(mk){
+        if (inDs(mk)) return ds.daily ? (ds.daily.open[mk]||0) : null;
+        var s = snap(mk); return s && s.days ? s.open : null;
+      },
+      days: function(mk){
+        if (inDs(mk)) return ds.daily ? (ds.daily.days[mk]||0) : null;
+        var s = snap(mk); return s ? s.days : null;
+      },
+      disc: function(mk){
+        if (inDs(mk)) return ds.daily ? (ds.daily.disc[mk]||0) : null;
+        var s = snap(mk); return s ? s.disc : null;
       }
-      if (ds.daily.hasDisc) mini.push(["折扣總額", fmtMoney(disc), tot ? "佔營業額 " + (disc/tot*100).toFixed(1) + "%" : ""]);
-    }
-    var html = miniHtml(mini);
+    };
+  }
+  function pctChange(a, b){ return (a === null || a === undefined || !b) ? null : (a - b) / b * 100; }
+  // 成長用綠色、衰退用橘色；沒有資料就寫清楚沒有
+  function chgSpan(label, p){
+    if (p === null) return '<span class="dn">' + esc(label) + '：沒有資料</span>';
+    var up = p >= 0;
+    return '<span class="' + (up ? 'up' : 'down') + '">' + esc(label) + ' ' + (up ? '▲' : '▼') + Math.abs(p).toFixed(1) + '%</span>';
+  }
+  // 只列出有資料可以比的項目；全部都沒有就不顯示
+  function chgLines(pairs){
+    return pairs.filter(function(x){ return x[1] !== null; }).map(function(x){ return chgSpan(x[0], x[1]); }).join('<br>');
+  }
+  function pctOf(part, whole){
+    if (!whole) return "";
+    var r = part / whole * 100;
+    return "佔營業額 " + (r > 0 && r < 0.1 ? "不到 0.1%" : r.toFixed(1) + "%");
+  }
+  // 跟 miniHtml 一樣的卡片，但說明文字可以放顏色（內容都先經過 esc）
+  function miniRich(items){
+    return '<div class="mini-stats">' + items.map(function(m){
+      return '<div class="mini"><div class="l">' + esc(m[0]) + '</div><div class="v">' + esc(m[1]) + '</div>' +
+        (m[2] ? '<div class="s">' + m[2] + '</div>' : '') + '</div>';
+    }).join("") + '</div>';
+  }
 
-    // 年度比較：月份數不同時，比「每月平均」才公平
-    var byYear = {};
-    ms.forEach(function(mk){ var y = mk.split("-")[0]; var o = byYear[y] || (byYear[y] = { n:0, sum:0, months:{} }); o.n++; o.sum += val(mk); o.months[mk.split("-")[1]] = val(mk); });
-    var years = Object.keys(byYear).sort();
-    if (years.length > 1){
-      html += '<h4>年度比較</h4><div class="recon-wrap"><table class="recon-table"><thead><tr><th>年份</th><th>有資料的月份</th><th>合計</th><th>每月平均</th><th>同期成長</th></tr></thead><tbody>';
-      years.forEach(function(y, i){
-        var yoy = "—";
-        if (i > 0){
-          var prev = byYear[years[i-1]], cur = byYear[y], a = 0, b = 0, n = 0;
-          Object.keys(cur.months).forEach(function(m){ if (prev.months[m] !== undefined){ a += cur.months[m]; b += prev.months[m]; n++; } });
-          if (n && b) yoy = ((a-b)/b*100 >= 0 ? "+" : "") + ((a-b)/b*100).toFixed(1) + "%（" + n + " 個月對比）";
-        }
-        html += '<tr><td>' + y + '</td><td>' + byYear[y].n + '</td><td>' + esc(fmtV(byYear[y].sum)) + '</td><td>' + esc(fmtV(byYear[y].sum/byYear[y].n)) + '</td><td>' + esc(yoy) + '</td></tr>';
-      });
-      html += '</tbody></table></div><div class="hint">「同期成長」只拿兩年都有資料的同一批月份來比，避免拿 12 個月去跟 3 個月比。</div>';
+  function drillRev(ds){
+    if (!ds.months.length) return '<div class="empty-note">還沒有資料</div>';
+    return ds.months.length === 1 ? drillRevSingle(ds) : drillRevMulti(ds);
+  }
+
+  // 單月：重點是「這個月跟去年同月、跟上個月比，變好還是變差，原因是什麼」
+  function drillRevSingle(ds){
+    var mk = ds.months[0], c = revCtx(ds);
+    var ly = mkAdd(mk, -12), pm = mkAdd(mk, -1);
+    var fmtV = ds.hasAmount ? fmtMoney : function(v){ return fmtInt(v) + " 份"; };
+    var rev = c.rev(mk), revLy = c.rev(ly), revPm = c.rev(pm);
+    var cust = c.cust(mk), custLy = c.cust(ly), custPm = c.cust(pm);
+    var avg = cust ? rev / cust : null;
+    var avgLy = custLy ? (revLy || 0) / custLy : null, avgPm = custPm ? (revPm || 0) / custPm : null;
+    if (revLy === null) avgLy = null;
+    if (revPm === null) avgPm = null;
+
+    // 1. 最重要：營業額、來客數、客單價，各自跟去年同月、上個月比
+    var top = [[ds.hasAmount ? "營業額" : "銷售量", fmtV(rev),
+      chgLines([["比去年同月", pctChange(rev, revLy)], ["比上個月", pctChange(rev, revPm)]])]];
+    if (cust !== null){
+      top.push(["來客數", fmtInt(cust) + " 人", chgLines([["比去年同月", pctChange(cust, custLy)], ["比上個月", pctChange(cust, custPm)]])]);
+      top.push(["客單價", fmtMoney(avg || 0), chgLines([["比去年同月", pctChange(avg, avgLy)], ["比上個月", pctChange(avg, avgPm)]])]);
+    }
+    var html = '<h4 style="margin-top:0">' + esc(monthLabelOf(mk)) + ' 的表現</h4>' + miniRich(top);
+
+    // 營業額變化的原因：營業額 = 來客數 × 客單價，看是哪一個在拉（優先跟去年同月比，沒有就跟上個月比）
+    var revYoy = pctChange(rev, revLy);
+    var cmpBase = (revYoy !== null && custLy !== null && avgLy !== null) ? { mk:ly, rev:revLy, cust:custLy, avg:avgLy }
+      : (pctChange(rev, revPm) !== null && custPm !== null && avgPm !== null) ? { mk:pm, rev:revPm, cust:custPm, avg:avgPm } : null;
+    if (cust !== null && cmpBase){
+      var rg = pctChange(rev, cmpBase.rev), cy = pctChange(cust, cmpBase.cust), ay = pctChange(avg, cmpBase.avg);
+      var driver = Math.abs(cy) >= Math.abs(ay) ? "來客數" : "客單價";
+      html += '<div class="insight"><b>為什麼' + (rg >= 0 ? '成長' : '下滑') + '：</b>營業額 = 來客數 × 客單價。和 ' + esc(monthLabelOf(cmpBase.mk)) +
+        ' 比，來客數' + (cy >= 0 ? '多了 ' : '少了 ') + Math.abs(cy).toFixed(1) + '%、客單價' + (ay >= 0 ? '高了 ' : '低了 ') + Math.abs(ay).toFixed(1) +
+        '%，影響比較大的是<b>' + driver + '</b>。</div>';
+    }
+    if (revLy === null && revPm === null){
+      html += '<div class="hint">還沒有去年同月（' + esc(monthLabelOf(ly)) + '）或上個月（' + esc(monthLabelOf(pm)) + '）的報表，所以沒辦法比較。把那兩個月的報表也上傳，這裡就會出現變化。</div>';
+    } else if (revLy === null){
+      html += '<div class="hint">還沒有去年同月（' + esc(monthLabelOf(ly)) + '）的報表，目前只能跟上個月比。上個月和這個月的季節不同，比較時要考慮淡旺季。</div>';
     }
 
-    // 每個月跟「去年同一個月」比：有成長才標綠色；沒有去年資料的月份用灰色
+    // 2. 營業狀況：營業天數、營業日平均、折扣
+    var open = c.open(mk), days = c.days(mk), disc = c.disc(mk);
+    if (open !== null && days){
+      var openLy = c.open(ly), more = [];
+      var openSub = '共 ' + fmtInt(days) + ' 天，公休 ' + fmtInt(days - open) + ' 天';
+      if (openLy !== null) openSub += '<br>' + (open === openLy ? '<span class="dn">和去年同月一樣</span>' :
+        '<span class="' + (open > openLy ? 'up' : 'down') + '">比去年同月' + (open > openLy ? '多 ' : '少 ') + Math.abs(open - openLy) + ' 天</span>');
+      more.push(["營業天數", fmtInt(open) + " 天", openSub]);
+      var perDay = open ? rev / open : 0, perDayLy = openLy ? (revLy || 0) / openLy : null;
+      if (revLy === null) perDayLy = null;
+      var pdChg = chgLines([["比去年同月", pctChange(perDay, perDayLy)]]);
+      more.push(["營業日平均", fmtV(perDay), '只算有開店的日子，一天平均做多少' + (pdChg ? '<br>' + pdChg : '')]);
+      if (ds.daily && ds.daily.hasDisc && disc !== null) more.push(["折扣總額", fmtMoney(disc), esc(pctOf(disc, rev))]);
+      html += '<h4>營業狀況</h4>' + miniRich(more);
+      if (openLy !== null && open < openLy && revYoy !== null && revYoy < 0){
+        html += '<div class="hint">這個月比去年同月少營業 ' + (openLy - open) + ' 天，營業額下滑有一部分是天數造成的；看「營業日平均」比較公平。</div>';
+      }
+    }
+    return html;
+  }
+
+  // 多月：重點是「整段期間表現如何、哪個月份要注意、每個月的走勢」
+  function drillRevMulti(ds){
+    var ms = ds.months, c = revCtx(ds);
+    var val = function(mk){ return c.rev(mk) || 0; };
+    var fmtV = ds.hasAmount ? fmtMoney : function(v){ return fmtInt(v) + " 份"; };
+    var tot = 0; ms.forEach(function(mk){ tot += val(mk); });
+    var avgM = tot / ms.length;
+
+    // 和去年同期比：只拿「去年同月也有資料」的月份來比，才公平
+    var a = 0, b = 0, n = 0;
+    ms.forEach(function(mk){ var pv = c.rev(mkAdd(mk, -12)); if (pv !== null && pv > 0){ a += val(mk); b += pv; n++; } });
+    var yoy = n ? (a - b) / b * 100 : null;
+
+    // 1. 最重要的總數
+    var top = [[ds.hasAmount ? "總營業額" : "總銷售量", fmtV(tot),
+      esc(ms.length + " 個月") + '<br>' + (yoy === null ? '<span class="dn">沒有去年同期可比較</span>' : chgSpan("比去年同期（" + n + " 個月）", yoy))],
+      ["每月平均", fmtV(avgM), esc(monthLabelOf(ms[0]) + "～" + monthLabelOf(ms[ms.length-1]))]];
+    var cust = 0, open = 0, days = 0, disc = 0;
+    if (ds.daily){
+      ms.forEach(function(mk){ cust += ds.qtyMonthly[mk]||0; open += ds.daily.open[mk]||0; days += ds.daily.days[mk]||0; disc += ds.daily.disc[mk]||0; });
+      if (ds.daily.hasCust){
+        top.push(["平均客單價", fmtMoney(cust ? tot/cust : 0), "每位客人平均花多少"]);
+        top.push(["總來客數", fmtInt(cust) + " 人", esc("平均每天 " + (open ? (cust/open).toFixed(1) : "—") + " 人")]);
+      }
+    }
+    var html = miniRich(top);
+
+    // 2. 值得注意：特別低的月份（原本在最底下，容易被忽略，往上移）
+    var sorted = ms.slice().sort(function(x,y){ return val(y) - val(x); });
+    var hi = sorted[0], lo = sorted[sorted.length-1];
+    if (val(lo) < avgM * 0.75){
+      html += '<div class="insight"><b>值得注意：</b>' + esc(monthLabelOf(lo)) + ' 比平均低了 ' + Math.round((1 - val(lo)/avgM)*100) + '%。如果這個月有公休、整修或資料不完整，數字本身沒問題；如果都沒有，就值得回頭查原因。</div>';
+    }
+
+    // 3. 每個月份的走勢（綠色＝比去年同月成長）
     var upCount = 0, cmpCount = 0, bestUp = null;
     var monthRows = ms.map(function(mk){
-      var y = +mk.split("-")[0], m = mk.split("-")[1];
-      var prevMk = (y-1) + "-" + m;
+      var prevMk = mkAdd(mk, -12);
       var row = { name:monthLabelOf(mk), val:val(mk), cls:"flat", noteHtml:' <span class="dn">無去年同月</span>' };
-      if (ds.revMonthly[prevMk] !== undefined || ds.qtyMonthly[prevMk] !== undefined){
-        var pv = val(prevMk);
-        if (pv > 0){
-          var g = (val(mk) - pv) / pv * 100;
-          cmpCount++;
-          if (g > 0){
-            upCount++;
-            row.cls = "up"; row.noteHtml = ' <span class="up">▲' + g.toFixed(1) + '%</span>';
-            if (!bestUp || g > bestUp.g) bestUp = { mk:mk, prev:prevMk, g:g };
-          } else {
-            row.cls = ""; row.noteHtml = ' <span class="dn">▼' + Math.abs(g).toFixed(1) + '%</span>';
-          }
+      var pv = c.rev(prevMk);
+      if (pv !== null && pv > 0){
+        var g = (val(mk) - pv) / pv * 100;
+        cmpCount++;
+        if (g > 0){
+          upCount++;
+          row.cls = "up"; row.noteHtml = ' <span class="up">▲' + g.toFixed(1) + '%</span>';
+          if (!bestUp || g > bestUp.g) bestUp = { mk:mk, prev:prevMk, g:g };
+        } else {
+          row.cls = ""; row.noteHtml = ' <span class="dn">▼' + Math.abs(g).toFixed(1) + '%</span>';
         }
       }
       return row;
@@ -1523,13 +1893,35 @@
         (bestUp ? '成長最多的是 ' + monthLabelOf(bestUp.mk) + '，比 ' + monthLabelOf(bestUp.prev) + ' 多了 ' + bestUp.g.toFixed(1) + '%。' : '') +
         '灰色的月份沒有去年同月資料，無法比較。</div>';
     } else {
-      html += '<div class="hint">目前資料不滿兩年，沒有「去年同月」可以比較，所以都是灰色。</div>';
+      html += '<div class="hint">目前沒有「去年同月」的資料可以比較，所以都是灰色。</div>';
     }
 
-    var avg = tot/ms.length;
-    if (val(lo) < avg * 0.75){
-      html += '<div class="insight"><b>值得注意：</b>' + monthLabelOf(lo) + ' 比平均低了 ' + Math.round((1 - val(lo)/avg)*100) + '%。如果這個月有公休、整修或資料不完整，數字本身沒問題；如果都沒有，就值得回頭查原因。</div>';
+    // 4. 年度比較（跨年份才顯示）
+    var byYear = {};
+    ms.forEach(function(mk){ var y = mk.split("-")[0]; var o = byYear[y] || (byYear[y] = { n:0, sum:0, months:{} }); o.n++; o.sum += val(mk); o.months[mk.split("-")[1]] = val(mk); });
+    var years = Object.keys(byYear).sort();
+    if (years.length > 1){
+      html += '<h4>年度比較</h4><div class="recon-wrap"><table class="recon-table"><thead><tr><th>年份</th><th>有資料的月份</th><th>合計</th><th>每月平均</th><th>同期成長</th></tr></thead><tbody>';
+      years.forEach(function(y, i){
+        var yy = "—";
+        if (i > 0){
+          var prev = byYear[years[i-1]], cur = byYear[y], s1 = 0, s0 = 0, k = 0;
+          Object.keys(cur.months).forEach(function(m){ if (prev.months[m] !== undefined){ s1 += cur.months[m]; s0 += prev.months[m]; k++; } });
+          if (k && s0) yy = ((s1-s0)/s0*100 >= 0 ? "+" : "") + ((s1-s0)/s0*100).toFixed(1) + "%（" + k + " 個月對比）";
+        }
+        html += '<tr><td>' + y + '</td><td>' + byYear[y].n + '</td><td>' + esc(fmtV(byYear[y].sum)) + '</td><td>' + esc(fmtV(byYear[y].sum/byYear[y].n)) + '</td><td>' + esc(yy) + '</td></tr>';
+      });
+      html += '</tbody></table></div><div class="hint">「同期成長」只拿兩年都有資料的同一批月份來比，避免拿 12 個月去跟 3 個月比。</div>';
     }
+
+    // 5. 其他參考數字
+    var more = [["最高的月份", monthLabelOf(hi), esc(fmtV(val(hi)))], ["最低的月份", monthLabelOf(lo), esc(fmtV(val(lo)))]];
+    if (ds.daily){
+      more.push(["營業天數", fmtInt(open) + " 天", esc("共 " + fmtInt(days) + " 天，公休 " + fmtInt(days-open) + " 天")]);
+      more.push(["營業日平均", fmtMoney(open ? tot/open : 0), "只算有開店的日子，一天平均做多少"]);
+      if (ds.daily.hasDisc) more.push(["折扣總額", fmtMoney(disc), esc(pctOf(disc, tot))]);
+    }
+    html += '<h4>其他參考</h4>' + miniRich(more);
     return html;
   }
 
@@ -1622,31 +2014,110 @@
     return html;
   }
 
-  // ---- 4. 季節 ----
+  // ---- 4. 下一季預估 ----
+  // 預估方法（簡單、可以說明清楚）：去年同一季每個月的實際營業額 × (1 + 最近的成長率)
+  // 成長率 = 最近 6 個「有去年同月可比」的月份，今年合計 ÷ 去年合計 − 1
+
+  // 目前看得到的所有月份：這份資料本身；看歷史報表時，也包含其他已存的月份
+  function knownMonths(ds){
+    var set = {};
+    ds.months.forEach(function(mk){ set[mk] = true; });
+    if (ds.fromHistory) snapMonths().forEach(function(mk){ set[mk] = true; });
+    return Object.keys(set).sort();
+  }
+
+  function seasonForecast(ds){
+    var c = revCtx(ds);
+    var now = todayMk(), nowY = +now.split("-")[0], nowM = +now.split("-")[1];
+    var known = knownMonths(ds);
+
+    // 1. 最近的成長率
+    var cur = 0, prev = 0, used = [];
+    known.slice().reverse().forEach(function(mk){
+      if (used.length >= 6) return;
+      var a = c.rev(mk), b = c.rev(mkAdd(mk, -12));
+      if (a !== null && b !== null && b > 0){ cur += a; prev += b; used.push(mk); }
+    });
+    var g = prev > 0 ? cur / prev - 1 : null;
+
+    // 2. 下一季每個月：今年（或明年）的月份，對應去年同月的實際數字
+    var months = TARGET_MONTH_NUMS.map(function(m){
+      var y = m > nowM ? nowY : nowY + 1;
+      var mk = y + "-" + (m < 10 ? "0" + m : m);
+      // 優先用去年同月；沒有的話往前找前年同月
+      var base = null, baseMk = null, gap = 0;
+      for (var k = 1; k <= 3; k++){
+        var b = c.rev(mkAdd(mk, -12 * k));
+        if (b !== null){ base = b; baseMk = mkAdd(mk, -12 * k); gap = k; break; }
+      }
+      var est = base === null ? null : base * Math.pow(1 + (g || 0), gap);
+      return { mk:mk, base:base, baseMk:baseMk, est:est, gap:gap };
+    });
+    var have = months.filter(function(x){ return x.est !== null; });
+    var total = 0, baseTotal = 0;
+    have.forEach(function(x){ total += x.est; baseTotal += x.base; });
+
+    // 3. 這一季是旺季還是淡季：同一季每月平均 vs 最近 12 個月每月平均
+    var last12 = known.filter(function(mk){ return c.rev(mk) !== null; }).slice(-12);
+    var allAvg = 0; last12.forEach(function(mk){ allAvg += c.rev(mk); }); allAvg = last12.length ? allAvg / last12.length : 0;
+    var seasonVals = last12.filter(function(mk){ return TARGET_MONTH_NUMS.indexOf(monthNumOf(mk)) !== -1; }).map(function(mk){ return c.rev(mk); });
+    var seasonAvg = seasonVals.length ? seasonVals.reduce(function(a,b){ return a + b; }, 0) / seasonVals.length : null;
+
+    return { months:months, have:have.length, total:total, baseTotal:baseTotal, g:g, gMonths:used.slice().reverse(),
+      seasonAvg:seasonAvg, allAvg:allAvg, last12:last12.length };
+  }
+
   function drillSeason(ds){
-    var val = function(mk){ return ds.hasAmount ? (ds.revMonthly[mk]||0) : (ds.qtyMonthly[mk]||0); };
     var fmtV = ds.hasAmount ? fmtMoney : function(v){ return fmtInt(v) + " 份"; };
+    var f = seasonForecast(ds);
+    var html = "";
+
+    if (!f.have){
+      html += '<div class="insight"><b>還沒辦法預估：</b>需要去年' + TARGET_SEASON_NAME + '（' + TARGET_MONTH_NUMS.join("、") + ' 月）的報表，才算得出今年' + TARGET_SEASON_NAME + '大概會做多少。把那幾個月的報表上傳後，這裡就會出現預估。</div>';
+    } else {
+      // 1. 最重要：預估多少、去年多少、用多少成長率算的
+      var top = [["預估" + TARGET_SEASON_NAME + (ds.hasAmount ? "營業額" : "銷售量"), fmtV(f.total),
+        esc(f.have + " 個月合計" + (f.have < 3 ? "（有 " + (3 - f.have) + " 個月缺去年資料）" : ""))],
+        ["去年同季實際", fmtV(f.baseTotal), esc(f.months.filter(function(x){ return x.baseMk; }).map(function(x){ return monthLabelOf(x.baseMk); }).join("、"))]];
+      if (f.g !== null){
+        top.push(["依據的成長率", (f.g >= 0 ? "+" : "") + (f.g * 100).toFixed(1) + "%",
+          esc("最近 " + f.gMonths.length + " 個月和去年同月比（" + monthLabelOf(f.gMonths[0]) + "～" + monthLabelOf(f.gMonths[f.gMonths.length-1]) + "）")]);
+      } else {
+        top.push(["依據的成長率", "0%", "沒有去年同月可比，先假設和去年一樣"]);
+      }
+      html += miniRich(top);
+
+      // 旺季還是淡季：決定要多備貨、多排班，還是保守一點
+      if (f.seasonAvg !== null && f.allAvg > 0){
+        var diff = (f.seasonAvg / f.allAvg - 1) * 100;
+        var tone = diff >= 10 ? "是<b>旺季</b>，建議提早備貨、排足人力。" : diff <= -10 ? "是<b>淡季</b>，進貨和排班可以保守一點，也是推活動拉客的時機。" : "和平常差不多，維持一般的備貨和排班即可。";
+        html += '<div class="insight"><b>' + TARGET_SEASON_NAME + '是旺季還是淡季：</b>最近 ' + f.last12 + ' 個月裡，' + TARGET_SEASON_NAME + '每月平均比全部月份的平均' +
+          (diff >= 0 ? '高 ' : '低 ') + Math.abs(diff).toFixed(1) + '%，' + tone + '</div>';
+      }
+
+      // 2. 每個月的預估
+      html += '<h4>每個月的預估</h4><div class="recon-wrap"><table class="recon-table"><thead><tr><th>月份</th><th>參考的實際月份</th><th>當時實際</th><th>今年預估</th></tr></thead><tbody>' +
+        f.months.map(function(x){
+          return '<tr><td>' + esc(monthLabelOf(x.mk)) + '</td><td>' + esc(x.baseMk ? monthLabelOf(x.baseMk) : "—") + '</td><td>' + esc(x.base !== null ? fmtV(x.base) : "沒有資料") + '</td><td>' + esc(x.est !== null ? fmtV(x.est) : "—") + '</td></tr>';
+        }).join("") + '</tbody></table></div>';
+      html += '<div class="hint">算法：當時的實際營業額 × (1 + 成長率)。這是用過去推估未來的參考值，沒有算進今年新的活動、漲價、天氣或假期變化，實際會有落差。</div>';
+    }
+
+    // 3. 四季比較（原本的內容，放到下面當參考）
+    var c = revCtx(ds), known = knownMonths(ds).filter(function(mk){ return c.rev(mk) !== null; });
     var rows = SEASON_NAMES.map(function(nm, si){
-      var mks = ds.months.filter(function(mk){ return SEASON_MONTHS[si].indexOf(monthNumOf(mk)-1) !== -1; });
-      var sum = 0; mks.forEach(function(mk){ sum += val(mk); });
+      var mks = known.filter(function(mk){ return SEASON_MONTHS[si].indexOf(monthNumOf(mk)-1) !== -1; });
+      var sum = 0; mks.forEach(function(mk){ sum += c.rev(mk); });
       return { name:nm, n:mks.length, sum:sum, avg: mks.length ? sum/mks.length : 0, hi: si === NEXT_SEASON_IDX };
     });
-    var tot = rows.reduce(function(a,r){ return a + r.sum; }, 0);
-    var html = '<div class="recon-wrap"><table class="recon-table"><thead><tr><th>季節</th><th>有資料的月份</th><th>合計</th><th>佔比</th><th>每月平均</th></tr></thead><tbody>' +
-      rows.map(function(r){ return '<tr><td>' + r.name + (r.hi ? ' <span class="badge ai">下一季</span>' : '') + '</td><td>' + r.n + '</td><td>' + esc(fmtV(r.sum)) + '</td><td>' + (tot ? (r.sum/tot*100).toFixed(1) + "%" : "—") + '</td><td>' + esc(r.n ? fmtV(r.avg) : "—") + '</td></tr>'; }).join("") +
-      '</tbody></table></div>';
-    html += '<h4>每月平均（比較公平的比法）</h4>' + hbarHtml(rows.filter(function(r){ return r.n; }).map(function(r){ return { name:r.name, val:r.avg, hi:r.hi }; }), fmtV);
-    var withData = rows.filter(function(r){ return r.n; }).sort(function(a,b){ return b.avg - a.avg; });
-    var uneven = rows.some(function(r){ return r.n && r.n !== rows.filter(function(x){ return x.n; })[0].n; });
-    if (withData.length >= 2){
-      var best = withData[0], worst = withData[withData.length-1];
-      html += '<div class="insight"><b>怎麼看：</b>以每月平均來看，' + best.name + '最旺、' + worst.name + '最淡，相差 ' + Math.round((best.avg/worst.avg - 1)*100) + '%。' +
-        (uneven ? '各季節的月份數不一樣，所以「佔比」會被月份數影響，請以「每月平均」為準。' : '') + '</div>';
+    if (rows.filter(function(r){ return r.n; }).length >= 2){
+      html += '<h4>四季比較（每月平均）</h4>' + hbarHtml(rows.filter(function(r){ return r.n; }).map(function(r){ return { name:r.name + "（" + r.n + " 個月）", val:r.avg, hi:r.hi }; }), fmtV);
+      html += '<div class="hint">用「每月平均」比，各季節的月份數不一樣也能公平比較。橘色是下一季。</div>';
     }
     return html;
   }
 
-  var DRILL_TITLES = { rev:"營業額細節", qty:"銷售量細節", items:"品項細節", season:"季節細節" };
+  var DRILL_TITLES = { rev:"營業額細節", qty:"銷售量細節", items:"品項細節", season:"下一季預估" };
   function renderDrill(){
     var panel = document.getElementById("drillPanel");
     var ds = state.dataset;
@@ -2039,10 +2510,7 @@
   }
 
   function byId(id){ return document.getElementById(id); }
-  var appDb = null; // 雲端資料庫；null 代表改存在這台裝置的瀏覽器
-  var LS_SNAP = "canyin_reports_v1", LS_MAP = "canyin_maps_v1";
-  function lsGet(k){ try { return JSON.parse(localStorage.getItem(k) || "null"); } catch(e){ return null; } }
-  function lsSet(k, v){ try { localStorage.setItem(k, JSON.stringify(v)); return true; } catch(e){ return false; } }
+  var appDb = null; // 雲端資料庫；null 代表只存在這個頁面
 
   // ================= 欄位對應視窗（認不得的欄位問老闆） =================
   var dlg = { item:null, resolve:null, confirmWarn:false };
@@ -2063,7 +2531,6 @@
     savedMaps.push({ fp:fp, kind:map.kind, cols:cols, savedAt:new Date().toISOString() });
     savedMaps = savedMaps.slice(-100);
     if (appDb) appDb.doc("settings/columnMappings").set({ maps:savedMaps }).catch(function(){ /* 存不進去，這次頁面內仍然有效 */ });
-    else lsSet(LS_MAP, savedMaps);
   }
 
   function currentKind(){ var k = document.querySelector('input[name="mapKind"]:checked'); return k ? k.value : "daily"; }
@@ -2212,7 +2679,13 @@
   });
 
   // ================= 歷史報表（每個月存一份整理好的報表） =================
-  var snapStore = {};          // "2026-09" -> 該月整理好的報表
+  // ================= 分店 =================
+  // 每家分店各自存一份「每月報表」；snapStore 永遠指向「目前選的那家店」（或全品牌加總）的月份報表
+  // 舊資料（還沒有分店功能時存的）歸到預設分店 main
+  var stores = [{ id:"main", brand:"", name:"我的店" }];
+  var storeSnaps = { main: {} };   // 分店 id -> { "2026-09": 該月報表 }
+  var snapStore = storeSnaps.main; // 目前畫面使用的月份報表
+  state.storeSel = "main";         // 分店 id；或 "brand:品牌名" 代表全品牌加總
   state.view = null;           // null＝目前資料；{type:"all"}、{type:"month", mk}、{type:"range", mks, label}
   state.userTouched = false;   // 老闆動過畫面後，就不自動切換
   state.lastRecMonth = null;   // 最新的推薦存在哪個月份
@@ -2234,6 +2707,54 @@
     return [s, mkAdd(s,1), mkAdd(s,2)];
   }
   function setHistMsg(t){ var el = byId("histMsg"); if (el) el.textContent = t || ""; }
+
+  function storeById(id){ for (var i=0;i<stores.length;i++) if (stores[i].id === id) return stores[i]; return null; }
+  function storeLabel(s){ return s ? (s.brand ? s.brand + "｜" : "") + s.name : ""; }
+  function storesOfBrand(brand){ return stores.filter(function(s){ return s.brand && s.brand === brand; }); }
+  function isBrandView(){ return state.storeSel.indexOf("brand:") === 0; }
+  function brandOfSel(){ return isBrandView() ? state.storeSel.slice(6) : null; }
+  function selLabel(){ return isBrandView() ? brandOfSel() + "｜全部分店加總" : storeLabel(storeById(state.storeSel)); }
+  // 雲端文件名稱：預設分店沿用舊的「reports/年-月」，其他分店是「reports/分店id~年-月」
+  function reportDocId(storeId, mk){ return storeId === "main" ? mk : storeId + "~" + mk; }
+  function newStoreId(){ return "s" + Date.now().toString(36) + Math.random().toString(36).slice(2, 5); }
+
+  // 全品牌加總：把同一個品牌所有分店、同一個月份的數字加起來
+  function brandTotalSnaps(brand){
+    var out = {};
+    storesOfBrand(brand).forEach(function(s){
+      var m = storeSnaps[s.id] || {};
+      Object.keys(m).forEach(function(mk){
+        var src = m[mk], t = out[mk] || (out[mk] = { month:mk, files:[], stores:[] });
+        t.stores.push(s.id);
+        (src.files || []).forEach(function(f){ if (t.files.length < 40) t.files.push(f); });
+        if (src.daily){
+          var d = t.daily || (t.daily = { rev:0, cust:0, disc:0, open:0, days:0, hasCust:false, hasDisc:false });
+          d.rev += src.daily.rev || 0; d.cust += src.daily.cust || 0; d.disc += src.daily.disc || 0;
+          // 營業天數取「最多的那家店」，避免把幾家店的天數加起來變成 60 天
+          d.open = Math.max(d.open, src.daily.open || 0); d.days = Math.max(d.days, src.daily.days || 0);
+          if (src.daily.hasCust) d.hasCust = true;
+          if (src.daily.hasDisc) d.hasDisc = true;
+        }
+        if (Array.isArray(src.products)){
+          var pm = t._p || (t._p = {});
+          src.products.forEach(function(x){ if (!Array.isArray(x)) return; var k = String(x[0]); var q = pm[k] || (pm[k] = [0, 0]); q[0] += +x[1] || 0; q[1] += +x[2] || 0; });
+        }
+      });
+    });
+    Object.keys(out).forEach(function(mk){
+      var t = out[mk];
+      if (t._p){ t.products = Object.keys(t._p).map(function(k){ return [k, r2(t._p[k][0]), r2(t._p[k][1])]; }); delete t._p; }
+    });
+    return out;
+  }
+  // 依目前選的分店，重新指定 snapStore
+  function refreshSnapStore(){
+    if (isBrandView()){
+      if (storesOfBrand(brandOfSel()).length < 2) state.storeSel = (storesOfBrand(brandOfSel())[0] || stores[0]).id;
+    }
+    if (!isBrandView() && !storeById(state.storeSel)) state.storeSel = stores[0].id;
+    snapStore = isBrandView() ? brandTotalSnaps(brandOfSel()) : (storeSnaps[state.storeSel] || (storeSnaps[state.storeSel] = {}));
+  }
 
   function snapshotsFromDataset(ds, fileNames){
     var out = {}, now = new Date().toISOString();
@@ -2271,12 +2792,13 @@
     return s;
   }
 
-  function datasetFromSnapshots(mks, label){
-    mks = mks.filter(function(mk){ return snapStore[mk]; }).sort();
+  function datasetFromSnapshots(mks, label, src){
+    var store = src || snapStore;
+    mks = mks.filter(function(mk){ return store[mk]; }).sort();
     var ds = { label:label, months:mks.slice(), hasAmount:false, productMonthly:{}, revMonthly:{}, qtyMonthly:{}, recon:[], productFiles:[], daily:null, files:[], fromHistory:true };
     var dx = { disc:{}, open:{}, days:{}, hasCust:false, hasDisc:false }, anyDaily = false;
     mks.forEach(function(mk){
-      var s = snapStore[mk];
+      var s = store[mk];
       if (s.daily){
         anyDaily = true;
         ds.revMonthly[mk] = s.daily.rev || 0; ds.qtyMonthly[mk] = s.daily.cust || 0;
@@ -2309,36 +2831,90 @@
       lowData: r.otherMonths.length < 2, at:new Date().toISOString(),
       items: r.list.slice(0,5).map(function(it){ return { name:it.name, ratio:r2(it.ratio), tAvg:r2(it.tAvg), oAvg:r2(it.oAvg) }; }) };
   }
-  function latestProductMonth(){ var ms = snapMonths().filter(function(mk){ return snapStore[mk].products; }); return ms[ms.length-1] || null; }
+  function latestProductMonth(src){ var st = src || snapStore; var ms = Object.keys(st).sort().filter(function(mk){ return st[mk].products; }); return ms[ms.length-1] || null; }
 
   var persistChain = Promise.resolve();
-  function persistSnap(mk){
-    if (!snapStore[mk]) return;
-    if (!appDb){
-      if (!lsSet(LS_SNAP, snapStore)) setHistMsg("瀏覽器的儲存空間不足或被關閉，「" + monthLabelOf(mk) + "」這次只保留到關閉頁面為止。");
-      return;
-    }
-    var data = snapStore[mk];
+  function persistSnap(mk, storeId){
+    var sid = storeId || (isBrandView() ? null : state.storeSel);
+    if (!appDb || !sid || !storeSnaps[sid] || !storeSnaps[sid][mk]) return; // 全品牌加總是算出來的，不存
+    var data = storeSnaps[sid][mk];
+    data.store = sid;
     persistChain = persistChain.then(function(){
-      return appDb.doc("reports/" + mk).set(data);
+      return appDb.doc("reports/" + reportDocId(sid, mk)).set(data);
     }).catch(function(err){
-      setHistMsg("「" + monthLabelOf(mk) + "」存進雲端失敗（" + ((err && err.code) || "未知原因") + "），這次頁面內仍可查看。");
+      setHistMsg("「" + monthLabelOf(mk) + "」存進這台裝置失敗（" + ((err && err.code) || "未知原因") + "），這次頁面內仍可查看。");
     });
   }
 
   // 上傳後：把每個月存起來，並在「最新的月份」留下當時的推薦
-  function saveUploadToHistory(merged, fileNames){
+  function saveUploadToHistory(merged, fileNames, storeId){
+    var sid = storeId || state.storeSel;
+    var target = storeSnaps[sid] || (storeSnaps[sid] = {});
     var neu = snapshotsFromDataset(merged, fileNames);
     var mks = Object.keys(neu).sort();
-    mks.forEach(function(mk){ snapStore[mk] = mergeSnap(snapStore[mk], neu[mk]); });
-    var latest = latestProductMonth();
+    mks.forEach(function(mk){ target[mk] = mergeSnap(target[mk], neu[mk]); target[mk].store = sid; });
+    var latest = latestProductMonth(target);
     if (latest && neu[latest]){
-      var rec = computeRec(datasetFromSnapshots(snapMonths(), ""));
-      if (rec) snapStore[latest].rec = rec;
+      var rec = computeRec(datasetFromSnapshots(Object.keys(target).sort(), "", target));
+      if (rec) target[latest].rec = rec;
     }
-    state.lastRecMonth = latest;
-    mks.forEach(persistSnap);
+    mks.forEach(function(mk){ persistSnap(mk, sid); });
     return mks;
+  }
+
+  // 清除所有歷史報表：畫面上的、雲端資料庫裡的都刪掉（記住的欄位格式保留）
+  function clearAllHistory(){
+    if (isBrandView()){ setHistMsg("「全部分店加總」不能直接清除，請先在上方選一家分店。"); return Promise.resolve(); }
+    var sid = state.storeSel, own = storeSnaps[sid] || {};
+    var mks = Object.keys(own).sort();
+    if (!mks.length){ setHistMsg("「" + storeLabel(storeById(sid)) + "」目前沒有任何歷史報表。"); return Promise.resolve(); }
+    var btn = byId("btnClearHist"); if (btn) btn.disabled = true;
+    setHistMsg("清除中⋯⋯");
+    var failed = [];
+    // 一筆一筆刪，等前面還沒存完的先存完，避免刪掉之後又被存回去
+    var chain = persistChain;
+    if (appDb){
+      mks.forEach(function(mk){
+        chain = chain.then(function(){ return appDb.doc("reports/" + reportDocId(sid, mk)).delete(); }).catch(function(){ failed.push(mk); });
+      });
+    }
+    persistChain = chain;
+    return chain.then(function(){
+      mks.forEach(function(mk){ if (failed.indexOf(mk) === -1) delete own[mk]; });
+      refreshSnapStore();
+      state.view = null; state.dataset = EMPTY; state.lastRecMonth = latestProductMonth(); state.drill = null;
+      var bd = byId("btnDemo"), bu = byId("btnUpload");
+      if (bd) bd.setAttribute("aria-pressed", "false");
+      if (bu) bu.setAttribute("aria-pressed", "false");
+      var chips = byId("fileChips"); if (chips) chips.hidden = true;
+      renderAll(); renderHistory(); renderStoreUI();
+      var done = mks.length - failed.length;
+      if (failed.length){
+        setHistMsg("已清除 " + done + " 個月；" + failed.map(monthLabelOf).join("、") + " 清除失敗，請重新整理頁面再按一次。");
+        logAppend("清除歷史報表", "", "fail", "清除 " + done + " 個月，失敗 " + failed.length + " 個月");
+      } else {
+        setHistMsg("已清除「" + storeLabel(storeById(sid)) + "」全部 " + done + " 個月的歷史報表，可以重新上傳。" + (appDb ? "" : "（這次頁面裡的資料）"));
+        logAppend("清除歷史報表", "", "ok", storeLabel(storeById(sid)) + "：已清除 " + done + " 個月（" + monthLabelOf(mks[0]) + "～" + monthLabelOf(mks[mks.length-1]) + "）");
+      }
+    });
+  }
+
+  function loadStores(db){
+    return db.doc("settings/stores").get().then(function(d){
+      var data = d && d.exists ? d.data() : null;
+      if (data && Array.isArray(data.list)){
+        data.list.forEach(function(s){
+          if (!s || typeof s.id !== "string" || !/^[A-Za-z0-9]+$/.test(s.id)) return;
+          var cur = storeById(s.id), clean = { id:s.id, brand:String(s.brand || "").slice(0, 30), name:String(s.name || "").slice(0, 30) || "未命名分店" };
+          if (cur){ cur.brand = clean.brand; cur.name = clean.name; } else stores.push(clean);
+        });
+      }
+    }).catch(function(){ /* 讀不到就只有預設分店 */ });
+  }
+  function saveStores(){
+    if (!appDb) return;
+    var list = stores.map(function(s){ return { id:s.id, brand:s.brand, name:s.name }; });
+    persistChain = persistChain.then(function(){ return appDb.doc("settings/stores").set({ list:list }); }).catch(function(){ setHistMsg("分店清單存進這台裝置失敗，這次頁面內仍可使用。"); });
   }
 
   function loadSnapshots(db){
@@ -2346,51 +2922,42 @@
       (snap.docs || []).forEach(function(doc){
         var d = doc.data();
         if (!d || typeof d.month !== "string" || !/^\d{4}-\d{2}$/.test(d.month)) return;
-        if (!snapStore[d.month]) snapStore[d.month] = d; // 這次頁面剛上傳的優先
+        var sid = typeof d.store === "string" && d.store ? d.store : "main";
+        if (!storeById(sid)) stores.push({ id:sid, brand:"", name:"分店 " + sid });
+        var m = storeSnaps[sid] || (storeSnaps[sid] = {});
+        if (!m[d.month]) m[d.month] = d; // 這次頁面剛上傳的優先
       });
+      refreshSnapStore();
       state.lastRecMonth = latestProductMonth();
     });
   }
   function initHistoryDb(db){
     appDb = db;
-    Promise.all([loadMappings(db), loadSnapshots(db).catch(function(){ setHistMsg("讀取歷史報表失敗，請重新整理頁面再試一次。"); })]).then(function(){
+    Promise.all([loadMappings(db), loadStores(db).then(function(){ return loadSnapshots(db); }).catch(function(){ setHistMsg("讀取歷史報表失敗，請重新整理頁面再試一次。"); })]).then(function(){
+      pickStartStore();
+      renderStoreUI();
       renderHistory();
       // 打開頁面時，有存檔就直接顯示自己店的報表，不顯示示範資料
-      if (!state.userTouched && snapMonths().length) showView({ type:"all", key:"all" }, true);
+      if (!state.userTouched && snapMonths().length){
+        showView({ type:"all", key:"all" }, true);
+        // 已經有存檔：把「上傳報表」收起來，讓「本月重點」一打開就在最上面
+        var src = document.getElementById("srcCard"), sh = src && src.querySelector(":scope > .card-head.toggle"), sb = src && src.querySelector(":scope > .card-body");
+        if (sh && sb) setOpen(sh, sb, false);
+      }
     });
-  }
-
-  function initLocalHistory(){
-    if (appDb) return;
-    var s = lsGet(LS_SNAP), m = lsGet(LS_MAP);
-    if (s && typeof s === "object") Object.keys(s).forEach(function(k){ if (/^\d{4}-\d{2}$/.test(k) && s[k] && s[k].month === k) snapStore[k] = s[k]; });
-    if (Array.isArray(m)) savedMaps = m.filter(function(x){ return x && typeof x.fp === "string" && KIND_FIELDS[x.kind] && x.cols; });
-    state.lastRecMonth = latestProductMonth();
-    renderHistory();
-    if (!state.userTouched && snapMonths().length) showView({ type:"all", key:"all", label:"全部月份" }, true);
-  }
-  function clearLocalHistory(){
-    try { localStorage.removeItem(LS_SNAP); localStorage.removeItem(LS_MAP); } catch(e){}
-    Object.keys(snapStore).forEach(function(k){ delete snapStore[k]; });
-    savedMaps = [];
-    state.view = null; state.dataset = DEMO; state.lastRecMonth = null;
-    byId("btnDemo").setAttribute("aria-pressed","true"); byId("btnUpload").setAttribute("aria-pressed","false");
-    renderAll(); renderHistory();
-    setHistMsg("已清除這台裝置上的歷史報表和記住的格式。");
-    logAppend("清除歷史報表", "", "ok", "已清除這台裝置的資料");
   }
 
   function showView(view, silent){
     var mks = snapMonths(), ds;
     if (view.type === "all"){
-      ds = datasetFromSnapshots(mks, "歷史報表：全部 " + mks.length + " 個月");
+      ds = datasetFromSnapshots(mks, "歷史報表：" + selLabel() + "，全部 " + mks.length + " 個月");
       state.lastRecMonth = latestProductMonth();
     } else if (view.type === "month"){
-      ds = datasetFromSnapshots([view.mk], "歷史報表：" + monthLabelOf(view.mk));
+      ds = datasetFromSnapshots([view.mk], "歷史報表：" + selLabel() + "，" + monthLabelOf(view.mk));
       ds.viewMode = "subset"; ds.snapshotMonth = view.mk;
       ds.snapshotRec = snapStore[view.mk] ? (snapStore[view.mk].rec || null) : null;
     } else {
-      ds = datasetFromSnapshots(view.mks, "歷史報表：" + view.label);
+      ds = datasetFromSnapshots(view.mks, "歷史報表：" + selLabel() + "，" + view.label);
       ds.viewMode = "subset";
       var withRec = ds.months.filter(function(mk){ return snapStore[mk].rec; });
       ds.snapshotMonth = withRec.length ? withRec[withRec.length-1] : ds.months[ds.months.length-1];
@@ -2442,6 +3009,7 @@
       if (pick) cs.value = pick;
     }
     renderCompare();
+    var bch = byId("btnClearHist"); if (bch && bch.getAttribute("data-confirm") !== "1") bch.disabled = !mks.length || isBrandView();
     setSum("histCard", sel ? "正在看 " + monthLabelOf(sel) : (state.view && state.view.type !== "month" ? (state.view.label || "全部月份") : (mks.length ? "已存 " + mks.length + " 個月" : "尚無資料")));
   }
 
@@ -2485,6 +3053,19 @@
     out.innerHTML = html;
   }
 
+  // 清除要按兩次：第一次先確認，避免誤按把資料全刪掉
+  byId("btnClearHist").addEventListener("click", function(){
+    var b = byId("btnClearHist");
+    if (b.getAttribute("data-confirm") !== "1"){
+      b.setAttribute("data-confirm", "1");
+      b.textContent = "確定要清除「" + selLabel() + "」全部 " + snapMonths().length + " 個月嗎？再按一次";
+      setTimeout(function(){ if (b.getAttribute("data-confirm") === "1"){ b.removeAttribute("data-confirm"); renderStoreUI(); } }, 6000);
+      return;
+    }
+    b.removeAttribute("data-confirm"); renderStoreUI();
+    clearAllHistory();
+  });
+
   byId("histQuick").addEventListener("click", function(e){
     var b = e.target.closest ? e.target.closest("button[data-q]") : null; if (!b) return;
     state.userTouched = true;
@@ -2521,12 +3102,6 @@
       logAppend("比較月份", "", "ok", monthLabelOf(state.view.mk) + " vs " + monthLabelOf(byId("cmpSel").value));
   });
   byId("cmpSel").addEventListener("change", renderCompare);
-  byId("btnClearHist").addEventListener("click", function(){
-    var b = byId("btnClearHist");
-    if (b.getAttribute("data-confirm") !== "1"){ b.setAttribute("data-confirm","1"); b.textContent = "確定要清除嗎？再按一次"; return; }
-    b.removeAttribute("data-confirm"); b.textContent = "清除這台裝置的歷史報表";
-    clearLocalHistory();
-  });
 
   // ================= 推薦：查看某個月時，顯示「當時」的推薦 =================
   function renderSnapshotRec(ds){
@@ -2579,7 +3154,7 @@
       out.textContent = text;
       state.aiRecFor = lr.ds;
       var mk = state.lastRecMonth;
-      if (lr.ds.fromHistory && (!state.view || state.view.type === "all") && mk && snapStore[mk] && snapStore[mk].rec){
+      if (!isBrandView() && lr.ds.fromHistory && (!state.view || state.view.type === "all") && mk && snapStore[mk] && snapStore[mk].rec){
         snapStore[mk].rec.aiAdvice = text;
         persistSnap(mk);
       }
@@ -2591,6 +3166,190 @@
     }).then(function(){ btn.disabled = false; });
   }
   byId("btnAiRec").addEventListener("click", runAiRec);
+
+  // ================= 分店選單 =================
+  function renderStoreUI(){
+    var sel = byId("storeSel"); if (!sel) return;
+    var groups = {}, order = [];
+    stores.forEach(function(s){
+      if (s.id === "main" && s.name === "我的店" && !s.brand && stores.length > 1 && !monthsOfStore("main") && state.storeSel !== "main") return;
+      var b = s.brand || ""; if (!groups[b]){ groups[b] = []; order.push(b); } groups[b].push(s);
+    });
+    order.sort(function(a, b){ return a === "" ? 1 : b === "" ? -1 : a.localeCompare(b); });
+    sel.innerHTML = order.map(function(b){
+      var list = groups[b].slice().sort(function(x, y){ return x.name.localeCompare(y.name); });
+      var opts = (b && list.length > 1 ? '<option value="brand:' + esc(b) + '">' + esc(b) + '｜全部分店加總（' + list.length + ' 家）</option>' : '') +
+        list.map(function(s){ var n = Object.keys(storeSnaps[s.id] || {}).length;
+          return '<option value="' + esc(s.id) + '">' + esc(storeLabel(s)) + (n ? '（' + n + ' 個月）' : '（還沒有資料）') + '</option>'; }).join("");
+      return '<optgroup label="' + esc(b || "未分品牌") + '">' + opts + '</optgroup>';
+    }).join("");
+    sel.value = state.storeSel;
+    var rn = byId("btnRenameStore"); if (rn) rn.disabled = isBrandView();
+    var b = byId("btnClearHist");
+    if (b && b.getAttribute("data-confirm") !== "1"){
+      b.textContent = isBrandView() ? "清除歷史報表（請先選一家分店）" : (stores.length === 1 ? "清除所有歷史報表" : "清除「" + selLabel() + "」的歷史報表");
+    }
+    setSum("srcCard", selLabel());
+  }
+
+  // 打開頁面時要看哪一家：上次看的那家（還有資料的話）→ 資料最多的那家；同品牌有多家就看加總
+  var LAST_STORE_KEY = "canyin_last_store";
+  function monthsOfStore(id){ return Object.keys(storeSnaps[id] || {}).length; }
+  function pickStartStore(){
+    if (state.userTouched) return;
+    var last = null; try { last = localStorage.getItem(LAST_STORE_KEY); } catch(e){ last = null; }
+    if (last && last.indexOf("brand:") === 0 && storesOfBrand(last.slice(6)).some(function(s){ return monthsOfStore(s.id); })){ state.storeSel = last; refreshSnapStore(); return; }
+    if (last && storeById(last) && monthsOfStore(last)){ state.storeSel = last; refreshSnapStore(); return; }
+    if (monthsOfStore(state.storeSel) && !isBrandView()) return;
+    var best = stores.slice().sort(function(a, b){ return monthsOfStore(b.id) - monthsOfStore(a.id); })[0];
+    if (!best || !monthsOfStore(best.id)) return;
+    var withData = best.brand ? storesOfBrand(best.brand).filter(function(s){ return monthsOfStore(s.id); }) : [];
+    state.storeSel = withData.length > 1 ? "brand:" + best.brand : best.id;
+    refreshSnapStore();
+  }
+  function selectStore(sel, silent){
+    state.storeSel = sel;
+    try { localStorage.setItem(LAST_STORE_KEY, sel); } catch(e){ /* 記不住也沒關係 */ }
+    refreshSnapStore();
+    state.drill = null; state.userTouched = true;
+    var bd = byId("btnDemo"), bu = byId("btnUpload");
+    if (bd) bd.setAttribute("aria-pressed", "false");
+    if (bu) bu.setAttribute("aria-pressed", "false");
+    var chips = byId("fileChips"); if (chips) chips.hidden = true;
+    var wb = byId("parseWarn"); if (wb) wb.classList.remove("show");
+    if (snapMonths().length){
+      showView({ type:"all", key:"all", label:"全部月份" }, true);
+      setHistMsg("");
+    } else {
+      state.view = null; state.dataset = EMPTY; state.lastRecMonth = null;
+      renderAll(); renderHistory();
+      setHistMsg("「" + selLabel() + "」還沒有報表，請上傳。");
+    }
+    renderStoreUI();
+    if (!silent) logAppend("切換分店", "", "ok", selLabel());
+  }
+
+  var storeFormMode = "add";
+  function openStoreForm(mode){
+    storeFormMode = mode;
+    var f = byId("storeForm"); f.hidden = false;
+    var cur = storeById(state.storeSel);
+    byId("storeBrand").value = mode === "rename" && cur ? cur.brand : (isBrandView() ? brandOfSel() : (cur ? cur.brand : ""));
+    byId("storeName").value = mode === "rename" && cur ? cur.name : "";
+    byId("btnSaveStore").textContent = mode === "rename" ? "儲存名稱" : "新增";
+    byId("storeName").focus();
+  }
+  function saveStoreForm(){
+    var brand = byId("storeBrand").value.trim().replace(/[_~]/g, " ").slice(0, 30);
+    var name = byId("storeName").value.trim().replace(/[_~]/g, " ").slice(0, 30);
+    if (!name){ byId("storeName").focus(); setHistMsg("請輸入分店名稱。"); return; }
+    var dup = stores.filter(function(s){ return s.brand === brand && s.name === name && !(storeFormMode === "rename" && s.id === state.storeSel); });
+    if (dup.length){ setHistMsg("已經有「" + storeLabel(dup[0]) + "」了。"); return; }
+    byId("storeForm").hidden = true;
+    if (storeFormMode === "rename"){
+      var cur = storeById(state.storeSel); if (!cur) return;
+      var old = storeLabel(cur);
+      cur.brand = brand; cur.name = name;
+      saveStores();
+      logAppend("分店改名", "", "ok", old + " → " + storeLabel(cur));
+      selectStore(state.storeSel, true);
+    } else {
+      var s = { id:newStoreId(), brand:brand, name:name };
+      stores.push(s); storeSnaps[s.id] = {};
+      saveStores();
+      logAppend("新增分店", "", "ok", storeLabel(s));
+      selectStore(s.id, true);
+    }
+  }
+  byId("storeSel").addEventListener("change", function(){ selectStore(byId("storeSel").value); });
+  byId("btnAddStore").addEventListener("click", function(){ openStoreForm("add"); });
+  byId("btnRenameStore").addEventListener("click", function(){ if (!isBrandView()) openStoreForm("rename"); });
+  byId("btnCancelStore").addEventListener("click", function(){ byId("storeForm").hidden = true; });
+  byId("btnSaveStore").addEventListener("click", saveStoreForm);
+  ["storeBrand","storeName"].forEach(function(id){ byId(id).addEventListener("keydown", function(e){ if (e.key === "Enter"){ e.preventDefault(); saveStoreForm(); } }); });
+
+  // ================= 分店比較（只在「全部分店加總」時顯示） =================
+  function renderStoreCompare(ds){
+    var card = byId("storeCmpCard"), body = byId("storeCmpBody");
+    if (!isBrandView() || !ds.fromHistory || !ds.months.length){ card.hidden = true; return; }
+    card.hidden = false;
+    var months = ds.months;
+    var period = months.length === 1 ? monthLabelOf(months[0]) : monthLabelOf(months[0]) + "～" + monthLabelOf(months[months.length-1]);
+    byId("storeCmpNote").textContent = period + " · " + storesOfBrand(brandOfSel()).length + " 家分店";
+    var rows = storesOfBrand(brandOfSel()).map(function(s){
+      var m = storeSnaps[s.id] || {}, r = { s:s, rev:0, cust:0, open:0, n:0, hasCust:false, cur:0, prev:0, k:0 };
+      months.forEach(function(mk){
+        var d = m[mk] && m[mk].daily; if (!d) return;
+        r.n++; r.rev += d.rev || 0; r.cust += d.cust || 0; r.open += d.open || 0; if (d.hasCust) r.hasCust = true;
+        var p = m[mkAdd(mk, -12)] && m[mkAdd(mk, -12)].daily;
+        if (p && p.rev > 0){ r.cur += d.rev || 0; r.prev += p.rev; r.k++; }
+      });
+      r.avg = r.hasCust && r.cust ? r.rev / r.cust : null;
+      r.perDay = r.open ? r.rev / r.open : null;
+      r.yoy = r.prev > 0 ? (r.cur / r.prev - 1) * 100 : null;
+      return r;
+    }).sort(function(a, b){ return b.rev - a.rev; });
+    var total = rows.reduce(function(a, r){ return a + r.rev; }, 0);
+    if (!total){ body.innerHTML = '<div class="empty-note">這段期間的分店都沒有營業額資料（需要「營運總覽」報表）。</div>'; return; }
+
+    var html = '<div class="recon-wrap"><table class="recon-table"><thead><tr><th>分店</th><th>營業額</th><th>佔全品牌</th><th>來客數</th><th>客單價</th><th>營業日平均</th><th>比去年同期</th></tr></thead><tbody>';
+    rows.forEach(function(r){
+      html += '<tr><td>' + esc(r.s.name) + (r.n < months.length ? ' <span class="badge lo">缺 ' + (months.length - r.n) + ' 個月</span>' : '') + '</td>' +
+        '<td>' + esc(fmtMoney(r.rev)) + '</td><td>' + (r.rev / total * 100).toFixed(1) + '%</td>' +
+        '<td>' + (r.hasCust ? esc(fmtInt(r.cust) + " 人") : "—") + '</td>' +
+        '<td>' + (r.avg !== null ? esc(fmtMoney(r.avg)) : "—") + '</td>' +
+        '<td>' + (r.perDay !== null ? esc(fmtMoney(r.perDay)) : "—") + '</td>' +
+        '<td class="' + (r.yoy !== null && r.yoy < 0 ? "gap-hi" : "") + '">' + (r.yoy === null ? "—" : (r.yoy >= 0 ? "+" : "") + r.yoy.toFixed(1) + "%") + '</td></tr>';
+    });
+    html += '</tbody></table></div>';
+    html += '<h4>營業額排名</h4>' + hbarHtml(rows.map(function(r, i){ return { name:r.s.name, val:r.rev, hi:i === 0 }; }), fmtMoney);
+
+    // 一句話重點：誰最會賺、誰客單價最高、誰在成長或衰退
+    var notes = [];
+    notes.push("營業額最高的是<b>" + esc(rows[0].s.name) + "</b>，佔全品牌 " + (rows[0].rev / total * 100).toFixed(0) + "%");
+    var byAvg = rows.filter(function(r){ return r.avg !== null; }).sort(function(a, b){ return b.avg - a.avg; });
+    if (byAvg.length > 1) notes.push("客單價最高的是<b>" + esc(byAvg[0].s.name) + "</b>（" + esc(fmtMoney(byAvg[0].avg)) + "），最低的是" + esc(byAvg[byAvg.length-1].s.name) + "（" + esc(fmtMoney(byAvg[byAvg.length-1].avg)) + "）");
+    var byYoy = rows.filter(function(r){ return r.yoy !== null; }).sort(function(a, b){ return b.yoy - a.yoy; });
+    if (byYoy.length){
+      var down = byYoy.filter(function(r){ return r.yoy < 0; });
+      notes.push("和去年同期比，成長最多的是<b>" + esc(byYoy[0].s.name) + "</b>（" + (byYoy[0].yoy >= 0 ? "+" : "") + byYoy[0].yoy.toFixed(1) + "%）" +
+        (down.length ? "；<b>" + down.map(function(r){ return esc(r.s.name); }).join("、") + "</b> 比去年少，值得先關心" : ""));
+    }
+    html += '<div class="insight"><b>重點：</b>' + notes.join("。") + "。</div>";
+    if (rows.some(function(r){ return r.n < months.length; })){
+      html += '<div class="hint">標「缺 N 個月」的分店，這段期間有月份沒有上傳報表，營業額會偏低，比較時要注意。</div>';
+    }
+    body.innerHTML = html;
+  }
+
+  // 從檔名認分店：
+  // 1. 檔名裡有已經建立的分店名稱 → 用那家（同時有品牌名稱的優先）
+  // 2. 檔名開頭是「品牌_某某店_」→ 自動新增這家分店
+  // 3. 都沒有 → null（放到上方選的分店）
+  function storeFromFileName(fileName){
+    var base = String(fileName || "").replace(/\.[^.]+$/, "");
+    var best = null, bestScore = 0;
+    stores.forEach(function(s){
+      if (!s.name || s.id === "main" && s.name === "我的店") return;
+      if (base.indexOf(s.name) === -1) return;
+      if (s.brand && base.indexOf(s.brand) === -1){
+        // 同名分店在別的品牌也有時，沒寫品牌就不猜
+        var same = stores.filter(function(x){ return x.name === s.name; });
+        if (same.length > 1) return;
+      }
+      var score = s.name.length + (s.brand && base.indexOf(s.brand) !== -1 ? 100 : 0);
+      if (score > bestScore){ best = s; bestScore = score; }
+    });
+    if (best) return best;
+    var m = base.match(/^([^_\s~]{1,20})_([^_\s~]{1,20}店)(?=_)/);
+    if (m){
+      var s = { id:newStoreId(), brand:m[1], name:m[2], created:true };
+      stores.push({ id:s.id, brand:s.brand, name:s.name });
+      storeSnaps[s.id] = {};
+      return s;
+    }
+    return null;
+  }
 
   // ---------------- 檔案清單 UI ----------------
   function renderFileChips(parsedList){
@@ -2621,6 +3380,9 @@
   var fileInput = document.getElementById("fileInput");
   var warnBox = document.getElementById("parseWarn");
 
+  var btnEmptyUpload = document.getElementById("btnEmptyUpload"), btnEmptyDemo = document.getElementById("btnEmptyDemo");
+  if (btnEmptyUpload) btnEmptyUpload.addEventListener("click", function(){ document.getElementById("fileInput").click(); });
+  if (btnEmptyDemo) btnEmptyDemo.addEventListener("click", function(){ document.getElementById("btnDemo").click(); });
   btnDemo.addEventListener("click", function(){
     state.dataset = DEMO;
     state.view = null; state.userTouched = true;
@@ -2730,28 +3492,60 @@
       warnBox.classList.remove("show");
     }
 
-    var merged = mergeParsedFiles(parsedList);
-    var savedMks = saveUploadToHistory(merged, goodOnes.map(function(g){ return g.fileName; }));
+    // 每個檔案歸到哪一家分店：檔名有店名就用檔名，沒有就用上方選的分店
+    var groups = {}, order = [], noStore = [];
+    goodOnes.forEach(function(g){
+      var hit = storeFromFileName(g.fileName);
+      var sid = hit ? hit.id : (isBrandView() ? null : state.storeSel);
+      if (!sid){ noStore.push(g.fileName); return; }
+      g.storeId = sid;
+      if (hit && hit.created) logAppend("新增分店", g.fileName, "ok", "從檔名認出新分店「" + storeLabel(hit) + "」");
+      if (!groups[sid]){ groups[sid] = []; order.push(sid); }
+      groups[sid].push(g);
+    });
+    if (noStore.length){
+      warnBox.innerHTML = "<b>有 " + noStore.length + " 個檔案不知道是哪一家分店，已略過：</b>" + noStore.map(esc).join("、") +
+        "。現在選的是「全部分店加總」，請先在「分店」選單選一家店再上傳，或在檔名寫上店名（例如「品牌A_南京店_業績概況_…」）。";
+      warnBox.classList.add("show");
+      noStore.forEach(function(n){ logAppend("上傳檔案", n, "fail", "不知道是哪一家分店，已略過"); });
+    }
+    if (!order.length){ renderStoreUI(); return; }
+
+    order.forEach(function(sid){
+      var g = groups[sid];
+      var merged = mergeParsedFiles(g);
+      var savedMks = saveUploadToHistory(merged, g.map(function(x){ return x.fileName; }), sid);
+      var mergedTot = monthsTotal(merged);
+      logAppend("合併報表", "", "ok", storeLabel(storeById(sid)) + "：成功合併 " + g.length + " 個檔案，涵蓋 " + merged.months.length + " 個月" +
+        (merged.hasAmount ? "，總營業額 " + fmtMoney(mergedTot.totalRev) : "") +
+        "；已存進歷史報表 " + savedMks.length + " 個月" + (appDb ? "" : "（瀏覽器不能存資料，只保留到關閉頁面）"));
+    });
+    saveStores();
+
+    // 上傳完要看哪一家：只有一家就看那家；同品牌好幾家就看全品牌加總
+    var brands = {}; order.forEach(function(sid){ brands[storeById(sid).brand || ""] = true; });
+    var bk = Object.keys(brands);
+    if (order.length > 1 && bk.length === 1 && bk[0] && storesOfBrand(bk[0]).length > 1) state.storeSel = "brand:" + bk[0];
+    else state.storeSel = order[0];
+    try { localStorage.setItem(LAST_STORE_KEY, state.storeSel); } catch(e){ /* 記不住也沒關係 */ }
+    refreshSnapStore();
     var allMks = snapMonths();
-    state.dataset = datasetFromSnapshots(allMks, "歷史報表：全部 " + allMks.length + " 個月（含剛上傳的 " + goodOnes.length + " 個檔案）");
+    state.dataset = datasetFromSnapshots(allMks, "歷史報表：" + selLabel() + "，全部 " + allMks.length + " 個月（含剛上傳的 " + goodOnes.length + " 個檔案）");
     state.view = { type:"all", key:"all", label:"全部月份" };
+    state.lastRecMonth = latestProductMonth();
     state.drill = null;
     btnDemo.setAttribute("aria-pressed","false");
     btnUpload.setAttribute("aria-pressed","true");
+    renderStoreUI();
     renderAll();
     renderHistory();
-
-    var mergedTot = monthsTotal(merged);
-    logAppend("合併報表", "", "ok",
-      "成功合併 " + goodOnes.length + " / " + parsedList.length + " 個檔案，涵蓋 " + merged.months.length + " 個月" +
-      (merged.hasAmount ? "，總營業額 " + fmtMoney(mergedTot.totalRev) : "") +
-      "；已存進歷史報表 " + savedMks.length + " 個月" + (appDb ? "" : "（存在這台裝置）"));
+    if (order.length > 1) setHistMsg("這次上傳了 " + order.length + " 家分店：" + order.map(function(sid){ return storeLabel(storeById(sid)); }).join("、") + "。可以在上方「分店」切換。");
   });
 
   try { renderAll(); } catch(e){ /* fail quiet, keep static markup visible */ }
-  try { renderLog(); logAppend("系統啟動", "", "ok", "頁面載入完成，預設顯示示範資料"); } catch(e){ /* 紀錄功能失敗不影響主功能 */ }
+  try { renderLog(); logAppend("系統啟動", "", "ok", "頁面載入完成"); } catch(e){ /* 紀錄功能失敗不影響主功能 */ }
   try { initLogDb(); } catch(e){ setDbStatus("off"); }
-  try { renderHistory(); initLocalHistory(); } catch(e){ /* ignore */ }
+  try { renderStoreUI(); renderHistory(); } catch(e){ /* ignore */ }
 })();
 </script>
 
