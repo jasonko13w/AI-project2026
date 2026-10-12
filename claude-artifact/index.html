@@ -152,7 +152,7 @@
   .store-row{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-top:12px; }
   .store-row label{ font-size:13px; font-weight:700; color:var(--text-secondary); }
   .store-row select, .store-add input{ font:inherit; font-size:13px; padding:7px 10px; border:1px solid var(--border); border-radius:10px; background:var(--surface); color:var(--text-primary); }
-  .store-row select{ min-width:200px; max-width:100%; }
+  .store-row select{ min-width:200px; max-width:100%; border-radius:999px; padding:7px 14px; line-height:1.4; }
   .store-add{ display:flex; gap:8px; flex-wrap:wrap; margin-top:10px; }
   .store-add input{ flex:1 1 180px; min-width:0; }
   .empty-state{ text-align:center; padding:28px 20px; }
@@ -172,7 +172,7 @@
   .card-title{ font-size:16px; font-weight:700; }
   .card-note{ font-size:12px; color:var(--muted); }
 
-  .source-row{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+  .source-row{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-top:14px; }
   .seg{ display:inline-flex; background:var(--surface-2); border:1px solid var(--border); border-radius:999px; padding:3px; gap:2px; }
   .seg button{
     border:none; background:transparent; padding:7px 14px; border-radius:999px; font-size:13px; font-weight:600;
@@ -180,7 +180,7 @@
   }
   .seg button[aria-pressed="true"]{ background: var(--accent); color:#fff; }
   .file-btn{
-    border:1px dashed var(--border); background:transparent; color:var(--text-secondary);
+    border:1px solid var(--border); background:var(--surface); color:var(--text-secondary); line-height:1.4;
     padding:7px 14px; border-radius:999px; font-size:13px; font-weight:600; cursor:pointer; font-family:inherit;
   }
   .file-btn:hover{ border-color: var(--accent); color:var(--accent); }
