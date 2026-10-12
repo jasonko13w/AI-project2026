@@ -114,6 +114,25 @@
   .sum-recs{ display:flex; gap:8px; flex-wrap:wrap; }
   .sum-recs span{ font-size:13px; font-weight:700; background:var(--accent-soft); color:var(--accent); border-radius:999px; padding:4px 12px; }
   .sum-actions{ display:flex; gap:8px; flex-wrap:wrap; margin-top:14px; }
+  .src-tabs{ margin-bottom:12px; }
+  .man-top{ display:flex; gap:10px; flex-wrap:wrap; margin-top:12px; }
+  .man-top .fld{ display:flex; flex-direction:column; gap:4px; font-size:12.5px; font-weight:700; color:var(--text-secondary); flex:1 1 140px; }
+  .man-top input, .man-row input{ font:inherit; font-size:14px; padding:8px 10px; border:1px solid var(--border); border-radius:10px; background:var(--surface); color:var(--text-primary); min-width:0; width:100%; }
+  .man-state{ font-size:12.5px; margin-top:10px; color:var(--text-secondary); }
+  .man-state b{ color:var(--accent); }
+  .man-head, .man-row{ display:grid; grid-template-columns:minmax(0,2.4fr) minmax(0,.8fr) minmax(0,1fr) minmax(0,1.1fr) 32px; gap:8px; align-items:center; }
+  .man-head{ font-size:12px; font-weight:700; color:var(--muted); margin-top:12px; padding:0 2px; }
+  .man-row{ margin-top:8px; }
+  .man-row input.calc{ background:var(--surface-2); }
+  .man-del{ border:none; background:transparent; color:var(--muted); font-size:18px; cursor:pointer; padding:4px; }
+  .man-del:hover{ color:var(--warn); }
+  .man-total{ font-size:14px; margin-top:12px; padding:10px 12px; background:var(--surface-2); border-radius:10px; }
+  .man-total b{ font-size:16px; }
+  .man-days{ margin-top:16px; }
+  .man-day{ display:flex; justify-content:space-between; align-items:center; gap:10px; padding:8px 10px; border-bottom:1px solid var(--border); font-size:13px; }
+  .man-day.cur{ background:var(--accent-soft); border-radius:8px; }
+  .man-day .d{ font-weight:700; }
+  .man-day .r{ font-variant-numeric:tabular-nums; margin-left:auto; }
   .store-row{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-top:12px; }
   .store-row label{ font-size:13px; font-weight:700; color:var(--text-secondary); }
   .store-row select, .store-add input{ font:inherit; font-size:13px; padding:7px 10px; border:1px solid var(--border); border-radius:10px; background:var(--surface); color:var(--text-primary); }
@@ -384,6 +403,9 @@
   .store-row select{ min-width:0; flex:1 1 160px; }
   .toolbar{ justify-content:flex-start; flex-wrap:wrap; }
   .sum-actions .file-btn, .log-actions .file-btn{ flex:1 1 auto; }
+  .man-head{ display:none; }
+  .man-row{ grid-template-columns:repeat(3, minmax(0,1fr)) 28px; row-gap:6px; padding:10px 0; border-bottom:1px solid var(--border); }
+  .man-row .mi-name{ grid-column:1 / -1; }
   }
   /* ===== 電腦上的「手機預覽」：把畫面縮成手機寬度，套用同一套手機排版 ===== */
   html.m-preview body{ padding-inline:12px; }
@@ -428,6 +450,9 @@
   html.m-preview .store-row select{ min-width:0; flex:1 1 160px; }
   html.m-preview .toolbar{ justify-content:flex-start; flex-wrap:wrap; }
   html.m-preview .sum-actions .file-btn, html.m-preview .log-actions .file-btn{ flex:1 1 auto; }
+  html.m-preview .man-head{ display:none; }
+  html.m-preview .man-row{ grid-template-columns:repeat(3, minmax(0,1fr)) 28px; row-gap:6px; padding:10px 0; border-bottom:1px solid var(--border); }
+  html.m-preview .man-row .mi-name{ grid-column:1 / -1; }
 
   html.m-preview body{ background:var(--surface-2); }
   html.m-preview .wrap{ max-width:390px; background:var(--bg); border:1px solid var(--border); border-radius:28px; padding:18px 12px 28px; box-shadow:var(--shadow); }
@@ -460,12 +485,9 @@
       <div class="card-title">上傳報表</div>
       <div class="card-note" id="sourceNote">目前沒有資料</div>
     </div>
-    <div class="source-row">
-      <div class="seg">
-        <button id="btnDemo" aria-pressed="false" type="button">使用示範資料</button>
-        <button id="btnUpload" aria-pressed="false" type="button">上傳我的報表</button>
-      </div>
-      <input type="file" id="fileInput" accept=".csv,.xlsx,.xls" multiple hidden>
+    <div class="seg src-tabs" id="srcTabs">
+      <button type="button" data-tab="upload" aria-pressed="true">上傳 Excel</button>
+      <button type="button" data-tab="manual" aria-pressed="false">手動輸入</button>
     </div>
     <div class="store-row">
       <label for="storeSel">分店</label>
@@ -479,10 +501,39 @@
       <button class="file-btn es-main" id="btnSaveStore" type="button">新增</button>
       <button class="file-btn" id="btnCancelStore" type="button">取消</button>
     </div>
+    <div id="tabUpload">
+    <div class="source-row">
+      <div class="seg">
+        <button id="btnDemo" aria-pressed="false" type="button">使用示範資料</button>
+        <button id="btnUpload" aria-pressed="false" type="button">上傳我的報表</button>
+      </div>
+      <input type="file" id="fileInput" accept=".csv,.xlsx,.xls" multiple hidden>
+    </div>
     <div class="hint" id="storeHint">上傳的報表會存到上面選的分店。檔名寫上店名（例如「品牌A_南京店_業績概況_2026-08-01~2026-08-31.xlsx」）會自動放到那家分店，沒有這家店會自動新增。</div>
     <div class="hint">可以一次選多個檔案（.xlsx / .xls / .csv），例如「營運總覽」+「商品排行」，甚至好幾個月份一起選。欄位名稱看不懂時，會跳出視窗請你指定是哪一欄，選過一次就會記住。</div>
     <div class="warn" id="parseWarn"></div>
     <div class="file-chips" id="fileChips" hidden></div>
+    </div>
+    <div id="tabManual" hidden>
+      <div class="hint" style="margin-top:0">沒有 POS 報表也可以用：每天打烊後，把今天賣了什麼、賣幾份填進來，系統會自動加總成月報，上面的分析都會跟著更新。<b>同一天重新存檔會取代舊的，不會重複加總。</b></div>
+      <div class="man-top">
+        <label class="fld">日期<input type="date" id="manDate"></label>
+        <label class="fld">來客數<input type="number" id="manCust" min="0" step="1" inputmode="numeric" placeholder="選填"></label>
+        <label class="fld">折扣金額<input type="number" id="manDisc" min="0" step="1" inputmode="numeric" placeholder="選填"></label>
+      </div>
+      <div class="man-state" id="manState"></div>
+      <div class="man-head" aria-hidden="true"><span>品項</span><span>數量</span><span>單價</span><span>金額</span><span></span></div>
+      <div id="manRows"></div>
+      <datalist id="manItems"></datalist>
+      <div class="log-actions"><button class="file-btn" id="btnManAdd" type="button">＋再加一個品項</button></div>
+      <div class="man-total" id="manTotal"></div>
+      <div class="log-actions">
+        <button class="file-btn es-main" id="btnManSave" type="button">存檔（這一天）</button>
+        <button class="file-btn" id="btnManDelete" type="button" hidden>刪除這一天</button>
+      </div>
+      <div class="hint" id="manMsg"></div>
+      <div id="manDays"></div>
+    </div>
   </div>
 
 
@@ -3001,8 +3052,16 @@
         chain = chain.then(function(){ return appDb.doc("reports/" + reportDocId(sid, mk)).delete(); }).catch(function(){ failed.push(mk); });
       });
     }
+    // 手動輸入的每日資料也一起刪
+    var ownDays = Object.keys(dayStore[sid] || {});
+    if (appDb){
+      ownDays.forEach(function(d){
+        chain = chain.then(function(){ return appDb.doc("days/" + reportDocId(sid, d)).delete(); }).catch(function(){ /* 刪不掉的下次再刪 */ });
+      });
+    }
     persistChain = chain;
     return chain.then(function(){
+      dayStore[sid] = {};
       mks.forEach(function(mk){ if (failed.indexOf(mk) === -1) delete own[mk]; });
       refreshSnapStore();
       state.view = null; state.dataset = EMPTY; state.lastRecMonth = latestProductMonth(); state.drill = null;
@@ -3010,7 +3069,7 @@
       if (bd) bd.setAttribute("aria-pressed", "false");
       if (bu) bu.setAttribute("aria-pressed", "false");
       var chips = byId("fileChips"); if (chips) chips.hidden = true;
-      renderAll(); renderHistory(); renderStoreUI();
+      renderAll(); renderHistory(); renderStoreUI(); renderManual(true);
       var done = mks.length - failed.length;
       if (failed.length){
         setHistMsg("已清除 " + done + " 個月；" + failed.map(monthLabelOf).join("、") + " 清除失敗，請重新整理頁面再按一次。");
@@ -3056,7 +3115,7 @@
   }
   function initHistoryDb(db){
     appDb = db;
-    Promise.all([loadMappings(db), loadStores(db).then(function(){ return loadSnapshots(db); }).catch(function(){ setHistMsg("讀取歷史報表失敗，請重新整理頁面再試一次。"); })]).then(function(){
+    Promise.all([loadMappings(db), loadStores(db).then(function(){ return loadSnapshots(db); }).then(function(){ return loadDays(db); }).catch(function(){ setHistMsg("讀取歷史報表失敗，請重新整理頁面再試一次。"); })]).then(function(){
       pickStartStore();
       renderStoreUI();
       renderHistory();
@@ -3290,6 +3349,271 @@
   }
   byId("btnAiRec").addEventListener("click", runAiRec);
 
+  // ================= 手動輸入（每天一筆） =================
+  // 每天存一筆：{ store, date:"2026-10-12", items:[[品名, 數量, 金額]], cust, disc }
+  // 存檔後把這個月所有日子加總成「月報」，跟上傳 Excel 的月報用同一套分析
+  var dayStore = {};   // 分店 id -> { "2026-10-12": 那天的資料 }
+  var manKey = null;   // 目前表單對應的「分店|日期」，換了才重新載入表單
+  function todayStr(){ var d = new Date(), m = d.getMonth() + 1, dd = d.getDate(); return d.getFullYear() + "-" + (m < 10 ? "0" + m : m) + "-" + (dd < 10 ? "0" + dd : dd); }
+  function daysInMonth(mk){ var y = +mk.split("-")[0], m = +mk.split("-")[1]; return new Date(y, m, 0).getDate(); }
+  function weekdayOf(ds){ return "日一二三四五六".charAt(new Date(ds + "T00:00:00").getDay()); }
+  function num(v){ var n = parseFloat(String(v == null ? "" : v).replace(/,/g, "")); return isNaN(n) ? 0 : n; }
+
+  function loadDays(db){
+    return db.collection("days").get().then(function(snap){
+      (snap.docs || []).forEach(function(doc){
+        var d = doc.data();
+        if (!d || typeof d.date !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(d.date) || !Array.isArray(d.items)) return;
+        var sid = typeof d.store === "string" && d.store ? d.store : "main";
+        if (!storeById(sid)) stores.push({ id:sid, brand:"", name:"分店 " + sid });
+        (dayStore[sid] = dayStore[sid] || {})[d.date] = d;
+      });
+      renderManual(true);
+    }).catch(function(){ /* 讀不到每日資料，不影響月報 */ });
+  }
+  function persistDay(sid, date, rec){
+    if (!appDb) return;
+    var id = "days/" + reportDocId(sid, date);
+    persistChain = persistChain.then(function(){ return rec ? appDb.doc(id).set(rec) : appDb.doc(id).delete(); })
+      .catch(function(err){ setManMsg("「" + date + "」存進資料庫失敗（" + ((err && err.code) || "未知原因") + "），這次頁面內仍可查看。", true); });
+  }
+
+  // 把某家店某個月所有的日子加總成月報；沒有日子了就把月報拿掉
+  function rebuildMonthFromDays(sid, mk){
+    var days = Object.keys(dayStore[sid] || {}).filter(function(d){ return d.slice(0, 7) === mk; }).sort();
+    var target = storeSnaps[sid] || (storeSnaps[sid] = {});
+    if (!days.length){
+      if (target[mk] && target[mk].source === "manual"){
+        delete target[mk];
+        if (appDb){ var id = "reports/" + reportDocId(sid, mk); persistChain = persistChain.then(function(){ return appDb.doc(id).delete(); }).catch(function(){}); }
+      }
+      return;
+    }
+    var rev = 0, cust = 0, disc = 0, open = 0, hasCust = false, hasDisc = false, prods = {};
+    days.forEach(function(d){
+      var r = dayStore[sid][d], dayRev = 0;
+      r.items.forEach(function(it){
+        var nm = String(it[0]), q = num(it[1]), a = num(it[2]);
+        var p = prods[nm] || (prods[nm] = [0, 0]); p[0] += q; p[1] += a; dayRev += a;
+      });
+      var dd = num(r.disc);
+      rev += dayRev - dd; disc += dd; cust += num(r.cust);
+      if (num(r.cust) > 0) hasCust = true;
+      if (dd > 0) hasDisc = true;
+      if (dayRev > 0) open++;
+    });
+    // 這個月還沒過完：天數只算到今天；過去的月份算整個月
+    var dim = daysInMonth(mk), tmk = todayMk();
+    var totalDays = mk === tmk ? new Date().getDate() : dim;
+    var s = { month:mk, savedAt:new Date().toISOString(), files:["手動輸入（" + days.length + " 天）"], source:"manual", store:sid,
+      daily:{ rev:r2(rev), cust:cust, disc:disc, open:open, days:Math.max(totalDays, open), hasCust:hasCust, hasDisc:hasDisc },
+      products:Object.keys(prods).map(function(n){ return [n, r2(prods[n][0]), r2(prods[n][1])]; }) };
+    target[mk] = s;
+    var latest = latestProductMonth(target);
+    if (latest){ var rec = computeRec(datasetFromSnapshots(Object.keys(target).sort(), "", target)); if (rec) target[latest].rec = rec; }
+    persistSnap(mk, sid);
+  }
+
+  function setManMsg(t, bad){ var el = byId("manMsg"); if (!el) return; el.textContent = t || ""; el.style.color = bad ? "var(--warn)" : ""; }
+
+  // 輸入過的品項會記住，下次打字自動跳出來，並帶入上次的單價
+  function itemCatalog(){
+    var cat = {};
+    Object.keys(dayStore).forEach(function(sid){
+      Object.keys(dayStore[sid]).sort().forEach(function(d){
+        dayStore[sid][d].items.forEach(function(it){ var q = num(it[1]); if (q > 0) cat[String(it[0])] = Math.round(num(it[2]) / q); });
+      });
+    });
+    return cat;
+  }
+  function addManRow(item){
+    var box = byId("manRows"), row = document.createElement("div");
+    row.className = "man-row";
+    row.innerHTML = '<input class="mi-name" list="manItems" placeholder="品項名稱" aria-label="品項">' +
+      '<input class="mi-qty" type="number" min="0" step="1" inputmode="numeric" placeholder="數量" aria-label="數量">' +
+      '<input class="mi-price" type="number" min="0" step="1" inputmode="numeric" placeholder="單價" aria-label="單價">' +
+      '<input class="mi-amt calc" type="number" min="0" step="1" inputmode="numeric" placeholder="金額" aria-label="金額">' +
+      '<button type="button" class="man-del" aria-label="刪除這一行">×</button>';
+    box.appendChild(row);
+    if (item){
+      var q = num(item[1]), a = num(item[2]);
+      row.querySelector(".mi-name").value = item[0];
+      row.querySelector(".mi-qty").value = q || "";
+      row.querySelector(".mi-price").value = q ? Math.round(a / q) : "";
+      row.querySelector(".mi-amt").value = a || "";
+      if (q && Math.round(a / q) * q !== a) row.querySelector(".mi-amt").setAttribute("data-own", "1");
+    }
+    return row;
+  }
+  function readManRows(){
+    var out = [];
+    Array.prototype.forEach.call(document.querySelectorAll("#manRows .man-row"), function(r){
+      var nm = r.querySelector(".mi-name").value.trim().replace(/\s+/g, " ");
+      var q = num(r.querySelector(".mi-qty").value), pr = num(r.querySelector(".mi-price").value), a = r.querySelector(".mi-amt").value === "" ? q * pr : num(r.querySelector(".mi-amt").value);
+      if (nm && (q > 0 || a > 0)) out.push([nm.slice(0, 60), q, a]);
+    });
+    return out;
+  }
+  function updateManTotal(){
+    var items = readManRows(), q = 0, a = 0;
+    items.forEach(function(it){ q += it[1]; a += it[2]; });
+    var d = num(byId("manDisc").value), c = num(byId("manCust").value);
+    byId("manTotal").innerHTML = items.length
+      ? '這一天：' + items.length + ' 個品項、共 ' + fmtInt(q) + ' 份，營業額 <b>' + esc(fmtMoney(a - d)) + '</b>' + (d ? '（已扣折扣 ' + esc(fmtMoney(d)) + '）' : '') + (c ? '，平均每位客人 ' + esc(fmtMoney((a - d) / c)) : '')
+      : '還沒有填任何品項。';
+  }
+
+  function renderManual(force){
+    var tab = byId("tabManual"); if (!tab) return;
+    var dateEl = byId("manDate");
+    if (!dateEl.value) dateEl.value = todayStr();
+    dateEl.max = todayStr();
+    var dl = byId("manItems"), cat = itemCatalog();
+    dl.innerHTML = Object.keys(cat).sort().map(function(n){ return '<option value="' + esc(n) + '">'; }).join("");
+    var brand = isBrandView();
+    byId("btnManSave").disabled = brand;
+    if (brand){
+      byId("manState").innerHTML = '<b>現在選的是「全部分店加總」</b>，請先在上方「分店」選一家店，再輸入那家店的資料。';
+    }
+    var sid = state.storeSel, date = dateEl.value, key = sid + "|" + date;
+    var rec = !brand && dayStore[sid] ? dayStore[sid][date] : null;
+    if (force || key !== manKey){
+      manKey = key;
+      byId("manRows").innerHTML = "";
+      if (rec){ rec.items.forEach(function(it){ addManRow(it); }); addManRow(); }
+      else { addManRow(); addManRow(); addManRow(); }
+      byId("manCust").value = rec && rec.cust ? rec.cust : "";
+      byId("manDisc").value = rec && rec.disc ? rec.disc : "";
+      byId("btnManSave").removeAttribute("data-confirm");
+      setManMsg("");
+    }
+    if (!brand){
+      byId("manState").innerHTML = '正在輸入：<b>' + esc(storeLabel(storeById(sid))) + '</b>　' + esc(date) + '（週' + weekdayOf(date) + '）' +
+        (rec ? '　·　這一天已經有資料，修改後按存檔會<b>取代</b>舊的' : '');
+    }
+    byId("btnManDelete").hidden = !rec;
+    updateManTotal();
+
+    // 這個月已輸入的日子
+    var mk = date.slice(0, 7), days = brand ? [] : Object.keys(dayStore[sid] || {}).filter(function(d){ return d.slice(0, 7) === mk; }).sort();
+    var box = byId("manDays");
+    if (!days.length){ box.innerHTML = brand ? "" : '<div class="hint">' + esc(monthLabelOf(mk)) + ' 還沒有手動輸入的日子。</div>'; return; }
+    var rows = days.map(function(d){
+      var r = dayStore[sid][d], a = 0; r.items.forEach(function(it){ a += num(it[2]); }); a -= num(r.disc);
+      return { d:d, rev:a, n:r.items.length };
+    });
+    var tot = rows.reduce(function(x, r){ return x + r.rev; }, 0);
+    var snapM = storeSnaps[sid] && storeSnaps[sid][mk];
+    box.innerHTML = '<div class="man-days"><h4 style="margin:0 0 6px">' + esc(monthLabelOf(mk)) + ' 已輸入 ' + days.length + ' 天，合計 ' + esc(fmtMoney(tot)) + '</h4>' +
+      rows.map(function(r){
+        return '<div class="man-day' + (r.d === date ? ' cur' : '') + '"><span class="d">' + r.d.slice(5).replace("-", "/") + '（' + weekdayOf(r.d) + '）</span><span>' + r.n + ' 個品項</span><span class="r">' + esc(fmtMoney(r.rev)) + '</span>' +
+          '<button type="button" class="file-btn" data-day="' + r.d + '">' + (r.d === date ? '正在編輯' : '修改') + '</button></div>';
+      }).join("") +
+      (rows.length >= 2 ? '<h4>每天的營業額</h4>' + hbarHtml(rows.map(function(r){ return { name:r.d.slice(5).replace("-", "/") + "（" + weekdayOf(r.d) + "）", val:r.rev, hi:r.d === date }; }), fmtMoney) : '') +
+      (snapM && snapM.source !== "manual" ? '<div class="hint">注意：' + esc(monthLabelOf(mk)) + ' 目前用的是上傳的報表；存檔後這個月會改用手動輸入的資料。</div>' : '') +
+      '</div>';
+  }
+
+  function saveManualDay(){
+    if (isBrandView()) return;
+    var sid = state.storeSel, date = byId("manDate").value;
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date)){ setManMsg("請先選日期。", true); return; }
+    if (date > todayStr()){ setManMsg("不能輸入未來的日期。", true); return; }
+    var items = readManRows();
+    if (!items.length){ setManMsg("至少要填一個品項（名稱，加上數量或金額）。", true); return; }
+    var mk = date.slice(0, 7), btn = byId("btnManSave");
+    var snapM = storeSnaps[sid] && storeSnaps[sid][mk];
+    // 這個月原本是上傳的報表：存檔會改用手動資料，先確認一次
+    if (snapM && snapM.source !== "manual" && btn.getAttribute("data-confirm") !== "1"){
+      btn.setAttribute("data-confirm", "1");
+      setManMsg(monthLabelOf(mk) + " 已經有上傳的報表。存檔後，這個月的分析會改用手動輸入的資料（上傳的會被取代）。確定的話再按一次「存檔」。", true);
+      return;
+    }
+    btn.removeAttribute("data-confirm");
+    var existed = !!(dayStore[sid] && dayStore[sid][date]);
+    var rec = { store:sid, date:date, items:items, cust:num(byId("manCust").value), disc:num(byId("manDisc").value), savedAt:new Date().toISOString() };
+    (dayStore[sid] = dayStore[sid] || {})[date] = rec;
+    persistDay(sid, date, rec);
+    rebuildMonthFromDays(sid, mk);
+    afterManualChange(sid);
+    var total = items.reduce(function(x, it){ return x + it[2]; }, 0) - rec.disc;
+    renderManual(true);
+    setManMsg("已存檔：" + date + "（週" + weekdayOf(date) + "）營業額 " + fmtMoney(total) + (existed ? "，已取代這一天原本的資料。" : "。"));
+    logAppend(existed ? "修改每日資料" : "手動輸入", storeLabel(storeById(sid)), "ok", date + "：" + items.length + " 個品項，營業額 " + fmtMoney(total));
+  }
+  function deleteManualDay(){
+    var sid = state.storeSel, date = byId("manDate").value, btn = byId("btnManDelete");
+    if (!dayStore[sid] || !dayStore[sid][date]) return;
+    if (btn.getAttribute("data-confirm") !== "1"){ btn.setAttribute("data-confirm", "1"); btn.textContent = "確定刪除 " + date + "？再按一次"; return; }
+    btn.removeAttribute("data-confirm"); btn.textContent = "刪除這一天";
+    delete dayStore[sid][date];
+    persistDay(sid, date, null);
+    rebuildMonthFromDays(sid, date.slice(0, 7));
+    afterManualChange(sid);
+    renderManual(true);
+    setManMsg("已刪除 " + date + " 的資料。");
+    logAppend("刪除每日資料", storeLabel(storeById(sid)), "ok", date);
+  }
+  // 存檔或刪除後：上面的分析全部跟著更新
+  function afterManualChange(sid){
+    state.storeSel = sid;
+    try { localStorage.setItem(LAST_STORE_KEY, sid); } catch(e){ /* 記不住也沒關係 */ }
+    refreshSnapStore();
+    var mks = snapMonths();
+    state.view = mks.length ? { type:"all", key:"all", label:"全部月份" } : null;
+    state.dataset = mks.length ? datasetFromSnapshots(mks, "歷史報表：" + selLabel() + "，全部 " + mks.length + " 個月") : EMPTY;
+    state.lastRecMonth = latestProductMonth();
+    state.drill = null; state.userTouched = true;
+    var bd = byId("btnDemo"), bu = byId("btnUpload");
+    if (bd) bd.setAttribute("aria-pressed", "false");
+    if (bu) bu.setAttribute("aria-pressed", "false");
+    renderAll(); renderHistory(); renderStoreUI();
+  }
+
+  // 分頁切換、表單事件
+  byId("srcTabs").addEventListener("click", function(e){
+    var b = e.target.closest ? e.target.closest("button[data-tab]") : null; if (!b) return;
+    var t = b.getAttribute("data-tab");
+    Array.prototype.forEach.call(document.querySelectorAll("#srcTabs button"), function(x){ x.setAttribute("aria-pressed", String(x === b)); });
+    byId("tabUpload").hidden = t !== "upload";
+    byId("tabManual").hidden = t !== "manual";
+    if (t === "manual") renderManual();
+  });
+  byId("manDate").addEventListener("change", function(){ renderManual(); });
+  byId("btnManAdd").addEventListener("click", function(){ var r = addManRow(); r.querySelector(".mi-name").focus(); });
+  byId("btnManSave").addEventListener("click", saveManualDay);
+  byId("btnManDelete").addEventListener("click", deleteManualDay);
+  ["manCust","manDisc"].forEach(function(id){ byId(id).addEventListener("input", updateManTotal); });
+  byId("manRows").addEventListener("click", function(e){
+    if (e.target.classList && e.target.classList.contains("man-del")){
+      e.target.parentNode.remove();
+      if (!document.querySelector("#manRows .man-row")) addManRow();
+      updateManTotal();
+    }
+  });
+  byId("manRows").addEventListener("input", function(e){
+    var row = e.target.closest ? e.target.closest(".man-row") : null; if (!row) return;
+    var amt = row.querySelector(".mi-amt");
+    if (e.target === amt){ amt.setAttribute("data-own", amt.value === "" ? "" : "1"); amt.classList.toggle("calc", amt.value === ""); }
+    if (e.target.classList.contains("mi-name")){
+      // 選到記得的品項：自動帶入上次的單價
+      var cat = itemCatalog(), pr = row.querySelector(".mi-price");
+      if (cat[e.target.value.trim()] && !pr.value) pr.value = cat[e.target.value.trim()];
+    }
+    if (amt.getAttribute("data-own") !== "1"){
+      var q = num(row.querySelector(".mi-qty").value), pr2 = num(row.querySelector(".mi-price").value);
+      amt.value = q && pr2 ? Math.round(q * pr2) : "";
+      amt.classList.add("calc");
+    }
+    updateManTotal();
+  });
+  byId("manDays").addEventListener("click", function(e){
+    var b = e.target.closest ? e.target.closest("button[data-day]") : null; if (!b) return;
+    byId("manDate").value = b.getAttribute("data-day");
+    renderManual();
+    byId("manDate").scrollIntoView({ behavior:"smooth", block:"center" });
+  });
+
   // ================= 分店選單 =================
   function renderStoreUI(){
     var sel = byId("storeSel"); if (!sel) return;
@@ -3349,6 +3673,7 @@
       setHistMsg("「" + selLabel() + "」還沒有報表，請上傳。");
     }
     renderStoreUI();
+    renderManual();
     if (!silent) logAppend("切換分店", "", "ok", selLabel());
   }
 
