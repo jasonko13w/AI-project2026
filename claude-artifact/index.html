@@ -120,9 +120,25 @@
   .man-top input, .man-row input{ font:inherit; font-size:14px; padding:8px 10px; border:1px solid var(--border); border-radius:10px; background:var(--surface); color:var(--text-primary); min-width:0; width:100%; }
   .man-state{ font-size:12.5px; margin-top:10px; color:var(--text-secondary); }
   .man-state b{ color:var(--accent); }
-  .man-head, .man-row{ display:grid; grid-template-columns:minmax(0,2.4fr) minmax(0,.8fr) minmax(0,1fr) minmax(0,1.1fr) 32px; gap:8px; align-items:center; }
-  .man-head{ font-size:12px; font-weight:700; color:var(--muted); margin-top:12px; padding:0 2px; }
-  .man-row{ margin-top:8px; }
+  .man-step{ margin-top:14px; padding:12px 14px; border:1px solid var(--border); border-radius:12px; }
+  .man-step-head{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+  .man-step-head h4{ margin:0; font-size:15px; }
+  .man-step-sum{ font-size:12.5px; color:var(--text-secondary); margin-right:auto; }
+  .menu-head, .menu-row{ display:grid; grid-template-columns:minmax(0,1fr) 110px 32px; gap:8px; align-items:center; }
+  .menu-head{ font-size:12px; font-weight:700; color:var(--muted); margin-top:10px; padding:0 2px; }
+  .menu-row{ margin-top:8px; }
+  .menu-row input{ font:inherit; font-size:14px; padding:8px 10px; border:1px solid var(--border); border-radius:10px; background:var(--surface); color:var(--text-primary); min-width:0; width:100%; }
+  .man-head, .man-row{ display:grid; grid-template-columns:minmax(0,2fr) 80px 96px 100px; gap:8px; align-items:center; }
+  .man-row .mi-name{ font-size:14px; font-weight:600; overflow-wrap:anywhere; }
+  .man-row .mi-name small{ display:none; font-weight:400; color:var(--muted); margin-left:6px; }
+  .man-row .mi-name em{ font-style:normal; font-size:12px; font-weight:400; color:var(--warn); margin-left:6px; }
+  .man-row .mi-pr, .man-row .mi-amt{ font-size:14px; font-variant-numeric:tabular-nums; color:var(--text-secondary); }
+  .man-row .mi-amt{ text-align:right; color:var(--text-primary); }
+  .man-row.has-qty{ background:var(--accent-soft); border-radius:8px; }
+  .man-row{ padding:2px 6px; }
+  .man-head{ font-size:12px; font-weight:700; color:var(--muted); margin-top:12px; padding:0 8px; }
+  .man-head span:last-child{ text-align:right; }
+  .man-row{ margin-top:6px; }
   .man-row input.calc{ background:var(--surface-2); }
   .man-del{ border:none; background:transparent; color:var(--muted); font-size:18px; cursor:pointer; padding:4px; }
   .man-del:hover{ color:var(--warn); }
@@ -404,8 +420,11 @@
   .toolbar{ justify-content:flex-start; flex-wrap:wrap; }
   .sum-actions .file-btn, .log-actions .file-btn{ flex:1 1 auto; }
   .man-head{ display:none; }
-  .man-row{ grid-template-columns:repeat(3, minmax(0,1fr)) 28px; row-gap:6px; padding:10px 0; border-bottom:1px solid var(--border); }
-  .man-row .mi-name{ grid-column:1 / -1; }
+  .man-row{ grid-template-columns:minmax(0,1fr) 76px 78px; gap:6px; padding:8px 6px; }
+  .man-row .mi-name small{ display:block; margin-left:0; }
+  .man-row .mi-pr{ display:none; }
+  .menu-head, .menu-row{ grid-template-columns:minmax(0,1fr) 84px 28px; }
+  .man-step{ padding:10px; }
   }
   /* ===== 電腦上的「手機預覽」：把畫面縮成手機寬度，套用同一套手機排版 ===== */
   html.m-preview body{ padding-inline:12px; }
@@ -451,8 +470,11 @@
   html.m-preview .toolbar{ justify-content:flex-start; flex-wrap:wrap; }
   html.m-preview .sum-actions .file-btn, html.m-preview .log-actions .file-btn{ flex:1 1 auto; }
   html.m-preview .man-head{ display:none; }
-  html.m-preview .man-row{ grid-template-columns:repeat(3, minmax(0,1fr)) 28px; row-gap:6px; padding:10px 0; border-bottom:1px solid var(--border); }
-  html.m-preview .man-row .mi-name{ grid-column:1 / -1; }
+  html.m-preview .man-row{ grid-template-columns:minmax(0,1fr) 76px 78px; gap:6px; padding:8px 6px; }
+  html.m-preview .man-row .mi-name small{ display:block; margin-left:0; }
+  html.m-preview .man-row .mi-pr{ display:none; }
+  html.m-preview .menu-head, html.m-preview .menu-row{ grid-template-columns:minmax(0,1fr) 84px 28px; }
+  html.m-preview .man-step{ padding:10px; }
 
   html.m-preview body{ background:var(--surface-2); }
   html.m-preview .wrap{ max-width:390px; background:var(--bg); border:1px solid var(--border); border-radius:28px; padding:18px 12px 28px; box-shadow:var(--shadow); }
@@ -514,24 +536,38 @@
     <div class="file-chips" id="fileChips" hidden></div>
     </div>
     <div id="tabManual" hidden>
-      <div class="hint" style="margin-top:0">沒有 POS 報表也可以用：每天打烊後，把今天賣了什麼、賣幾份填進來，系統會自動加總成月報，上面的分析都會跟著更新。<b>同一天重新存檔會取代舊的，不會重複加總。</b></div>
-      <div class="man-top">
-        <label class="fld">日期<input type="date" id="manDate"></label>
-        <label class="fld">來客數<input type="number" id="manCust" min="0" step="1" inputmode="numeric" placeholder="選填"></label>
-        <label class="fld">折扣金額<input type="number" id="manDisc" min="0" step="1" inputmode="numeric" placeholder="選填"></label>
+      <div class="hint" style="margin-top:0">沒有 POS 報表也可以用：先把<b>菜單</b>（品項和價格）建好，之後每天只要選日期、填每道菜賣了幾份。系統會自動加總成月報，上面的分析都會跟著更新。<b>同一天重新存檔會取代舊的，不會重複加總。</b></div>
+      <div class="man-step">
+        <div class="man-step-head"><h4>① 菜單</h4><span class="man-step-sum" id="menuSum"></span><button class="file-btn" id="btnMenuEdit" type="button">編輯菜單</button></div>
+        <div id="menuEditor" hidden>
+          <div class="hint">一行一道菜：名稱和價格。設定一次就會記住；之後改價格，不會影響已經存好的日子。</div>
+          <div class="menu-head" aria-hidden="true"><span>品項</span><span>價格</span><span></span></div>
+          <div id="menuRows"></div>
+          <div class="log-actions">
+            <button class="file-btn" id="btnMenuAdd" type="button">＋再加一道</button>
+            <button class="file-btn es-main" id="btnMenuSave" type="button">儲存菜單</button>
+          </div>
+          <div class="hint" id="menuMsg"></div>
+        </div>
       </div>
-      <div class="man-state" id="manState"></div>
-      <div class="man-head" aria-hidden="true"><span>品項</span><span>數量</span><span>單價</span><span>金額</span><span></span></div>
-      <div id="manRows"></div>
-      <datalist id="manItems"></datalist>
-      <div class="log-actions"><button class="file-btn" id="btnManAdd" type="button">＋再加一個品項</button></div>
-      <div class="man-total" id="manTotal"></div>
-      <div class="log-actions">
-        <button class="file-btn es-main" id="btnManSave" type="button">存檔（這一天）</button>
-        <button class="file-btn" id="btnManDelete" type="button" hidden>刪除這一天</button>
+      <div class="man-step">
+        <div class="man-step-head"><h4>② 每天填數量</h4></div>
+        <div class="man-top">
+          <label class="fld">日期<input type="date" id="manDate"></label>
+          <label class="fld">來客數<input type="number" id="manCust" min="0" step="1" inputmode="numeric" placeholder="選填"></label>
+          <label class="fld">折扣金額<input type="number" id="manDisc" min="0" step="1" inputmode="numeric" placeholder="選填"></label>
+        </div>
+        <div class="man-state" id="manState"></div>
+        <div class="man-head" aria-hidden="true"><span>品項</span><span>單價</span><span>數量</span><span>金額</span></div>
+        <div id="manRows"></div>
+        <div class="man-total" id="manTotal"></div>
+        <div class="log-actions">
+          <button class="file-btn es-main" id="btnManSave" type="button">存檔（這一天）</button>
+          <button class="file-btn" id="btnManDelete" type="button" hidden>刪除這一天</button>
+        </div>
+        <div class="hint" id="manMsg"></div>
+        <div id="manDays"></div>
       </div>
-      <div class="hint" id="manMsg"></div>
-      <div id="manDays"></div>
     </div>
   </div>
 
@@ -3291,15 +3327,20 @@
   }
   byId("btnAiRec").addEventListener("click", runAiRec);
 
-  // ================= 手動輸入（每天一筆） =================
+  // ================= 手動輸入：先建菜單，每天只填數量 =================
+  // 菜單：每家店一份 { store, items:[[品名, 價格]] }，存在 menus/<分店>
   // 每天存一筆：{ store, date:"2026-10-12", items:[[品名, 數量, 金額]], cust, disc }
+  //   金額在存檔當下用「當時的價格」算好存起來，之後改菜單價格不會動到舊的日子
   // 存檔後把這個月所有日子加總成「月報」，跟上傳 Excel 的月報用同一套分析
   var dayStore = {};   // 分店 id -> { "2026-10-12": 那天的資料 }
+  var menuStore = {};  // 分店 id -> [[品名, 價格]]
   var manKey = null;   // 目前表單對應的「分店|日期」，換了才重新載入表單
+  var menuOpenFor = null; // 菜單編輯器目前開給哪家店
   function todayStr(){ var d = new Date(), m = d.getMonth() + 1, dd = d.getDate(); return d.getFullYear() + "-" + (m < 10 ? "0" + m : m) + "-" + (dd < 10 ? "0" + dd : dd); }
   function daysInMonth(mk){ var y = +mk.split("-")[0], m = +mk.split("-")[1]; return new Date(y, m, 0).getDate(); }
   function weekdayOf(ds){ return "日一二三四五六".charAt(new Date(ds + "T00:00:00").getDay()); }
   function num(v){ var n = parseFloat(String(v == null ? "" : v).replace(/,/g, "")); return isNaN(n) ? 0 : n; }
+  function cleanName(s){ return String(s == null ? "" : s).trim().replace(/\s+/g, " ").slice(0, 60); }
 
   function loadDays(db){
     return db.collection("days").get().then(function(snap){
@@ -3310,14 +3351,29 @@
         if (!storeById(sid)) stores.push({ id:sid, brand:"", name:"分店 " + sid });
         (dayStore[sid] = dayStore[sid] || {})[d.date] = d;
       });
-      renderManual(true);
-    }).catch(function(){ /* 讀不到每日資料，不影響月報 */ });
+    }).catch(function(){ /* 讀不到每日資料，不影響月報 */ }).then(function(){
+      return db.collection("menus").get().then(function(snap){
+        (snap.docs || []).forEach(function(doc){
+          var d = doc.data();
+          if (!d || !Array.isArray(d.items)) return;
+          var sid = typeof d.store === "string" && d.store ? d.store : "main";
+          if (!storeById(sid)) stores.push({ id:sid, brand:"", name:"分店 " + sid });
+          menuStore[sid] = d.items.filter(function(it){ return Array.isArray(it) && cleanName(it[0]); }).map(function(it){ return [cleanName(it[0]), num(it[1])]; });
+        });
+      }).catch(function(){ /* 讀不到菜單，就請使用者重建 */ });
+    }).then(function(){ renderManual(true); });
   }
   function persistDay(sid, date, rec){
     if (!appDb) return;
     var id = "days/" + reportDocId(sid, date);
     persistChain = persistChain.then(function(){ return rec ? appDb.doc(id).set(rec) : appDb.doc(id).delete(); })
       .catch(function(err){ setManMsg("「" + date + "」存進資料庫失敗（" + ((err && err.code) || "未知原因") + "），這次頁面內仍可查看。", true); });
+  }
+  function persistMenu(sid){
+    if (!appDb) return;
+    var id = "menus/" + sid, items = menuStore[sid] || [];
+    persistChain = persistChain.then(function(){ return items.length ? appDb.doc(id).set({ store:sid, items:items, savedAt:new Date().toISOString() }) : appDb.doc(id).delete(); })
+      .catch(function(err){ setMenuMsg("菜單存進資料庫失敗（" + ((err && err.code) || "未知原因") + "），這次頁面內仍可使用。", true); });
   }
 
   // 把某家店某個月所有的日子加總成月報；沒有日子了就把月報拿掉
@@ -3357,42 +3413,99 @@
   }
 
   function setManMsg(t, bad){ var el = byId("manMsg"); if (!el) return; el.textContent = t || ""; el.style.color = bad ? "var(--warn)" : ""; }
+  function setMenuMsg(t, bad){ var el = byId("menuMsg"); if (!el) return; el.textContent = t || ""; el.style.color = bad ? "var(--warn)" : ""; }
 
-  // 輸入過的品項會記住，下次打字自動跳出來，並帶入上次的單價
-  function itemCatalog(){
+  // ---------- ① 菜單 ----------
+  function menuOf(sid){ return menuStore[sid] || []; }
+  // 這家店以前手動輸入過的品項（沿用舊資料時，拿來當菜單草稿）
+  function pastItemsOf(sid){
     var cat = {};
-    Object.keys(dayStore).forEach(function(sid){
-      Object.keys(dayStore[sid]).sort().forEach(function(d){
-        dayStore[sid][d].items.forEach(function(it){ var q = num(it[1]); if (q > 0) cat[String(it[0])] = Math.round(num(it[2]) / q); });
-      });
+    Object.keys(dayStore[sid] || {}).sort().forEach(function(d){
+      dayStore[sid][d].items.forEach(function(it){ var q = num(it[1]); if (q > 0) cat[String(it[0])] = Math.round(num(it[2]) / q); });
     });
-    return cat;
+    return Object.keys(cat).map(function(n){ return [n, cat[n]]; });
   }
-  function addManRow(item){
-    var box = byId("manRows"), row = document.createElement("div");
-    row.className = "man-row";
-    row.innerHTML = '<input class="mi-name" list="manItems" placeholder="品項名稱" aria-label="品項">' +
-      '<input class="mi-qty" type="number" min="0" step="1" inputmode="numeric" placeholder="數量" aria-label="數量">' +
-      '<input class="mi-price" type="number" min="0" step="1" inputmode="numeric" placeholder="單價" aria-label="單價">' +
-      '<input class="mi-amt calc" type="number" min="0" step="1" inputmode="numeric" placeholder="金額" aria-label="金額">' +
-      '<button type="button" class="man-del" aria-label="刪除這一行">×</button>';
-    box.appendChild(row);
-    if (item){
-      var q = num(item[1]), a = num(item[2]);
-      row.querySelector(".mi-name").value = item[0];
-      row.querySelector(".mi-qty").value = q || "";
-      row.querySelector(".mi-price").value = q ? Math.round(a / q) : "";
-      row.querySelector(".mi-amt").value = a || "";
-      if (q && Math.round(a / q) * q !== a) row.querySelector(".mi-amt").setAttribute("data-own", "1");
-    }
+  function addMenuRow(item){
+    var row = document.createElement("div");
+    row.className = "menu-row";
+    row.innerHTML = '<input class="mn-name" placeholder="品項名稱，例如：鮭魚握壽司" aria-label="品項">' +
+      '<input class="mn-price" type="number" min="0" step="1" inputmode="numeric" placeholder="價格" aria-label="價格">' +
+      '<button type="button" class="man-del" aria-label="刪除這一道">×</button>';
+    byId("menuRows").appendChild(row);
+    if (item){ row.querySelector(".mn-name").value = item[0]; row.querySelector(".mn-price").value = item[1] || ""; }
     return row;
+  }
+  function openMenuEditor(sid){
+    menuOpenFor = sid;
+    var box = byId("menuRows"); box.innerHTML = "";
+    var items = menuOf(sid), draft = false;
+    if (!items.length){ items = pastItemsOf(sid); draft = items.length > 0; }
+    items.forEach(function(it){ addMenuRow(it); });
+    for (var k = items.length; k < Math.max(3, items.length + 1); k++) addMenuRow();
+    byId("menuEditor").hidden = false;
+    byId("btnMenuEdit").textContent = "收起菜單";
+    setMenuMsg(draft ? "已經先帶入你以前輸入過的品項和價格，確認後按「儲存菜單」。" : "");
+  }
+  function closeMenuEditor(){
+    menuOpenFor = null;
+    byId("menuEditor").hidden = true;
+    byId("btnMenuEdit").textContent = "編輯菜單";
+  }
+  function saveMenu(){
+    var sid = state.storeSel;
+    if (isBrandView()) return;
+    var items = [], seen = {}, dup = [], noPrice = [];
+    Array.prototype.forEach.call(document.querySelectorAll("#menuRows .menu-row"), function(r){
+      var nm = cleanName(r.querySelector(".mn-name").value), pr = num(r.querySelector(".mn-price").value);
+      if (!nm) return;
+      if (seen[nm]){ dup.push(nm); return; }
+      seen[nm] = 1;
+      if (pr <= 0) noPrice.push(nm);
+      items.push([nm, pr]);
+    });
+    if (!items.length){ setMenuMsg("至少要有一道菜（名稱和價格）。", true); return; }
+    if (noPrice.length){ setMenuMsg("這些品項還沒填價格：" + noPrice.slice(0, 5).join("、") + (noPrice.length > 5 ? "…" : ""), true); return; }
+    var keep = readQtyMap();
+    menuStore[sid] = items;
+    persistMenu(sid);
+    closeMenuEditor();
+    renderManual(true, keep);
+    setMenuMsg("");
+    setManMsg("菜單已儲存：共 " + items.length + " 道" + (dup.length ? "（重複的「" + dup.slice(0, 3).join("、") + "」只留一個）" : "") + "。現在可以在下面填數量了。");
+    logAppend("儲存菜單", storeLabel(storeById(sid)), "ok", items.length + " 道菜");
+  }
+
+  // ---------- ② 每天填數量 ----------
+  // 表單上每一行：品名、單價（存在 data-price）、數量輸入框、金額
+  function addQtyRow(name, price, qty, extra){
+    var row = document.createElement("div");
+    row.className = "man-row";
+    row.setAttribute("data-name", name);
+    row.setAttribute("data-price", String(price));
+    row.innerHTML = '<div class="mi-name">' + esc(name) + '<small>' + esc(fmtMoney(price)) + '</small>' + (extra ? '<em>（菜單上已經沒有）</em>' : '') + '</div>' +
+      '<span class="mi-pr">' + esc(fmtMoney(price)) + '</span>' +
+      '<input class="mi-qty" type="number" min="0" step="1" inputmode="numeric" placeholder="0" aria-label="' + esc(name) + ' 數量">' +
+      '<span class="mi-amt"></span>';
+    if (qty) row.querySelector(".mi-qty").value = qty;
+    byId("manRows").appendChild(row);
+    updateRowAmt(row);
+    return row;
+  }
+  function updateRowAmt(row){
+    var q = num(row.querySelector(".mi-qty").value), pr = num(row.getAttribute("data-price"));
+    row.querySelector(".mi-amt").textContent = q > 0 ? fmtMoney(Math.round(q * pr)) : "—";
+    row.classList.toggle("has-qty", q > 0);
+  }
+  function readQtyMap(){
+    var m = {};
+    Array.prototype.forEach.call(document.querySelectorAll("#manRows .man-row"), function(r){ var v = r.querySelector(".mi-qty").value; if (v !== "") m[r.getAttribute("data-name")] = v; });
+    return m;
   }
   function readManRows(){
     var out = [];
     Array.prototype.forEach.call(document.querySelectorAll("#manRows .man-row"), function(r){
-      var nm = r.querySelector(".mi-name").value.trim().replace(/\s+/g, " ");
-      var q = num(r.querySelector(".mi-qty").value), pr = num(r.querySelector(".mi-price").value), a = r.querySelector(".mi-amt").value === "" ? q * pr : num(r.querySelector(".mi-amt").value);
-      if (nm && (q > 0 || a > 0)) out.push([nm.slice(0, 60), q, a]);
+      var q = num(r.querySelector(".mi-qty").value), pr = num(r.getAttribute("data-price"));
+      if (q > 0) out.push([r.getAttribute("data-name"), q, Math.round(q * pr)]);
     });
     return out;
   }
@@ -3402,51 +3515,69 @@
     var d = num(byId("manDisc").value), c = num(byId("manCust").value);
     byId("manTotal").innerHTML = items.length
       ? '這一天：' + items.length + ' 個品項、共 ' + fmtInt(q) + ' 份，營業額 <b>' + esc(fmtMoney(a - d)) + '</b>' + (d ? '（已扣折扣 ' + esc(fmtMoney(d)) + '）' : '') + (c ? '，平均每位客人 ' + esc(fmtMoney((a - d) / c)) : '')
-      : '還沒有填任何品項。';
+      : '還沒有填任何數量。';
   }
 
-  function renderManual(force){
+  // keep：重畫時保留使用者剛剛填、還沒存的數量（例如中途改了菜單）
+  function renderManual(force, keep){
     var tab = byId("tabManual"); if (!tab) return;
     var dateEl = byId("manDate");
     if (!dateEl.value) dateEl.value = todayStr();
     dateEl.max = todayStr();
-    var dl = byId("manItems"), cat = itemCatalog();
-    dl.innerHTML = Object.keys(cat).sort().map(function(n){ return '<option value="' + esc(n) + '">'; }).join("");
-    var brand = isBrandView();
+    var brand = isBrandView(), sid = state.storeSel, menu = brand ? [] : menuOf(sid);
     byId("btnManSave").disabled = brand;
-    if (brand){
-      byId("manState").innerHTML = '<b>現在選的是「全部分店加總」</b>，請先在上方「分店」選一家店，再輸入那家店的資料。';
-    }
-    var sid = state.storeSel, date = dateEl.value, key = sid + "|" + date;
+    byId("btnMenuEdit").disabled = brand;
+
+    // ① 菜單摘要；換了店就把編輯器收起來；還沒有菜單就直接打開
+    if (menuOpenFor && menuOpenFor !== sid) closeMenuEditor();
+    byId("menuSum").textContent = brand ? "請先選一家店" : (menu.length ? "已設定 " + menu.length + " 道菜" : "還沒有菜單，先把品項和價格建起來");
+    if (!brand && !menu.length && !menuOpenFor) openMenuEditor(sid);
+    if (brand && menuOpenFor) closeMenuEditor();
+
+    var date = dateEl.value, key = sid + "|" + date;
     var rec = !brand && dayStore[sid] ? dayStore[sid][date] : null;
     if (force || key !== manKey){
       manKey = key;
-      byId("manRows").innerHTML = "";
-      if (rec){ rec.items.forEach(function(it){ addManRow(it); }); addManRow(); }
-      else { addManRow(); addManRow(); addManRow(); }
+      var box = byId("manRows"); box.innerHTML = "";
+      var recMap = {};
+      if (rec) rec.items.forEach(function(it){ recMap[String(it[0])] = it; });
+      // 菜單上的每一道菜：這一天存過就用「當天的價格」，沒存過用菜單價格
+      menu.forEach(function(m){
+        var it = recMap[m[0]], q = it ? num(it[1]) : 0;
+        var price = it && q ? Math.round(num(it[2]) / q) : m[1];
+        var qv = keep && keep[m[0]] != null ? keep[m[0]] : (q || "");
+        addQtyRow(m[0], price, qv, false);
+        delete recMap[m[0]];
+      });
+      // 這一天存過、但菜單上已經刪掉的品項：保留下來，免得改存時資料不見
+      Object.keys(recMap).forEach(function(n){
+        var it = recMap[n], q = num(it[1]);
+        addQtyRow(n, q ? Math.round(num(it[2]) / q) : 0, q || "", true);
+      });
+      if (!box.children.length) box.innerHTML = '<div class="hint">' + (brand ? '' : '先在上面「① 菜單」建好品項和價格，這裡就會出現每一道菜，只要填數量。') + '</div>';
       byId("manCust").value = rec && rec.cust ? rec.cust : "";
       byId("manDisc").value = rec && rec.disc ? rec.disc : "";
       byId("btnManSave").removeAttribute("data-confirm");
       setManMsg("");
     }
-    if (!brand){
-      byId("manState").innerHTML = '正在輸入：<b>' + esc(storeLabel(storeById(sid))) + '</b>　' + esc(date) + '（週' + weekdayOf(date) + '）' +
+    byId("manState").innerHTML = brand
+      ? '<b>現在選的是「全部分店加總」</b>，請先在上方「分店」選一家店，再輸入那家店的資料。'
+      : '正在輸入：<b>' + esc(storeLabel(storeById(sid))) + '</b>　' + esc(date) + '（週' + weekdayOf(date) + '）' +
         (rec ? '　·　這一天已經有資料，修改後按存檔會<b>取代</b>舊的' : '');
-    }
     byId("btnManDelete").hidden = !rec;
     updateManTotal();
 
     // 這個月已輸入的日子
     var mk = date.slice(0, 7), days = brand ? [] : Object.keys(dayStore[sid] || {}).filter(function(d){ return d.slice(0, 7) === mk; }).sort();
-    var box = byId("manDays");
-    if (!days.length){ box.innerHTML = brand ? "" : '<div class="hint">' + esc(monthLabelOf(mk)) + ' 還沒有手動輸入的日子。</div>'; return; }
+    var dbox = byId("manDays");
+    if (!days.length){ dbox.innerHTML = brand ? "" : '<div class="hint">' + esc(monthLabelOf(mk)) + ' 還沒有手動輸入的日子。</div>'; return; }
     var rows = days.map(function(d){
       var r = dayStore[sid][d], a = 0; r.items.forEach(function(it){ a += num(it[2]); }); a -= num(r.disc);
       return { d:d, rev:a, n:r.items.length };
     });
     var tot = rows.reduce(function(x, r){ return x + r.rev; }, 0);
     var snapM = storeSnaps[sid] && storeSnaps[sid][mk];
-    box.innerHTML = '<div class="man-days"><h4 style="margin:0 0 6px">' + esc(monthLabelOf(mk)) + ' 已輸入 ' + days.length + ' 天，合計 ' + esc(fmtMoney(tot)) + '</h4>' +
+    dbox.innerHTML = '<div class="man-days"><h4 style="margin:0 0 6px">' + esc(monthLabelOf(mk)) + ' 已輸入 ' + days.length + ' 天，合計 ' + esc(fmtMoney(tot)) + '</h4>' +
       rows.map(function(r){
         return '<div class="man-day' + (r.d === date ? ' cur' : '') + '"><span class="d">' + r.d.slice(5).replace("-", "/") + '（' + weekdayOf(r.d) + '）</span><span>' + r.n + ' 個品項</span><span class="r">' + esc(fmtMoney(r.rev)) + '</span>' +
           '<button type="button" class="file-btn" data-day="' + r.d + '">' + (r.d === date ? '正在編輯' : '修改') + '</button></div>';
@@ -3462,7 +3593,7 @@
     if (!/^\d{4}-\d{2}-\d{2}$/.test(date)){ setManMsg("請先選日期。", true); return; }
     if (date > todayStr()){ setManMsg("不能輸入未來的日期。", true); return; }
     var items = readManRows();
-    if (!items.length){ setManMsg("至少要填一個品項（名稱，加上數量或金額）。", true); return; }
+    if (!items.length){ setManMsg(menuOf(sid).length ? "至少要填一道菜的數量。" : "請先在上面「① 菜單」建好品項和價格。", true); return; }
     var mk = date.slice(0, 7), btn = byId("btnManSave");
     var snapM = storeSnaps[sid] && storeSnaps[sid][mk];
     // 這個月原本是上傳的報表：存檔會改用手動資料，先確認一次
@@ -3522,38 +3653,37 @@
     if (t === "manual") renderManual();
   });
   byId("manDate").addEventListener("change", function(){ renderManual(); });
-  byId("btnManAdd").addEventListener("click", function(){ var r = addManRow(); r.querySelector(".mi-name").focus(); });
   byId("btnManSave").addEventListener("click", saveManualDay);
   byId("btnManDelete").addEventListener("click", deleteManualDay);
   ["manCust","manDisc"].forEach(function(id){ byId(id).addEventListener("input", updateManTotal); });
-  byId("manRows").addEventListener("click", function(e){
-    if (e.target.classList && e.target.classList.contains("man-del")){
-      e.target.parentNode.remove();
-      if (!document.querySelector("#manRows .man-row")) addManRow();
-      updateManTotal();
-    }
-  });
   byId("manRows").addEventListener("input", function(e){
     var row = e.target.closest ? e.target.closest(".man-row") : null; if (!row) return;
-    var amt = row.querySelector(".mi-amt");
-    if (e.target === amt){ amt.setAttribute("data-own", amt.value === "" ? "" : "1"); amt.classList.toggle("calc", amt.value === ""); }
-    if (e.target.classList.contains("mi-name")){
-      // 選到記得的品項：自動帶入上次的單價
-      var cat = itemCatalog(), pr = row.querySelector(".mi-price");
-      if (cat[e.target.value.trim()] && !pr.value) pr.value = cat[e.target.value.trim()];
-    }
-    if (amt.getAttribute("data-own") !== "1"){
-      var q = num(row.querySelector(".mi-qty").value), pr2 = num(row.querySelector(".mi-price").value);
-      amt.value = q && pr2 ? Math.round(q * pr2) : "";
-      amt.classList.add("calc");
-    }
-    updateManTotal();
+    updateRowAmt(row); updateManTotal();
+  });
+  // 數量填完按 Enter：跳到下一道菜，不用拿滑鼠
+  byId("manRows").addEventListener("keydown", function(e){
+    if (e.key !== "Enter" || !e.target.classList.contains("mi-qty")) return;
+    e.preventDefault();
+    var all = Array.prototype.slice.call(document.querySelectorAll("#manRows .mi-qty")), k = all.indexOf(e.target);
+    if (k >= 0 && k < all.length - 1) all[k + 1].focus(); else byId("btnManSave").focus();
   });
   byId("manDays").addEventListener("click", function(e){
     var b = e.target.closest ? e.target.closest("button[data-day]") : null; if (!b) return;
     byId("manDate").value = b.getAttribute("data-day");
     renderManual();
     byId("manDate").scrollIntoView({ behavior:"smooth", block:"center" });
+  });
+  byId("btnMenuEdit").addEventListener("click", function(){
+    if (isBrandView()) return;
+    if (menuOpenFor) closeMenuEditor(); else openMenuEditor(state.storeSel);
+  });
+  byId("btnMenuAdd").addEventListener("click", function(){ addMenuRow().querySelector(".mn-name").focus(); });
+  byId("btnMenuSave").addEventListener("click", saveMenu);
+  byId("menuRows").addEventListener("click", function(e){
+    if (e.target.classList && e.target.classList.contains("man-del")){
+      e.target.parentNode.remove();
+      if (!document.querySelector("#menuRows .menu-row")) addMenuRow();
+    }
   });
 
   // ================= 分店選單 =================
