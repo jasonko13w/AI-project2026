@@ -493,6 +493,8 @@
   .cloud-form .seg{ align-self:flex-start; max-width:100%; }
   .link-btn{ border:none; background:none; color:var(--text-secondary); font:inherit; font-size:13px; text-decoration:underline; cursor:pointer; padding:4px; }
   .file-btn.es-main:hover{ color:#fff; filter:brightness(1.06); }
+
+  .ocr-row{ margin-top:10px; display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
 </style>
 
 <div class="wrap">
@@ -588,6 +590,10 @@
         <div class="man-step-head"><h4>① 菜單</h4><span class="man-step-sum" id="menuSum"></span><button class="file-btn" id="btnMenuEdit" type="button">編輯菜單</button></div>
         <div id="menuEditor" hidden>
           <div class="hint">一行一道菜：名稱和價格。設定一次就會記住；之後改價格，不會影響已經存好的日子。</div>
+          <div class="ocr-row">
+            <button class="file-btn es-main" id="btnMenuPhoto" type="button">📷 拍菜單／上傳菜單照片，AI 自動填好</button>
+            <input type="file" id="menuPhoto" accept="image/*" hidden>
+          </div>
           <div class="menu-head" aria-hidden="true"><span>品項</span><span>價格</span><span></span></div>
           <div id="menuRows"></div>
           <div class="log-actions">
@@ -1284,6 +1290,149 @@
         setCloudMsg("已上傳 " + rows.length + " 筆資料，重新整理中…");
         setTimeout(function(){ location.reload(); }, 800);
       }).catch(function(e){ btn.disabled = false; btn.removeAttribute("data-confirm"); btn.textContent = "把這台裝置的資料搬上雲端"; setCloudMsg("上傳失敗：" + cloudDetail(e), true); if (typeof logAppend === "function") logAppend("搬上雲端", "", "fail", cloudDetail(e)); });
+    });
+  })();
+
+  // 把 Azure 讀出的「一行一行文字＋位置」整理成 [[品名, 價格]]
+  // 支援三種常見排法：同一行「品名 120」、品名在左價格在右（不同行但同高度）、價格在品名正下方
+  function parseMenuLines(lines){
+    function toHalf(s){ return String(s || "").replace(/[！-～]/g, function(c){ return String.fromCharCode(c.charCodeAt(0) - 0xFEE0); }).replace(/　/g, " ").trim(); }
+    function geo(b){
+      var xs = [], ys = [];
+      for (var i = 0; i + 1 < (b || []).length; i += 2){ xs.push(+b[i]); ys.push(+b[i + 1]); }
+      if (!xs.length) return { x1:0, x2:0, y1:0, y2:0, yc:0, h:1 };
+      var x1 = Math.min.apply(null, xs), x2 = Math.max.apply(null, xs), y1 = Math.min.apply(null, ys), y2 = Math.max.apply(null, ys);
+      return { x1:x1, x2:x2, y1:y1, y2:y2, yc:(y1 + y2) / 2, h:Math.max(1, y2 - y1) };
+    }
+    var PRICE_ONLY = /^(?:NT\$|NTD|\$)?\s*(\d{1,3}(?:,\d{3})+|\d{2,5})\s*(?:元|圓|NT|NTD)?$/i;
+    var PRICE_TAIL = /^(.*?[^\d\s,.:：$])\s*[:：.．…\-—~～]*\s*(?:NT\$|NTD|\$)?\s*(\d{1,3}(?:,\d{3})+|\d{2,5})\s*(?:元|圓)?$/i;
+    var SKIP = /(電話|TEL|營業時間|時間|地址|WIFI|wi-fi|服務費|另收|價格|價錢|單位|^元$|^NT\$?$)/i;
+    function cleanName(n){
+      n = n.replace(/[.．…·•\-—_~～:：]+$/g, "").replace(/^[\s.．…·•\-—_~～:：*＊●○◎★☆]+/, "").replace(/\s+/g, " ").trim();
+      return n;
+    }
+    function okName(n){ return n && n.length <= 30 && /[一-鿿A-Za-z]/.test(n) && !SKIP.test(n) && !/^\d+$/.test(n); }
+    function okPrice(p){ return p >= 10 && p <= 99999; }
+    var names = [], prices = [], out = [];
+    (lines || []).forEach(function(l){
+      var t = toHalf(l.text), g = geo(l.box), m;
+      if (!t) return;
+      if (/\d{1,2}[:：]\d{2}/.test(t) || /\d{2,4}-\d{3,4}-?\d{3,4}/.test(t)) return; // 時間、電話
+      if (/^(19|20)\d{2}$/.test(t)) return; // 單獨的年份，不是價格
+      if ((m = t.match(PRICE_ONLY))){ var p = +m[1].replace(/,/g, ""); if (okPrice(p)) prices.push({ p:p, g:g, used:false }); return; }
+      if ((m = t.match(PRICE_TAIL))){
+        var nm = cleanName(m[1]), pr = +m[2].replace(/,/g, "");
+        if (okName(nm) && okPrice(pr)){ out.push({ name:nm, price:pr, y:g.yc, x:g.x1 }); return; }
+      }
+      var n2 = cleanName(t);
+      if (okName(n2)) names.push({ n:n2, g:g });
+    });
+    // 同一高度、在右邊、最近的價格
+    names.forEach(function(it){
+      var best = null, bd = Infinity;
+      prices.forEach(function(pz){
+        if (pz.used) return;
+        if (Math.abs(pz.g.yc - it.g.yc) > Math.max(it.g.h, pz.g.h) * 0.6) return;
+        if (pz.g.x1 < it.g.x2 - it.g.h * 0.5) return;
+        var d = pz.g.x1 - it.g.x2;
+        if (d < bd){ bd = d; best = pz; }
+      });
+      if (!best){
+        // 價格在品名正下方
+        prices.forEach(function(pz){
+          if (pz.used) return;
+          var dy = pz.g.y1 - it.g.y2;
+          if (dy < -it.g.h * 0.3 || dy > it.g.h * 1.6) return;
+          if (pz.g.x2 < it.g.x1 - it.g.h || pz.g.x1 > it.g.x2 + it.g.h) return;
+          if (dy < bd){ bd = dy; best = pz; }
+        });
+      }
+      if (best){ best.used = true; out.push({ name:it.n, price:best.p, y:it.g.yc, x:it.g.x1 }); }
+    });
+    // 依照菜單上的順序（由上到下、由左到右），同名只留第一個
+    out.sort(function(a, b){ return Math.abs(a.y - b.y) < 8 ? a.x - b.x : a.y - b.y; });
+    var seen = {}, res = [];
+    out.forEach(function(o){ if (!seen[o.name]){ seen[o.name] = 1; res.push([o.name, o.price]); } });
+    return res;
+  }
+
+  // ===== AI 讀菜單 =====
+  (function(){
+    var btn = document.getElementById("btnMenuPhoto"), inp = document.getElementById("menuPhoto");
+    if (!btn || !inp) return;
+    if (!cloudReady()){ btn.parentNode.hidden = true; return; }
+    btn.addEventListener("click", function(){
+      if (isBrandView()){ setMenuMsg("請先在上方「分店」選一家店。", true); return; }
+      if (!cloudUser || !supa){
+        setMenuMsg("AI 讀菜單要先「登入同步」才能用（這樣才能保護 Azure 金鑰，也避免被陌生人刷用量）。", true);
+        var bar = document.getElementById("cloudBar"); if (bar) bar.scrollIntoView({ behavior:"smooth", block:"center" });
+        return;
+      }
+      inp.value = ""; inp.click();
+    });
+    function shrink(file){
+      return new Promise(function(ok, no){
+        var url = URL.createObjectURL(file), img = new Image();
+        img.onload = function(){
+          var max = 1800, w = img.naturalWidth, h = img.naturalHeight, k = Math.min(1, max / Math.max(w, h));
+          var c = document.createElement("canvas"); c.width = Math.round(w * k); c.height = Math.round(h * k);
+          c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+          URL.revokeObjectURL(url);
+          c.toBlob(function(b){ b ? ok(b) : no(new Error("shrink")); }, "image/jpeg", 0.85);
+        };
+        img.onerror = function(){ URL.revokeObjectURL(url); no(new Error("image")); };
+        img.src = url;
+      });
+    }
+    function ocrErr(status, code){
+      code = String(code || "");
+      if (status === 404) return "AI 讀菜單還沒設定好：Supabase 裡還沒有部署 menu-ocr 這個函式。";
+      if (code === "not_configured") return "AI 讀菜單還沒設定好：Supabase 的 Secrets 裡還沒放 Azure 的網址和金鑰。";
+      if (code === "login_required" || status === 401) return "登入狀態過期了，請登出再登入一次。";
+      if (code === "image_too_large") return "照片太大，請換一張小一點的。";
+      if (/azure_401|azure_403/.test(code)) return "Azure 的金鑰或網址不對，請到 Supabase 的 Secrets 檢查。";
+      if (/azure_429/.test(code)) return "Azure 用量到上限或太頻繁，請等一下再試。";
+      if (/azure_400/.test(code)) return "Azure 看不懂這張圖，請換一張清楚的照片（JPG／PNG）。";
+      return "AI 讀菜單失敗（" + (code || status) + "），請稍後再試，或直接手動輸入。";
+    }
+    inp.addEventListener("change", function(){
+      var file = inp.files && inp.files[0]; if (!file) return;
+      var sid = state.storeSel;
+      btn.disabled = true; setMenuMsg("AI 讀菜單中…（大約 3～15 秒）");
+      var t0 = Date.now(), status = 0;
+      shrink(file).then(function(blob){
+        return supa.auth.getSession().then(function(r){
+          var tok = r && r.data && r.data.session ? r.data.session.access_token : "";
+          return fetch(SUPA_URL + "/functions/v1/menu-ocr", { method:"POST", headers:{ "Authorization":"Bearer " + tok, "apikey":SUPA_KEY, "Content-Type":"application/octet-stream" }, body:blob });
+        });
+      }).then(function(res){
+        status = res.status;
+        return res.json().catch(function(){ return {}; });
+      }).then(function(j){
+        if (status !== 200 || !j || !Array.isArray(j.lines)) throw { status:status, code:j && j.error };
+        var items = parseMenuLines(j.lines);
+        if (typeof logAppend === "function") logAppend("AI 讀菜單", file.name || "", items.length ? "ok" : "fail", "讀到 " + j.lines.length + " 行文字，配對出 " + items.length + " 道菜，" + Math.round((Date.now() - t0) / 100) / 10 + " 秒");
+        if (!items.length){ setMenuMsg("AI 有讀到 " + j.lines.length + " 行字，但配對不出「品名＋價格」。可以換一張正面、清楚、光線夠的照片，或直接手動輸入。", true); return; }
+        if (state.storeSel !== sid) return;
+        if (menuOpenFor !== sid) openMenuEditor(sid);
+        var rows = Array.prototype.slice.call(document.querySelectorAll("#menuRows .menu-row")), have = {};
+        rows.forEach(function(r){
+          var n = cleanName(r.querySelector(".mn-name").value);
+          if (!n && !r.querySelector(".mn-price").value) r.remove(); else if (n) have[n] = r;
+        });
+        var added = 0, filled = 0;
+        items.forEach(function(it){
+          var r = have[it[0]];
+          if (r){ var pi = r.querySelector(".mn-price"); if (!pi.value){ pi.value = it[1]; filled++; } return; }
+          addMenuRow(it); added++;
+        });
+        addMenuRow();
+        setMenuMsg("AI 讀到 " + items.length + " 道菜，新增 " + added + " 道" + (filled ? "、補上 " + filled + " 個價格" : "") + "。請檢查品名和價格有沒有讀錯（可以直接改），確認後按「儲存菜單」。");
+      }).catch(function(e){
+        var msg = e && e.status !== undefined ? ocrErr(e.status, e.code) : (e && e.message === "image" ? "這個檔案打不開，請換一張 JPG 或 PNG 照片。" : "連不上 AI 服務，請檢查網路後再試。");
+        setMenuMsg(msg, true);
+        if (typeof logAppend === "function") logAppend("AI 讀菜單", file.name || "", "fail", msg);
+      }).then(function(){ btn.disabled = false; });
     });
   })();
 
