@@ -1160,6 +1160,15 @@
     if (hs){ hs.className = "db-status db-on"; hs.textContent = "● 已登入 " + (user.email || "") + "：報表存在雲端，換手機、換電腦登入同一個 email 都看得到"; }
     showCloudUI("in");
     if (typeof logAppend === "function") logAppend("雲端同步", "", "ok", "已登入，資料改存在雲端");
+    // 自我檢查：雲端資料表能不能用，有問題直接講原因
+    supa.from("docs").select("path").limit(1).then(function(r){
+      if (!r || !r.error) return;
+      var c = r.error.code || "", m = r.error.message || "";
+      var why = (c === "42P01" || /does not exist|could not find the table/i.test(m)) ? "找不到資料表 docs，Supabase 的 SQL 還沒執行成功"
+        : (c === "42501" || /row-level security|permission denied/i.test(m)) ? "資料庫權限規則沒建好" : m;
+      setCloudMsg("雲端資料表有問題：" + why + "（" + (c || "error") + "）", true);
+      if (typeof logAppend === "function") logAppend("雲端檢查", "", "fail", why + " " + c);
+    });
   }
   function startTrialStorage(){
     var hash = location.hash || "", search = location.search || "";
@@ -1202,8 +1211,15 @@
       if (/email not confirmed/i.test(m)) return "還沒完成信箱確認：請先到信箱點確認信裡的連結。";
       if (/already registered|already been registered|user already exists/i.test(m)) return "這個 email 已經註冊過了，請直接用「密碼登入」。";
       if (/password should be at least|password.*(short|length)|weak/i.test(m)) return "密碼太短或太簡單，請至少 6 個字。";
-      if (/rate|limit|seconds|too many/i.test(m)) return "操作太多次了，請過一分鐘再試。";
+      if (/email rate limit/i.test(m)) return "Supabase 免費版的寄信額度暫時用完了（每小時只能寄少量信），請過一小時再試，或請管理者在後台直接建立帳號後用密碼登入。";
+      if (/rate|limit|seconds|too many/i.test(m)) return "操作太頻繁，請過一分鐘再試。";
       return "失敗了，請稍後再試。";
+    }
+    function cloudDetail(e){
+      var m = (e && (e.message || e.details || e.hint)) || String(e || ""), c = e && e.code ? e.code : "";
+      if (c === "42P01" || /relation .*docs.* does not exist|could not find the table/i.test(m)) return "雲端找不到資料表 docs（Supabase 的 SQL 還沒執行成功）。[" + (c || "no-table") + "]";
+      if (c === "42501" || /row-level security|permission denied/i.test(m)) return "資料庫權限規則擋住了（SQL 裡的規則沒建好）。[" + (c || "rls") + "]";
+      return (c ? "[" + c + "] " : "") + m;
     }
     function backUrl(){ return location.origin + location.pathname; }
     on("cloudForm", "submit", function(ev){
@@ -1267,7 +1283,7 @@
         if (typeof logAppend === "function") logAppend("搬上雲端", "", "ok", rows.length + " 筆");
         setCloudMsg("已上傳 " + rows.length + " 筆資料，重新整理中…");
         setTimeout(function(){ location.reload(); }, 800);
-      }).catch(function(){ btn.disabled = false; btn.removeAttribute("data-confirm"); btn.textContent = "把這台裝置的資料搬上雲端"; setCloudMsg("上傳失敗，請稍後再試。", true); });
+      }).catch(function(e){ btn.disabled = false; btn.removeAttribute("data-confirm"); btn.textContent = "把這台裝置的資料搬上雲端"; setCloudMsg("上傳失敗：" + cloudDetail(e), true); if (typeof logAppend === "function") logAppend("搬上雲端", "", "fail", cloudDetail(e)); });
     });
   })();
 
