@@ -115,9 +115,13 @@
   .sum-recs span{ font-size:13px; font-weight:700; background:var(--accent-soft); color:var(--accent); border-radius:999px; padding:4px 12px; }
   .sum-actions{ display:flex; gap:8px; flex-wrap:wrap; margin-top:14px; }
   .src-tabs{ margin-bottom:12px; }
-  .man-top{ display:flex; gap:10px; flex-wrap:wrap; margin-top:12px; }
-  .man-top .fld{ display:flex; flex-direction:column; gap:4px; font-size:12.5px; font-weight:700; color:var(--text-secondary); flex:1 1 140px; }
-  .man-top input, .man-row input{ font:inherit; font-size:14px; padding:8px 10px; border:1px solid var(--border); border-radius:10px; background:var(--surface); color:var(--text-primary); min-width:0; width:100%; }
+  .man-top{ display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:10px; margin-top:12px; }
+  .man-top .fld{ display:flex; flex-direction:column; gap:4px; font-size:12.5px; font-weight:700; color:var(--text-secondary); min-width:0; }
+  .man-top input, .man-row input{ font:inherit; font-size:14px; padding:8px 10px; border:1px solid var(--border); border-radius:10px; background:var(--surface); color:var(--text-primary); min-width:0; width:100%; max-width:100%; box-sizing:border-box; }
+  /* iPhone Safari 的日期欄位會自己撐寬、蓋到旁邊：取消它的內建外觀，讓它乖乖照格子寬度 */
+  .man-top input{ min-height:40px; }
+  .man-top input[type="date"]{ -webkit-appearance:none; appearance:none; display:block; line-height:1.4; text-align:left; }
+  .man-top input[type="date"]::-webkit-date-and-time-value{ text-align:left; }
   .man-state{ font-size:12.5px; margin-top:10px; color:var(--text-secondary); }
   .man-state b{ color:var(--accent); }
   .man-step{ margin-top:14px; padding:12px 14px; border:1px solid var(--border); border-radius:12px; }
@@ -426,6 +430,9 @@
   .man-row .mi-pr{ display:none; }
   .menu-head, .menu-row{ grid-template-columns:minmax(0,1fr) 84px 28px; }
   .man-step{ padding:10px; }
+  .man-top{ grid-template-columns:repeat(2, minmax(0,1fr)); }
+  .man-top .fld:first-child{ grid-column:1 / -1; }
+  .man-top input, .man-row input, .menu-row input{ font-size:16px; }
   }
   /* ===== 電腦上的「手機預覽」：把畫面縮成手機寬度，套用同一套手機排版 ===== */
   html.m-preview body{ padding-inline:12px; }
@@ -476,6 +483,9 @@
   html.m-preview .man-row .mi-pr{ display:none; }
   html.m-preview .menu-head, html.m-preview .menu-row{ grid-template-columns:minmax(0,1fr) 84px 28px; }
   html.m-preview .man-step{ padding:10px; }
+  html.m-preview .man-top{ grid-template-columns:repeat(2, minmax(0,1fr)); }
+  html.m-preview .man-top .fld:first-child{ grid-column:1 / -1; }
+  html.m-preview .man-top input, html.m-preview .man-row input, html.m-preview .menu-row input{ font-size:16px; }
 
   html.m-preview body{ background:var(--surface-2); }
   html.m-preview .wrap{ max-width:390px; background:var(--bg); border:1px solid var(--border); border-radius:28px; padding:18px 12px 28px; box-shadow:var(--shadow); }
