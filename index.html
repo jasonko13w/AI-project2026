@@ -184,6 +184,7 @@
     padding:7px 14px; border-radius:999px; font-size:13px; font-weight:600; cursor:pointer; font-family:inherit;
   }
   .file-btn:hover{ border-color: var(--accent); color:var(--accent); }
+  .file-btn.es-main:hover{ color:#fff; filter:brightness(1.06); }
   .hint{ font-size:12px; color:var(--muted); margin-top:8px; line-height:1.6; }
   .warn{
     display:none; font-size:12.5px; line-height:1.6; color:var(--text-primary);
@@ -482,6 +483,13 @@
   html.m-preview .preview-tag{ display:inline; }
   /* 真的在手機上看時，不需要「手機預覽」按鈕 */
   @media (max-width:600px){ #btnPreview{ display:none; } }
+
+  .cloud-bar{ margin-top:10px; padding:10px 14px; border:1px solid var(--border); border-radius:12px; background:var(--surface); }
+  .cloud-row{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+  .cloud-txt{ font-size:13.5px; margin-right:auto; }
+  .cloud-row input{ font:inherit; font-size:14px; padding:7px 12px; border:1px solid var(--border); border-radius:999px; background:var(--surface); color:var(--text-primary); flex:1 1 200px; min-width:0; }
+  #cloudMsg:empty{ display:none; }
+  .file-btn.es-main:hover{ color:#fff; filter:brightness(1.06); }
 </style>
 
 <div class="wrap">
@@ -490,6 +498,23 @@
     <h1 class="title">餐飲AI助理</h1>
     <div class="subtitle">一次丟進去好幾份 POS 匯出的 Excel（營運總覽、商品排行……），自動整理成一份完整報表，並推薦「下一季」適合主打的銷售商品，作為換季備貨、開發新品的參考。每個月的報表都會存起來，想看哪個月，點一下就調出來。</div>
     <div class="banner">這是<b>公開試用版</b>，不用登入就能使用。上傳的報表只在你的瀏覽器裡計算，不會傳到任何伺服器；歷史報表存在<b>這台裝置</b>的瀏覽器裡。AI 功能只在完整版提供。</div>
+    <div class="cloud-bar" id="cloudBar" hidden>
+      <div class="cloud-row" id="cloudOut">
+        <span class="cloud-txt">☁️ 想在手機、其他電腦也看到同一份資料？</span>
+        <button class="file-btn es-main" id="btnCloudLogin" type="button">登入同步</button>
+      </div>
+      <form class="cloud-row" id="cloudForm" hidden>
+        <input type="email" id="cloudEmail" placeholder="輸入你的 email" autocomplete="email" required>
+        <button class="file-btn es-main" id="btnCloudSend" type="submit">寄登入連結</button>
+        <button class="file-btn" id="btnCloudCancel" type="button">取消</button>
+      </form>
+      <div class="cloud-row" id="cloudIn" hidden>
+        <span class="cloud-txt">☁️ 已登入：<b id="cloudWho"></b>，資料存在雲端</span>
+        <button class="file-btn" id="btnCloudUpload" type="button" hidden>把這台裝置的資料搬上雲端</button>
+        <button class="file-btn" id="btnCloudLogout" type="button">登出</button>
+      </div>
+      <div class="hint" id="cloudMsg"></div>
+    </div>
   </div>
 
 
@@ -1027,11 +1052,151 @@
     return { doc:docRef, collection:coll };
   }
 
+
+  // ===== 雲端同步（Supabase）=====
+  // 沒登入：跟原本一樣，資料存在這台裝置。登入後：資料存在雲端，每個人只看得到自己的（資料庫規則保護）
+  var SUPA_URL = "https://yvrenqgiqkszgznhjlht.supabase.co", SUPA_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl2cmVucWdpcWtzemd6bmhqbGh0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE5MDI0MzksImV4cCI6MjEwNzQ3ODQzOX0.gbrKSLTXaS3V2BwSwFsLjStoFFB5ArikdsAKcIoQVGY";
+  var SUPA_LIB = "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.115.0/dist/umd/supabase.js";
+  var CLOUD_FLAG = "canyin_cloud_on";
+  var supa = null, cloudUser = null;
+  function cloudReady(){ return !!(SUPA_URL && SUPA_KEY); }
+  function lsGet(k){ try { return localStorage.getItem(k); } catch(e){ return null; } }
+  function lsSet(k, v){ try { if (v == null) localStorage.removeItem(k); else localStorage.setItem(k, v); } catch(e){} }
+  function setCloudMsg(t, bad){ var el = document.getElementById("cloudMsg"); if (el){ el.textContent = t || ""; el.style.color = bad ? "var(--warn)" : ""; } }
+  function loadSupa(){
+    if (window.supabase && window.supabase.createClient) return Promise.resolve();
+    return new Promise(function(ok, no){
+      var s = document.createElement("script"); s.src = SUPA_LIB; s.onload = ok; s.onerror = function(){ no(new Error("load")); };
+      document.head.appendChild(s);
+    });
+  }
+  function getSupa(){
+    return loadSupa().then(function(){
+      if (!supa) supa = window.supabase.createClient(SUPA_URL, SUPA_KEY, { auth:{ persistSession:true, autoRefreshToken:true, detectSessionInUrl:true } });
+      return supa;
+    });
+  }
+  // 跟本機版一樣的介面：doc(path).get/set/delete、collection(name).get
+  function makeCloudDb(sb, uid){
+    function snapOf(path, d){ return { id:path.split("/").pop(), exists:d != null, data:function(){ return d == null ? undefined : d; } }; }
+    function chk(r){ if (r && r.error) throw { code:(r.error.code || "cloud_error"), message:r.error.message }; return r; }
+    function docRef(path){
+      return {
+        path:path,
+        get:function(){ return sb.from("docs").select("data").eq("path", path).maybeSingle().then(chk).then(function(r){ return snapOf(path, r.data ? r.data.data : null); }); },
+        set:function(d){ return sb.from("docs").upsert({ user_id:uid, path:path, data:d, updated_at:new Date().toISOString() }).then(chk); },
+        delete:function(){ return sb.from("docs").delete().eq("path", path).then(chk); }
+      };
+    }
+    function coll(cp){
+      var q = {
+        where:function(){ return q; }, orderBy:function(){ return q; }, limit:function(){ return q; },
+        doc:function(id){ return docRef(cp + "/" + id); },
+        get:function(){
+          var depth = cp.split("/").length + 1;
+          return sb.from("docs").select("path,data").like("path", cp + "/%").then(chk).then(function(r){
+            var docs = (r.data || []).filter(function(x){ return x.path.split("/").length === depth; }).map(function(x){ return snapOf(x.path, x.data); });
+            return { docs:docs, size:docs.length, empty:!docs.length };
+          });
+        }
+      };
+      return q;
+    }
+    return { doc:docRef, collection:coll };
+  }
+  // 這台裝置存的資料（不含系統用的標記）
+  function localKeys(){
+    var out = [];
+    try { for (var i=0;i<localStorage.length;i++){ var k = localStorage.key(i); if (k && k.indexOf(LS_PREFIX) === 0 && k.slice(LS_PREFIX.length).indexOf("__") !== 0) out.push(k); } } catch(e){}
+    return out;
+  }
+  function showCloudUI(mode){
+    var bar = document.getElementById("cloudBar"); if (!bar) return;
+    bar.hidden = !cloudReady();
+    document.getElementById("cloudOut").hidden = mode !== "out";
+    document.getElementById("cloudForm").hidden = mode !== "form";
+    document.getElementById("cloudIn").hidden = mode !== "in";
+    if (mode === "in"){
+      document.getElementById("cloudWho").textContent = cloudUser && cloudUser.email ? cloudUser.email : "";
+      document.getElementById("btnCloudUpload").hidden = !localKeys().length;
+    }
+  }
+  function startLocal(){
+    var ldb = makeLocalDb();
+    if (ldb){ try { initHistoryDb(ldb); } catch(e){ /* 歷史報表失敗不影響其他功能 */ } }
+    setDbStatus("off");
+    showCloudUI("out");
+  }
+  function startCloud(user){
+    cloudUser = user;
+    lsSet(CLOUD_FLAG, "1");
+    initHistoryDb(makeCloudDb(supa, user.id));
+    setDbStatus("off");
+    var bn = document.querySelector(".banner");
+    if (bn) bn.innerHTML = "已開啟<b>雲端同步</b>：報表存在雲端，換手機、換電腦登入同一個 email 都看得到；資料只有你登入才看得到。AI 功能只在完整版提供。";
+    var hs = document.getElementById("histDbStatus");
+    if (hs){ hs.className = "db-status db-on"; hs.textContent = "● 已登入 " + (user.email || "") + "：報表存在雲端，換手機、換電腦登入同一個 email 都看得到"; }
+    showCloudUI("in");
+    if (typeof logAppend === "function") logAppend("雲端同步", "", "ok", "已登入，資料改存在雲端");
+  }
+  function startTrialStorage(){
+    var hash = location.hash || "", search = location.search || "";
+    var fromLink = /access_token=|type=magiclink|[?&]code=|error_description=/.test(hash + search);
+    if (!cloudReady() || (!lsGet(CLOUD_FLAG) && !fromLink)){ startLocal(); return; }
+    // 之前登入過、或剛點了信裡的登入連結：確認登入狀態；失敗或太久就退回本機模式
+    var done = false;
+    var timer = setTimeout(function(){ if (!done){ done = true; setCloudMsg("雲端連線太久，先用這台裝置的資料。", true); startLocal(); } }, 8000);
+    getSupa().then(function(sb){ return sb.auth.getSession(); }).then(function(r){
+      if (done) return; done = true; clearTimeout(timer);
+      var user = r && r.data && r.data.session ? r.data.session.user : null;
+      if (fromLink){ try { history.replaceState(null, "", location.pathname); } catch(e){} }
+      if (user) startCloud(user);
+      else { lsSet(CLOUD_FLAG, null); if (fromLink) setCloudMsg("登入連結已失效或過期，請再寄一次。", true); startLocal(); }
+    }).catch(function(){
+      if (done) return; done = true; clearTimeout(timer);
+      setCloudMsg("連不上雲端，先用這台裝置的資料。", true); startLocal();
+    });
+  }
+  (function(){
+    function on(id, ev, fn){ var el = document.getElementById(id); if (el) el.addEventListener(ev, fn); }
+    on("btnCloudLogin", "click", function(){ showCloudUI("form"); setCloudMsg(""); var e = document.getElementById("cloudEmail"); if (e) e.focus(); });
+    on("btnCloudCancel", "click", function(){ showCloudUI("out"); setCloudMsg(""); });
+    on("cloudForm", "submit", function(ev){
+      ev.preventDefault();
+      var email = (document.getElementById("cloudEmail").value || "").trim(), btn = document.getElementById("btnCloudSend");
+      if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)){ setCloudMsg("email 格式不對，請再檢查一次。", true); return; }
+      btn.disabled = true; setCloudMsg("寄送中…");
+      getSupa().then(function(sb){ return sb.auth.signInWithOtp({ email:email, options:{ emailRedirectTo: location.origin + location.pathname } }); }).then(function(r){
+        if (r && r.error) throw r.error;
+        setCloudMsg("已寄出登入連結到 " + email + "。請在這支手機或這台電腦打開信，點連結就會登入（找不到請看垃圾郵件）。");
+        if (typeof logAppend === "function") logAppend("寄登入連結", "", "ok", "已寄出");
+      }).catch(function(e){
+        var m = e && e.message ? e.message : "";
+        setCloudMsg(/rate|limit|seconds/i.test(m) ? "寄太多次了，請過一分鐘再試。" : "寄送失敗，請稍後再試。", true);
+      }).then(function(){ btn.disabled = false; });
+    });
+    on("btnCloudLogout", "click", function(){
+      var go = function(){ lsSet(CLOUD_FLAG, null); location.reload(); };
+      (supa ? supa.auth.signOut() : Promise.resolve()).then(go, go);
+    });
+    on("btnCloudUpload", "click", function(){
+      var btn = document.getElementById("btnCloudUpload");
+      if (btn.getAttribute("data-confirm") !== "1"){ btn.setAttribute("data-confirm", "1"); btn.textContent = "確定要上傳？雲端同名的月份會被取代，再按一次"; return; }
+      btn.disabled = true; setCloudMsg("上傳中…");
+      var rows = [];
+      localKeys().forEach(function(k){ try { rows.push({ user_id:cloudUser.id, path:k.slice(LS_PREFIX.length), data:JSON.parse(localStorage.getItem(k)), updated_at:new Date().toISOString() }); } catch(e){} });
+      supa.from("docs").upsert(rows).then(function(r){
+        if (r && r.error) throw r.error;
+        if (typeof logAppend === "function") logAppend("搬上雲端", "", "ok", rows.length + " 筆");
+        setCloudMsg("已上傳 " + rows.length + " 筆資料，重新整理中…");
+        setTimeout(function(){ location.reload(); }, 800);
+      }).catch(function(){ btn.disabled = false; btn.removeAttribute("data-confirm"); btn.textContent = "把這台裝置的資料搬上雲端"; setCloudMsg("上傳失敗，請稍後再試。", true); });
+    });
+  })();
+
   function initLogDb(){
     if (typeof window.claude === "undefined" || typeof window.claude.use !== "function"){
-      var ldb = makeLocalDb();
-      if (ldb){ try { initHistoryDb(ldb); } catch(e){ /* 歷史報表失敗不影響其他功能 */ } }
-      setDbStatus("off");
+      startTrialStorage();
       return;
     }
     setDbStatus("pending");
