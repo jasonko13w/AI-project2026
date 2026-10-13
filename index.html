@@ -489,6 +489,9 @@
   .cloud-txt{ font-size:13.5px; margin-right:auto; }
   .cloud-row input{ font:inherit; font-size:14px; padding:7px 12px; border:1px solid var(--border); border-radius:999px; background:var(--surface); color:var(--text-primary); flex:1 1 200px; min-width:0; }
   #cloudMsg:empty{ display:none; }
+  .cloud-form{ display:flex; flex-direction:column; gap:10px; }
+  .cloud-form .seg{ align-self:flex-start; max-width:100%; }
+  .link-btn{ border:none; background:none; color:var(--text-secondary); font:inherit; font-size:13px; text-decoration:underline; cursor:pointer; padding:4px; }
   .file-btn.es-main:hover{ color:#fff; filter:brightness(1.06); }
 </style>
 
@@ -503,10 +506,28 @@
         <span class="cloud-txt">☁️ 想在手機、其他電腦也看到同一份資料？</span>
         <button class="file-btn es-main" id="btnCloudLogin" type="button">登入同步</button>
       </div>
-      <form class="cloud-row" id="cloudForm" hidden>
-        <input type="email" id="cloudEmail" placeholder="輸入你的 email" autocomplete="email" required>
-        <button class="file-btn es-main" id="btnCloudSend" type="submit">寄登入連結</button>
-        <button class="file-btn" id="btnCloudCancel" type="button">取消</button>
+      <form class="cloud-form" id="cloudForm" hidden>
+        <div class="seg" id="cloudModes">
+          <button type="button" data-mode="login" aria-pressed="true">密碼登入</button>
+          <button type="button" data-mode="signup" aria-pressed="false">註冊</button>
+          <button type="button" data-mode="magic" aria-pressed="false">寄連結登入</button>
+        </div>
+        <div class="cloud-row">
+          <input type="email" id="cloudEmail" placeholder="email" autocomplete="email" required>
+          <input type="password" id="cloudPw" placeholder="密碼（至少 6 個字）" autocomplete="current-password" minlength="6">
+        </div>
+        <div class="cloud-row">
+          <button class="file-btn es-main" id="btnCloudSend" type="submit">登入</button>
+          <button class="file-btn" id="btnCloudCancel" type="button">取消</button>
+          <button class="link-btn" id="btnCloudForgot" type="button">忘記密碼？</button>
+        </div>
+      </form>
+      <form class="cloud-form" id="cloudReset" hidden>
+        <div class="cloud-txt">設定新密碼</div>
+        <div class="cloud-row">
+          <input type="password" id="cloudNewPw" placeholder="新密碼（至少 6 個字）" autocomplete="new-password" minlength="6" required>
+          <button class="file-btn es-main" type="submit">儲存新密碼</button>
+        </div>
       </form>
       <div class="cloud-row" id="cloudIn" hidden>
         <span class="cloud-txt">☁️ 已登入：<b id="cloudWho"></b>，資料存在雲端</span>
@@ -1115,8 +1136,9 @@
     bar.hidden = !cloudReady();
     document.getElementById("cloudOut").hidden = mode !== "out";
     document.getElementById("cloudForm").hidden = mode !== "form";
-    document.getElementById("cloudIn").hidden = mode !== "in";
-    if (mode === "in"){
+    document.getElementById("cloudIn").hidden = mode !== "in" && mode !== "reset";
+    document.getElementById("cloudReset").hidden = mode !== "reset";
+    if (mode === "in" || mode === "reset"){
       document.getElementById("cloudWho").textContent = cloudUser && cloudUser.email ? cloudUser.email : "";
       document.getElementById("btnCloudUpload").hidden = !localKeys().length;
     }
@@ -1141,7 +1163,8 @@
   }
   function startTrialStorage(){
     var hash = location.hash || "", search = location.search || "";
-    var fromLink = /access_token=|type=magiclink|[?&]code=|error_description=/.test(hash + search);
+    var fromLink = /access_token=|type=magiclink|type=recovery|type=signup|[?&]code=|error_description=/.test(hash + search);
+    var isRecovery = /type=recovery/.test(hash + search);
     if (!cloudReady() || (!lsGet(CLOUD_FLAG) && !fromLink)){ startLocal(); return; }
     // 之前登入過、或剛點了信裡的登入連結：確認登入狀態；失敗或太久就退回本機模式
     var done = false;
@@ -1150,7 +1173,7 @@
       if (done) return; done = true; clearTimeout(timer);
       var user = r && r.data && r.data.session ? r.data.session.user : null;
       if (fromLink){ try { history.replaceState(null, "", location.pathname); } catch(e){} }
-      if (user) startCloud(user);
+      if (user){ startCloud(user); if (isRecovery){ showCloudUI("reset"); setCloudMsg("請設定新密碼。"); } }
       else { lsSet(CLOUD_FLAG, null); if (fromLink) setCloudMsg("登入連結已失效或過期，請再寄一次。", true); startLocal(); }
     }).catch(function(){
       if (done) return; done = true; clearTimeout(timer);
@@ -1159,21 +1182,75 @@
   }
   (function(){
     function on(id, ev, fn){ var el = document.getElementById(id); if (el) el.addEventListener(ev, fn); }
-    on("btnCloudLogin", "click", function(){ showCloudUI("form"); setCloudMsg(""); var e = document.getElementById("cloudEmail"); if (e) e.focus(); });
+    on("btnCloudLogin", "click", function(){ showCloudUI("form"); setCloudMode("login"); var e = document.getElementById("cloudEmail"); if (e) e.focus(); });
     on("btnCloudCancel", "click", function(){ showCloudUI("out"); setCloudMsg(""); });
+    var cloudMode = "login";
+    function setCloudMode(m){
+      cloudMode = m;
+      Array.prototype.forEach.call(document.querySelectorAll("#cloudModes button"), function(b){ b.setAttribute("aria-pressed", String(b.getAttribute("data-mode") === m)); });
+      var pw = document.getElementById("cloudPw");
+      pw.hidden = m === "magic"; pw.required = m !== "magic";
+      pw.setAttribute("autocomplete", m === "signup" ? "new-password" : "current-password");
+      document.getElementById("btnCloudSend").textContent = m === "login" ? "登入" : m === "signup" ? "註冊" : "寄登入連結";
+      document.getElementById("btnCloudForgot").hidden = m !== "login";
+      setCloudMsg(m === "magic" ? "不用密碼：輸入 email，收信點連結就登入。" : m === "signup" ? "註冊後會寄一封確認信，點信裡的連結就完成。" : "");
+    }
+    on("cloudModes", "click", function(e){ var b = e.target.closest ? e.target.closest("button[data-mode]") : null; if (b) setCloudMode(b.getAttribute("data-mode")); });
+    function cloudErr(e){
+      var m = (e && e.message) || "";
+      if (/invalid login credentials/i.test(m)) return "email 或密碼不對。";
+      if (/email not confirmed/i.test(m)) return "還沒完成信箱確認：請先到信箱點確認信裡的連結。";
+      if (/already registered|already been registered|user already exists/i.test(m)) return "這個 email 已經註冊過了，請直接用「密碼登入」。";
+      if (/password should be at least|password.*(short|length)|weak/i.test(m)) return "密碼太短或太簡單，請至少 6 個字。";
+      if (/rate|limit|seconds|too many/i.test(m)) return "操作太多次了，請過一分鐘再試。";
+      return "失敗了，請稍後再試。";
+    }
+    function backUrl(){ return location.origin + location.pathname; }
     on("cloudForm", "submit", function(ev){
       ev.preventDefault();
-      var email = (document.getElementById("cloudEmail").value || "").trim(), btn = document.getElementById("btnCloudSend");
+      var email = (document.getElementById("cloudEmail").value || "").trim(), pw = document.getElementById("cloudPw").value || "", btn = document.getElementById("btnCloudSend");
       if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)){ setCloudMsg("email 格式不對，請再檢查一次。", true); return; }
-      btn.disabled = true; setCloudMsg("寄送中…");
-      getSupa().then(function(sb){ return sb.auth.signInWithOtp({ email:email, options:{ emailRedirectTo: location.origin + location.pathname } }); }).then(function(r){
+      if (cloudMode !== "magic" && pw.length < 6){ setCloudMsg("密碼至少要 6 個字。", true); return; }
+      btn.disabled = true; setCloudMsg(cloudMode === "login" ? "登入中…" : "處理中…");
+      getSupa().then(function(sb){
+        if (cloudMode === "login") return sb.auth.signInWithPassword({ email:email, password:pw }).then(function(r){
+          if (r && r.error) throw r.error;
+          lsSet(CLOUD_FLAG, "1");
+          if (typeof logAppend === "function") logAppend("密碼登入", "", "ok", "登入成功");
+          setCloudMsg("登入成功，載入雲端資料中…"); setTimeout(function(){ location.reload(); }, 300);
+        });
+        if (cloudMode === "signup") return sb.auth.signUp({ email:email, password:pw, options:{ emailRedirectTo: backUrl() } }).then(function(r){
+          if (r && r.error) throw r.error;
+          if (r && r.data && r.data.session){ lsSet(CLOUD_FLAG, "1"); setCloudMsg("註冊完成，載入中…"); setTimeout(function(){ location.reload(); }, 300); return; }
+          setCloudMsg("已寄確認信到 " + email + "，點信裡的連結就完成註冊並登入（找不到請看垃圾郵件）。");
+          if (typeof logAppend === "function") logAppend("註冊", "", "ok", "已寄確認信");
+        });
+        return sb.auth.signInWithOtp({ email:email, options:{ emailRedirectTo: backUrl() } }).then(function(r){
+          if (r && r.error) throw r.error;
+          setCloudMsg("已寄出登入連結到 " + email + "。請在這支手機或這台電腦打開信，點連結就會登入（找不到請看垃圾郵件）。");
+          if (typeof logAppend === "function") logAppend("寄登入連結", "", "ok", "已寄出");
+        });
+      }).catch(function(e){ setCloudMsg(cloudErr(e), true); }).then(function(){ btn.disabled = false; });
+    });
+    on("btnCloudForgot", "click", function(){
+      var email = (document.getElementById("cloudEmail").value || "").trim();
+      if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)){ setCloudMsg("請先在上面填 email，再按「忘記密碼」。", true); return; }
+      setCloudMsg("寄送中…");
+      getSupa().then(function(sb){ return sb.auth.resetPasswordForEmail(email, { redirectTo: backUrl() }); }).then(function(r){
         if (r && r.error) throw r.error;
-        setCloudMsg("已寄出登入連結到 " + email + "。請在這支手機或這台電腦打開信，點連結就會登入（找不到請看垃圾郵件）。");
-        if (typeof logAppend === "function") logAppend("寄登入連結", "", "ok", "已寄出");
-      }).catch(function(e){
-        var m = e && e.message ? e.message : "";
-        setCloudMsg(/rate|limit|seconds/i.test(m) ? "寄太多次了，請過一分鐘再試。" : "寄送失敗，請稍後再試。", true);
-      }).then(function(){ btn.disabled = false; });
+        setCloudMsg("已寄出重設密碼的信到 " + email + "，點信裡的連結就能設定新密碼。");
+      }).catch(function(e){ setCloudMsg(cloudErr(e), true); });
+    });
+    on("cloudReset", "submit", function(ev){
+      ev.preventDefault();
+      var pw = document.getElementById("cloudNewPw").value || "";
+      if (pw.length < 6){ setCloudMsg("密碼至少要 6 個字。", true); return; }
+      supa.auth.updateUser({ password:pw }).then(function(r){
+        if (r && r.error) throw r.error;
+        document.getElementById("cloudNewPw").value = "";
+        showCloudUI("in"); setCloudMsg("新密碼已儲存，之後可以用「密碼登入」。");
+        if (typeof logAppend === "function") logAppend("重設密碼", "", "ok", "已更新");
+      }).catch(function(e){ setCloudMsg(cloudErr(e), true); });
     });
     on("btnCloudLogout", "click", function(){
       var go = function(){ lsSet(CLOUD_FLAG, null); location.reload(); };
