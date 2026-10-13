@@ -74,7 +74,9 @@ Deno.serve(async (req) => {
   // 只有登入的使用者可以用（避免別人拿去刷你的 Azure 費用）
   const auth = req.headers.get("Authorization") || "";
   const supaUrl = Deno.env.get("SUPABASE_URL") || "";
-  const anon = Deno.env.get("SUPABASE_ANON_KEY") || "";
+  // 新舊版 Supabase 都相容：優先用系統提供的公開金鑰，沒有的話用網頁送來的 apikey（本來就是公開的）
+  const anon = Deno.env.get("SUPABASE_ANON_KEY") || req.headers.get("apikey") || "";
+  if (!auth.startsWith("Bearer ")) return reply(401, { error: "login_required" });
   const who = await fetch(`${supaUrl}/auth/v1/user`, { headers: { Authorization: auth, apikey: anon } });
   if (!who.ok) return reply(401, { error: "login_required" });
 
