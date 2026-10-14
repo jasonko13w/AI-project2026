@@ -504,6 +504,10 @@
   :root{ --btn-accent:#c94f22; }
   .file-btn.es-main, .seg button[aria-pressed="true"], .chips button[aria-pressed="true"], .mbtn[aria-pressed="true"], .btn-primary{ background:var(--btn-accent); border-color:var(--btn-accent); }
 
+  /* ===== 網站最上面的三個重點 ===== */
+  .hero-pts{ list-style:none; margin:2px 0 0; padding:0; }
+  .hero-pts li{ position:relative; padding-left:16px; margin-bottom:3px; font-size:14.5px; }
+  .hero-pts li::before{ content:""; position:absolute; left:0; top:.68em; width:7px; height:7px; border-radius:50%; background:var(--accent); }
   /* ===== 四個分頁 ===== */
   .main-tabs{ display:flex; gap:2px; border-bottom:2px solid var(--border); overflow-x:auto; scrollbar-width:none; margin-bottom:-4px; }
   .main-tabs::-webkit-scrollbar{ display:none; }
@@ -689,8 +693,12 @@
 
   <div class="top">
     <h1 class="title">餐飲AI助理</h1>
-    <div class="subtitle">一次丟進去好幾份 POS 匯出的 Excel（營運總覽、商品排行……），自動整理成一份完整報表，並推薦「下一季」適合主打的銷售商品，作為換季備貨、開發新品的參考。每個月的報表都會存起來，想看哪個月，點一下就調出來。</div>
-    <div class="banner">這是<b>公開試用版</b>，不用登入就能使用。上傳的報表只在你的瀏覽器裡計算，不會傳到任何伺服器；歷史報表存在<b>這台裝置</b>的瀏覽器裡。AI 功能只在完整版提供。</div>
+    <div class="subtitle"><ul class="hero-pts">
+      <li>一次了解當月和歷年的營業額差別</li>
+      <li>上傳菜單照片，系統自動填好品項和價格</li>
+      <li>依照過去的季節銷量，找出下一季適合主打的商品</li>
+    </ul></div>
+    <div class="banner" id="trialBanner" hidden></div>
     <div class="cloud-bar" id="cloudBar" hidden>
       <div class="cloud-row" id="cloudOut">
         <span class="cloud-txt">登入同步後，手機、平板、電腦都能看到同一份資料。</span>
@@ -801,7 +809,7 @@
       </div>
       <div id="menuWays" hidden>
         <div class="ways">
-          <div class="way"><b>用照片建菜單<small class="way-note" id="wayPhotoNote" hidden></small></b><button class="file-btn es-main" type="button" data-way="photo" id="btnWayPhoto">上傳照片</button></div>
+          <div class="way"><b>上傳菜單照片<small class="way-note" id="wayPhotoNote" hidden></small></b><button class="file-btn es-main" type="button" data-way="photo" id="btnWayPhoto">上傳照片</button></div>
           <div class="way"><b>用 Excel 建菜單</b><button class="file-btn es-main" type="button" data-way="excel">選擇檔案</button></div>
           <div class="way"><b>手動輸入</b><button class="file-btn es-main" type="button" data-way="manual">新增品項</button></div>
         </div>
@@ -825,7 +833,7 @@
         </div>
         <div class="hint" id="catHint" hidden>點菜名可以換分類</div>
           <div class="ocr-row">
-            <button class="file-btn es-main" id="btnMenuPhoto" type="button">用照片匯入（AI 自動填好）</button>
+            <button class="file-btn es-main" id="btnMenuPhoto" type="button">上傳菜單照片</button>
             <button class="file-btn" id="btnMenuAI" type="button" hidden>再試一次 AI</button>
             <input type="file" id="menuPhoto" accept="image/*" hidden>
           </div>
@@ -1331,7 +1339,7 @@
     if (s === "on") el.textContent = "● 已存進雲端資料庫：重新整理、關掉頁面、換電腦都不會消失";
     else if (s === "pending") el.textContent = "● 正在連線資料庫…";
     else if (s === "error") el.textContent = "● 資料庫寫入失敗（" + ((err && err.code) || "未知原因") + "），紀錄暫時只存在這個頁面，請記得下載備份";
-    else el.textContent = "● 公開試用版不保存系統紀錄，關掉頁面就會消失；需要的話請先下載";
+    else el.textContent = "● 這裡不保存系統紀錄，關掉頁面就會消失；需要的話請先下載";
   }
 
   // ===== 公開試用版：用這台裝置的瀏覽器（localStorage）當資料庫，介面跟雲端資料庫一樣 =====
@@ -1465,7 +1473,7 @@
     lsSet(CLOUD_FLAG, "1");
     initHistoryDb(makeCloudDb(supa, user.id));
     setDbStatus("off");
-    var bn = document.querySelector(".banner");
+    var bn = document.getElementById("trialBanner");
     if (bn) bn.innerHTML = "已開啟<b>雲端同步</b>：報表存在雲端，換手機、換電腦登入同一個 email 都看得到；資料只有你登入才看得到。AI 功能只在完整版提供。";
     var hs = document.getElementById("histDbStatus");
     if (hs){ hs.className = "db-status db-on"; hs.textContent = "● 已登入 " + (user.email || "") + "：報表存在雲端，換手機、換電腦登入同一個 email 都看得到"; }

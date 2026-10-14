@@ -504,6 +504,10 @@
   :root{ --btn-accent:#c94f22; }
   .file-btn.es-main, .seg button[aria-pressed="true"], .chips button[aria-pressed="true"], .mbtn[aria-pressed="true"], .btn-primary{ background:var(--btn-accent); border-color:var(--btn-accent); }
 
+  /* ===== 網站最上面的三個重點 ===== */
+  .hero-pts{ list-style:none; margin:2px 0 0; padding:0; }
+  .hero-pts li{ position:relative; padding-left:16px; margin-bottom:3px; font-size:14.5px; }
+  .hero-pts li::before{ content:""; position:absolute; left:0; top:.68em; width:7px; height:7px; border-radius:50%; background:var(--accent); }
   /* ===== 四個分頁 ===== */
   .main-tabs{ display:flex; gap:2px; border-bottom:2px solid var(--border); overflow-x:auto; scrollbar-width:none; margin-bottom:-4px; }
   .main-tabs::-webkit-scrollbar{ display:none; }
@@ -674,7 +678,11 @@
 
   <div class="top">
     <h1 class="title">餐飲AI助理</h1>
-    <div class="subtitle">一次丟進去好幾份 POS 匯出的 Excel（營運總覽、商品排行……），自動整理成一份完整報表，並推薦「下一季」適合主打的銷售商品，作為換季備貨、開發新品的參考。每個月的報表都會存起來，想看哪個月，點一下就調出來。</div>
+    <div class="subtitle"><ul class="hero-pts">
+      <li>一次了解當月和歷年的營業額差別</li>
+      <li>上傳菜單照片，系統自動填好品項和價格</li>
+      <li>依照過去的季節銷量，找出下一季適合主打的商品</li>
+    </ul></div>
   </div>
 
 
@@ -750,7 +758,7 @@
       </div>
       <div id="menuWays" hidden>
         <div class="ways">
-          <div class="way"><b>用照片建菜單<small class="way-note" id="wayPhotoNote" hidden></small></b><button class="file-btn es-main" type="button" data-way="photo" id="btnWayPhoto">上傳照片</button></div>
+          <div class="way"><b>上傳菜單照片<small class="way-note" id="wayPhotoNote" hidden></small></b><button class="file-btn es-main" type="button" data-way="photo" id="btnWayPhoto">上傳照片</button></div>
           <div class="way"><b>用 Excel 建菜單</b><button class="file-btn es-main" type="button" data-way="excel">選擇檔案</button></div>
           <div class="way"><b>手動輸入</b><button class="file-btn es-main" type="button" data-way="manual">新增品項</button></div>
         </div>
