@@ -519,7 +519,7 @@
     <div class="banner">這是<b>公開試用版</b>，不用登入就能使用。上傳的報表只在你的瀏覽器裡計算，不會傳到任何伺服器；歷史報表存在<b>這台裝置</b>的瀏覽器裡。AI 功能只在完整版提供。</div>
     <div class="cloud-bar" id="cloudBar" hidden>
       <div class="cloud-row" id="cloudOut">
-        <span class="cloud-txt">想在手機、其他電腦也看到同一份資料？</span>
+        <span class="cloud-txt">登入同步後，手機、平板、電腦都能看到同一份資料。</span>
         <button class="file-btn es-main" id="btnCloudLogin" type="button">登入同步</button>
       </div>
       <form class="cloud-form" id="cloudForm" hidden>
@@ -573,7 +573,7 @@
       <button type="button" data-tab="upload" aria-pressed="true">上傳 Excel</button>
       <button type="button" data-tab="manual" aria-pressed="false">手動輸入</button>
     </div>
-    <div class="store-row">
+    <div class="store-row" id="storeRow">
       <label for="storeSel">分店</label>
       <select id="storeSel" aria-label="選擇分店"></select>
       <button class="file-btn" id="btnAddStore" type="button">＋新增分店</button>
@@ -581,7 +581,7 @@
       <button class="file-btn" id="btnDelStore" type="button">刪除這家店</button>
     </div>
     <div class="store-add" id="storeForm" hidden>
-      <div class="store-setup" id="storeSetupHint" hidden>第一次使用：先填你的品牌和店名（沒有品牌可以空白），就可以開始。</div>
+      <div class="store-setup" id="storeSetupHint" hidden>第一次使用：先填你的品牌和店名（沒有品牌可以空白），按「開始使用」。</div>
       <input id="storeBrand" maxlength="30" placeholder="品牌（例如：品牌A，沒有可空白）" aria-label="品牌">
       <input id="storeName" maxlength="30" placeholder="分店名稱（例如：南京店）" aria-label="分店名稱">
       <button class="file-btn es-main" id="btnSaveStore" type="button">新增</button>
@@ -4259,10 +4259,13 @@
       var list = groups[b].slice().sort(function(x, y){ return x.name.localeCompare(y.name); });
       var opts = (b && list.length > 1 ? '<option value="brand:' + esc(b) + '">' + esc(b) + '｜全部分店加總（' + list.length + ' 家）</option>' : '') +
         list.map(function(s){ var n = Object.keys(storeSnaps[s.id] || {}).length;
-          return '<option value="' + esc(s.id) + '">' + esc(storeLabel(s)) + (n ? '（' + n + ' 個月）' : '（還沒有資料）') + '</option>'; }).join("");
+          return '<option value="' + esc(s.id) + '">' + esc(storeLabel(s)) + (n ? '（' + n + ' 個月）' : '') + '</option>'; }).join("");
       return '<optgroup label="' + esc(b || "未分品牌") + '">' + opts + '</optgroup>';
     }).join("");
     sel.value = state.storeSel;
+    var setupNow = needsStoreSetup();
+    var row = byId("storeRow"); if (row) row.hidden = setupNow;
+    if (!setupNow && storeFormMode === "setup") byId("storeForm").hidden = true;
     var rn = byId("btnRenameStore"); if (rn) rn.disabled = isBrandView();
     var dl = byId("btnDelStore");
     if (dl && dl.getAttribute("data-confirm") !== "1"){
@@ -4324,7 +4327,7 @@
     byId("storeBrand").value = setup ? "" : mode === "rename" && cur ? cur.brand : (isBrandView() ? brandOfSel() : (cur ? cur.brand : ""));
     byId("storeName").value = setup ? "" : mode === "rename" && cur ? cur.name : "";
     byId("btnSaveStore").textContent = setup ? "開始使用" : mode === "rename" ? "儲存名稱" : "新增";
-    byId("btnCancelStore").textContent = setup ? "先跳過" : "取消";
+    byId("btnCancelStore").hidden = setup;
     // 第一次打開頁面時不自動跳出手機鍵盤
     if (!setup) byId("storeName").focus();
   }
