@@ -1,5 +1,5 @@
 // Supabase Edge Function：menu-ai
-// 用途：把 Azure AI Vision 讀出的「文字＋位置」交給 Azure OpenAI（例如 gpt-4o-mini），依語意整理成乾淨的菜單 [[品名, 價格]]。
+// 用途：把 Azure AI Vision 讀出的「文字＋位置」交給 Azure OpenAI（例如 gpt-4o-mini），依語意整理成乾淨的菜單 [[品名, 價格, 分類]]。
 // 處理幾何規則難以處理的情況：直式（由上往下寫）、手寫、大/小份、單點/套餐等多個價格。
 // 需要在 Supabase 的 Secrets 設定：
 //   AZURE_OPENAI_ENDPOINT    例如 https://xxxx.openai.azure.com/
@@ -28,9 +28,9 @@ OCR 文字只是參考，可能有錯字、漏字，或把價格和品名拆開�
 4. 同一品項有多個價格（大/小、單點/套餐、中碗/大碗、杯/瓶），請拆成多筆，品名後面用全形括號標註，例如「貢丸湯（大）」「貢丸湯（小）」。
 5. 加價項目（例如「加麵 +20」「加大 10元」）也要輸出，品名照寫（例如「加麵」「加大」），價格寫加價的金額。
 6. 價格只保留整數新台幣數字（去掉「元」「$」「+」等符號）。看不出價格的品項不要輸出。
-7. 忽略店名、標語、電話、地址、營業時間、分類標題（例如「湯品」「炸物」「飲料」）。
+7. 忽略店名、標語、電話、地址、營業時間。分類標題（例如「湯品」「炸物」「飲料」）不要當成品項輸出，但要記在它底下每個品項的 category 欄位；看不出分類就留空字串。
 8. 品名用正確的中文寫出來：手寫錯字、用字母或同音字代替的簡寫，要還原成常見寫法（例如「魯肉飯」寫成「滷肉飯」、「蕃茄」寫成「番茄」）。
-只輸出 JSON，格式：{"items":[{"name":"品名","price":數字}]}`;
+只輸出 JSON，格式：{"items":[{"name":"品名","price":數字,"category":"分類或空字串"}]}`;
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: CORS });
@@ -89,11 +89,11 @@ Deno.serve(async (req) => {
     const j = await r.json().catch(() => ({}));
     if (!r.ok) return reply(502, { error: "azure_" + r.status + ":" + ((j && j.error && (j.error.code || j.error.message)) || "") });
     const text = j && j.choices && j.choices[0] && j.choices[0].message ? j.choices[0].message.content : "";
-    let parsed: { items?: { name?: unknown; price?: unknown }[] } = {};
+    let parsed: { items?: { name?: unknown; price?: unknown; category?: unknown }[] } = {};
     try { parsed = JSON.parse(text || "{}"); } catch { return reply(502, { error: "bad_ai_output" }); }
     // 再檢查一次：品名合理、價格是合理的整數
     const seen = new Set<string>();
-    const items: [string, number][] = [];
+    const items: [string, number, string][] = [];
     for (const it of parsed.items || []) {
       const name = String(it && it.name || "").replace(/\s+/g, " ").trim().slice(0, 40);
       const price = Math.round(Number(String(it && it.price || "").replace(/[^\d.]/g, "")));
@@ -101,7 +101,8 @@ Deno.serve(async (req) => {
       if (!(price >= 1 && price <= 99999)) continue;
       if (seen.has(name)) continue;
       seen.add(name);
-      items.push([name, price]);
+      const cat = String(it && it.category || "").replace(/\s+/g, " ").trim().slice(0, 20);
+      items.push([name, price, cat]);
     }
     const usage = j.usage || {};
     return reply(200, { items, vision: !!image, usage: { in: usage.prompt_tokens || 0, out: usage.completion_tokens || 0 } });

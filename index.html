@@ -159,7 +159,12 @@
   .store-row select{ min-width:200px; max-width:100%; border-radius:999px; padding:7px 14px; line-height:1.4; }
   .store-add{ display:flex; gap:8px; flex-wrap:wrap; margin-top:10px; }
   .store-add input{ flex:1 1 180px; min-width:0; }
-  .store-setup{ flex:1 1 100%; font-size:14px; font-weight:700; color:var(--text-primary); }
+  .store-setup{ flex:1 1 100%; font-size:15px; font-weight:700; color:var(--text-primary); }
+  .store-preview{ flex:1 1 100%; font-size:13px; color:var(--text-secondary); }
+  .store-preview b{ color:var(--text-primary); }
+  .store-add.is-setup{ border:2px solid var(--accent); background:var(--accent-soft); border-radius:14px; padding:14px; }
+  .store-add.is-setup input{ font-size:16px; padding:10px 12px; }
+  #btnSaveStore:disabled{ background:var(--border); border-color:var(--border); color:var(--text-secondary); cursor:not-allowed; }
   .empty-state{ text-align:center; padding:28px 20px; }
   .empty-state .es-title{ font-size:18px; font-weight:800; margin-bottom:8px; }
   .empty-state .es-text{ color:var(--text-secondary); max-width:52ch; margin:0 auto; }
@@ -495,6 +500,169 @@
   /* 真的在手機上看時，不需要「手機預覽」按鈕 */
   @media (max-width:600px){ #btnPreview{ display:none; } }
 
+  /* 橘底白字按鈕：用深一點的橘，白字對比 4.5 以上（深淺色模式都看得清楚） */
+  :root{ --btn-accent:#c94f22; }
+  .file-btn.es-main, .seg button[aria-pressed="true"], .chips button[aria-pressed="true"], .mbtn[aria-pressed="true"], .btn-primary{ background:var(--btn-accent); border-color:var(--btn-accent); }
+
+  /* ===== 四個分頁 ===== */
+  .main-tabs{ display:flex; gap:2px; border-bottom:2px solid var(--border); overflow-x:auto; scrollbar-width:none; margin-bottom:-4px; }
+  .main-tabs::-webkit-scrollbar{ display:none; }
+  .main-tabs button{ flex:0 0 auto; border:none; background:none; font:inherit; font-size:15px; font-weight:700; color:var(--text-secondary); padding:10px 16px; border-bottom:3px solid transparent; margin-bottom:-2px; cursor:pointer; }
+  .main-tabs button[aria-selected="true"]{ color:var(--accent); border-bottom-color:var(--accent); }
+  .main-tabs button:disabled{ color:var(--muted); opacity:.5; cursor:not-allowed; }
+  .main-tabs .lk{ font-size:11px; font-weight:400; margin-left:2px; }
+  .pane{ display:flex; flex-direction:column; gap:20px; }
+  /* ===== 店家資訊 ===== */
+  #storeForm{ display:flex; flex-direction:column; align-items:stretch; gap:10px; border:1px solid var(--border); border-radius:14px; padding:14px; }
+  #storeForm.is-setup{ border:2px solid var(--accent); background:var(--accent-soft); }
+  #storeForm input{ flex:none; }
+  .sf{ display:flex; flex-direction:column; gap:4px; font-size:13px; font-weight:700; color:var(--text-secondary); min-width:0; }
+  .sf i{ font-style:normal; font-weight:400; }
+  .sf em{ font-style:normal; color:var(--accent); }
+  .sf input{ font:inherit; font-size:16px; padding:10px 12px; border:1px solid var(--border); border-radius:10px; background:var(--surface); color:var(--text-primary); width:100%; box-sizing:border-box; }
+  .sf input.filled{ background:var(--accent-soft); border-color:var(--accent); }
+  .sf-ban{ display:flex; gap:8px; align-items:flex-end; padding-bottom:12px; border-bottom:1px dashed var(--accent); }
+  .sf-ban .sf{ flex:0 1 320px; }
+  .sf-ban .file-btn{ height:44px; padding:0 18px; white-space:nowrap; }
+  .sf-msg{ font-size:13px; line-height:1.6; }
+  .sf-msg:empty{ display:none; }
+  .sf-msg.bad{ color:var(--warn); }
+  .sf-msg small{ color:var(--muted); }
+  .sf-chk{ display:flex; align-items:center; gap:8px; font-weight:700; font-size:14px; cursor:pointer; }
+  .sf-chk input{ width:18px; height:18px; accent-color:var(--btn-accent); margin:0; }
+  .sf-chk span{ font-weight:400; color:var(--muted); }
+  .sf-note{ margin-top:-4px; }
+  .sf-actions{ display:flex; gap:8px; flex-wrap:wrap; }
+  /* ===== 菜單 ===== */
+  .ways{ display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:10px; }
+  .way{ border:1px solid var(--border); border-radius:14px; padding:14px; display:flex; flex-direction:column; align-items:flex-start; gap:12px; }
+  .way b{ font-size:15px; }
+  .ways-demo{ font-size:12.5px; color:var(--muted); margin-top:10px; }
+  .ask{ border:2px solid var(--accent); background:var(--accent-soft); border-radius:14px; padding:14px 16px; margin-bottom:12px; font-size:13.5px; }
+  .ask b{ display:block; font-size:15px; margin-bottom:4px; }
+  .menu-tools{ display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
+  .switch{ display:inline-flex; align-items:center; gap:8px; font-weight:700; font-size:14px; cursor:pointer; position:relative; }
+  .switch input{ position:absolute; opacity:0; width:1px; height:1px; margin:0; }
+  .switch .tog{ width:40px; height:22px; border-radius:999px; background:var(--border); position:relative; flex:none; transition:background .15s; }
+  .switch .tog::after{ content:""; position:absolute; top:3px; left:3px; width:16px; height:16px; border-radius:50%; background:#fff; box-shadow:0 1px 2px rgba(0,0,0,.25); transition:left .15s; }
+  .switch input:checked + .tog{ background:var(--btn-accent); }
+  .switch input:checked + .tog::after{ left:21px; }
+  .switch input:focus-visible + .tog{ outline:2px solid var(--accent); outline-offset:2px; }
+  #menuEditor.cat-mode > .menu-head{ display:none; }
+  .cat-block{ border:1px solid var(--border); border-radius:12px; padding:10px 12px; margin-top:12px; }
+  .cat-h{ display:flex; align-items:center; gap:8px; }
+  .cat-h .cat-name{ font:inherit; font-size:15px; font-weight:700; border:1px solid transparent; background:transparent; color:var(--text-primary); padding:4px 6px; border-radius:8px; min-width:0; flex:1 1 auto; }
+  .cat-h .cat-name:hover, .cat-h .cat-name:focus{ border-color:var(--border); background:var(--surface); }
+  .cat-h .cat-fixed{ font-size:15px; padding:4px 6px; flex:1 1 auto; }
+  .cat-h .cat-n{ font-size:12.5px; color:var(--muted); white-space:nowrap; }
+  .cat-h .file-btn{ padding:4px 12px; font-size:12px; }
+  .cat-block > .cat-add-row{ margin-top:8px; }
+  .menu-row .mn-drawer{ grid-column:1 / -1; display:flex; align-items:center; gap:8px; background:var(--surface-2); border:1px solid var(--border); border-radius:10px; padding:6px 10px; }
+  .mn-drawer span{ font-size:13px; font-weight:700; color:var(--muted); white-space:nowrap; }
+  .mn-drawer select{ flex:1 1 auto; font:inherit; font-size:14px; padding:6px 10px; border:1px solid var(--border); border-radius:8px; background:var(--surface); color:var(--text-primary); min-width:0; }
+  .menu-row.open .mn-name, .menu-row.open .mn-price{ border-color:var(--accent); }
+  .menu-row[data-moved] .mn-name, .menu-row[data-moved] .mn-price{ background:var(--accent-soft); }
+  .menu-row[data-src="new"] .mn-name, .menu-row[data-src="new"] .mn-price, .menu-row[data-src="excel"] .mn-name, .menu-row[data-src="excel"] .mn-price{ border-color:var(--accent); background:var(--accent-soft); }
+  .menu-row.flash{ animation:rowflash 1.2s ease-out; border-radius:10px; }
+  @keyframes rowflash{ 0%{ background:var(--accent-soft); } 100%{ background:transparent; } }
+  .mn-flag{ grid-column:1 / -1; font-size:12px; color:var(--warn); margin-top:-2px; }
+  .done{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; border-radius:12px; padding:10px 14px; font-weight:700; margin-top:12px; background:#e7f5ec; color:#1f7a45; }
+  .done .file-btn{ margin-left:auto; }
+  /* ===== 報表分析 ===== */
+  .act-bar{ display:flex; gap:8px; flex-wrap:wrap; }
+  .new-items{ border-left:3px solid var(--accent); background:var(--accent-soft); border-radius:8px; padding:10px 12px; margin-top:12px; font-size:13.5px; line-height:1.6; }
+  .new-items .log-actions{ margin-top:8px; }
+  .man-top{ grid-template-columns:repeat(4, minmax(0,1fr)); }
+  .man-top div.fld{ display:flex; flex-direction:column; gap:4px; font-size:12.5px; font-weight:700; color:var(--text-secondary); min-width:0; }
+  .srv-row{ display:flex; align-items:center; gap:8px; }
+  .srv-row > input{ flex:1 1 auto; }
+  .man-top .srv-chk{ display:inline-flex; align-items:center; gap:4px; font-size:12.5px; font-weight:400; color:var(--text-primary); white-space:nowrap; cursor:pointer; }
+  .man-top .srv-chk input{ width:16px; height:16px; min-height:0; padding:0; margin:0; flex:none; accent-color:var(--btn-accent); }
+  .man-cat{ font-size:13px; font-weight:700; color:var(--accent); margin:12px 6px 0; }
+  .man-day .pill{ margin-left:6px; }
+  .pill{ display:inline-block; font-size:12px; font-weight:700; border-radius:999px; padding:1px 10px; white-space:nowrap; }
+  .pill.ok, .cl-st.ok{ background:#e7f5ec; color:#1f7a45; }
+  .pill.bad, .cl-st.bad{ background:#fdecea; color:#b3261e; }
+  .pill.over, .cl-st.over{ background:#fff4e0; color:#8a5a00; }
+  .pill.no{ background:var(--surface-2); color:var(--muted); }
+  /* ===== 對帳 ===== */
+  .calc{ background:var(--surface-2); border-radius:12px; padding:10px 14px; margin-top:12px; font-size:14px; }
+  .calc .r{ display:flex; justify-content:space-between; gap:10px; padding:2px 0; font-variant-numeric:tabular-nums; }
+  .calc .r.sum{ border-top:1px solid var(--border); margin-top:4px; padding-top:7px; font-weight:700; }
+  .calc .r.m{ color:var(--muted); font-size:12.5px; }
+  .cl-top{ display:grid; grid-template-columns:minmax(0,260px); }
+  .cl-grid{ display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:10px; margin-top:12px; }
+  .cl-grid .fld, .cl-top .fld, .st-add .fld{ display:flex; flex-direction:column; justify-content:flex-end; gap:4px; font-size:12.5px; font-weight:700; color:var(--text-secondary); min-width:0; }
+  .man-top .fld, .cl-grid .fld, .cl-top .fld, .st-add .fld{ align-items:stretch; margin-top:0; text-align:left; }
+  .man-day .file-btn, .cat-h .file-btn{ white-space:nowrap; }
+  .recon-table th.tl{ text-align:left; }
+  .cl-grid small{ font-weight:400; color:var(--muted); }
+  .cl-grid input, .cl-top input, .st-add input, .st-add select, #clTolIn{ font:inherit; font-size:16px; padding:8px 10px; border:1px solid var(--border); border-radius:10px; background:var(--surface); color:var(--text-primary); width:100%; box-sizing:border-box; min-height:42px; }
+  .cl-grid input{ text-align:right; font-variant-numeric:tabular-nums; }
+  .cl-top input, .st-add input[type="month"]{ -webkit-appearance:none; appearance:none; display:block; text-align:left; }
+  .cl-st{ border-radius:12px; padding:10px 14px; font-weight:700; margin-top:12px; font-size:15px; }
+  .cl-st small{ display:block; font-weight:400; font-size:12.5px; margin-top:2px; }
+  .cl-tol{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; font-size:13px; color:var(--muted); margin-top:10px; }
+  .cl-tol b{ color:var(--text-primary); }
+  #clTolIn{ width:90px; min-height:32px; padding:4px 8px; font-size:14px; display:inline-block; }
+  .file-btn.mini{ padding:3px 10px; font-size:12px; }
+  .cl-nodata{ margin-top:12px; padding:12px 14px; border:1px dashed var(--border); border-radius:12px; font-size:13.5px; display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+  .kpi5{ display:grid; grid-template-columns:repeat(5, minmax(0,1fr)); gap:8px; }
+  .kpi5 .k{ border:1px solid var(--border); border-radius:12px; padding:8px 10px; min-width:0; }
+  .kpi5 small{ display:block; font-size:12px; color:var(--muted); font-weight:700; }
+  .kpi5 b{ font-size:17px; font-variant-numeric:tabular-nums; }
+  .kpi5 b.bad{ color:#b3261e; } .kpi5 b.over{ color:#8a5a00; } .kpi5 b.ok{ color:#1f7a45; }
+  .cl-day{ display:grid; grid-template-columns:96px minmax(0,1fr) auto; gap:8px; align-items:center; padding:8px 6px; border-bottom:1px solid var(--border); font-size:13.5px; cursor:pointer; border-radius:8px; }
+  .cl-day:hover{ background:var(--surface-2); }
+  .sub-h{ font-size:14px; margin:18px 0 8px; }
+  .src-tag{ font-size:11px; font-weight:700; color:var(--muted); border:1px solid var(--border); border-radius:999px; padding:0 8px; margin-left:6px; vertical-align:2px; }
+  .st-add{ display:grid; grid-template-columns:160px 160px minmax(0,1fr) auto; gap:8px; align-items:end; margin-top:10px; }
+  .st-item{ display:grid; grid-template-columns:minmax(0,1fr) auto 28px; gap:8px; padding:7px 4px; border-bottom:1px solid var(--border); font-size:14px; align-items:center; }
+  .st-item b{ font-variant-numeric:tabular-nums; }
+  #stList{ margin-top:8px; }
+  .mini-month{ font:inherit; font-size:12.5px; padding:4px 8px; border:1px solid var(--border); border-radius:8px; background:var(--surface); color:var(--text-primary); }
+  .recon-table td.gap-hi{ color:#b3261e; font-weight:700; }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]) .done{ background:#173524; color:#7fd6a0; }
+    :root:not([data-theme="light"]) .pill.ok, :root:not([data-theme="light"]) .cl-st.ok{ background:#173524; color:#7fd6a0; }
+    :root:not([data-theme="light"]) .pill.bad, :root:not([data-theme="light"]) .cl-st.bad{ background:#3a1a18; color:#f2a59e; }
+    :root:not([data-theme="light"]) .pill.over, :root:not([data-theme="light"]) .cl-st.over{ background:#3a2c10; color:#f0c674; }
+    :root:not([data-theme="light"]) .kpi5 b.bad, :root:not([data-theme="light"]) .recon-table td.gap-hi{ color:#f2a59e; }
+    :root:not([data-theme="light"]) .kpi5 b.over{ color:#f0c674; }
+    :root:not([data-theme="light"]) .kpi5 b.ok{ color:#7fd6a0; }
+  }
+  :root[data-theme="dark"] .done{ background:#173524; color:#7fd6a0; }
+  @media (max-width:600px){
+    .pane{ gap:14px; }
+    .main-tabs button{ padding:10px 11px; font-size:14px; }
+    .main-tabs .lk{ display:none; }
+    .sf-ban .sf{ flex:1 1 auto; }
+    .ways{ grid-template-columns:1fr; }
+    .way{ flex-direction:row; align-items:center; justify-content:space-between; }
+    .man-top{ grid-template-columns:repeat(2, minmax(0,1fr)); }
+    .cl-grid{ grid-template-columns:repeat(2, minmax(0,1fr)); }
+    .kpi5{ grid-template-columns:repeat(2, minmax(0,1fr)); }
+    .kpi5 .k:last-child{ grid-column:1 / -1; }
+    .st-add{ grid-template-columns:1fr 1fr; }
+    .st-add .fld:nth-child(3), .st-add .file-btn{ grid-column:1 / -1; }
+    .cl-day{ grid-template-columns:78px minmax(0,1fr) auto; }
+    .man-day{ flex-wrap:wrap; row-gap:6px; }
+  }
+  html.m-preview .pane{ gap:14px; }
+  html.m-preview .main-tabs button{ padding:10px 11px; font-size:14px; }
+  html.m-preview .main-tabs .lk{ display:none; }
+  html.m-preview .sf-ban .sf{ flex:1 1 auto; }
+  html.m-preview .ways{ grid-template-columns:1fr; }
+  html.m-preview .way{ flex-direction:row; align-items:center; justify-content:space-between; }
+  html.m-preview .man-top{ grid-template-columns:repeat(2, minmax(0,1fr)); }
+  html.m-preview .cl-grid{ grid-template-columns:repeat(2, minmax(0,1fr)); }
+  html.m-preview .kpi5{ grid-template-columns:repeat(2, minmax(0,1fr)); }
+  html.m-preview .kpi5 .k:last-child{ grid-column:1 / -1; }
+  html.m-preview .st-add{ grid-template-columns:1fr 1fr; }
+  html.m-preview .st-add .fld:nth-child(3), html.m-preview .st-add .file-btn{ grid-column:1 / -1; }
+  html.m-preview .cl-day{ grid-template-columns:78px minmax(0,1fr) auto; }
+  html.m-preview .man-day{ flex-wrap:wrap; row-gap:6px; }
+
   .cloud-bar{ margin-top:10px; padding:10px 14px; border:1px solid var(--border); border-radius:12px; background:var(--surface); }
   .cloud-row{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
   .cloud-txt{ font-size:13.5px; margin-right:auto; }
@@ -556,56 +724,98 @@
 
 
 
-  <div class="toolbar">
-    <span class="preview-tag">手機預覽中：老闆用手機看到的樣子</span>
-    <button class="file-btn" id="btnPreview" type="button" aria-pressed="false">手機預覽</button>
-    <button class="file-btn" id="btnExpandAll" type="button">全部展開</button>
-    <button class="file-btn" id="btnCollapseAll" type="button">全部收起</button>
+  <nav class="main-tabs" id="mainTabs" aria-label="功能分頁">
+    <button type="button" data-pane="store" aria-selected="true">店家資訊</button>
+    <button type="button" data-pane="menu" aria-selected="false">菜單</button>
+    <button type="button" data-pane="report" aria-selected="false">報表分析</button>
+    <button type="button" data-pane="recon" aria-selected="false">對帳</button>
+  </nav>
+
+  <!-- ================= 店家資訊 ================= -->
+  <div class="pane" id="paneStore">
+    <div class="card" id="storeCard" data-fixed>
+      <div class="card-head">
+        <div class="card-title">店家基本資訊</div>
+        <div class="card-note" id="storeCardNote"></div>
+      </div>
+      <div class="store-row" id="storeRow">
+        <label for="storeSel">分店</label>
+        <select id="storeSel" aria-label="選擇分店"></select>
+        <button class="file-btn" id="btnAddStore" type="button">新增分店</button>
+        <button class="file-btn" id="btnRenameStore" type="button">改名</button>
+        <button class="file-btn" id="btnDelStore" type="button">刪除這家店</button>
+      </div>
+      <div class="store-add" id="storeForm" hidden>
+        <div class="store-setup" id="storeSetupHint">先填你的店名</div>
+        <div class="sf-ban">
+          <label class="sf"><span>統一編號 <i>（選填）</i></span><input id="storeBan" inputmode="numeric" maxlength="8" placeholder="填了自動帶入店名" autocomplete="off"></label>
+          <button class="file-btn" id="btnBanLookup" type="button" disabled>帶入</button>
+        </div>
+        <div class="sf-msg" id="banMsg"></div>
+        <label class="sf"><span id="storeNameLabel">店名 <em>（必填）</em></span><input id="storeName" maxlength="30" placeholder="例如：巷口麵店" autocomplete="off"></label>
+        <label class="sf-chk"><input type="checkbox" id="storeMulti"> 有分店 <span>（連鎖、多店經營）</span></label>
+        <label class="sf" id="branchWrap" hidden><span>這一家是哪間分店 <em>（必填）</em></span><input id="storeBranch" maxlength="30" placeholder="例如：南京店" autocomplete="off"></label>
+        <div class="hint sf-note" id="branchNote" hidden>其他分店可在設定完成後，按「新增分店」加入。</div>
+        <div class="store-preview" id="storePreview"></div>
+        <div class="sf-actions">
+          <button class="file-btn es-main" id="btnSaveStore" type="button">開始使用</button>
+          <button class="file-btn" id="btnCancelStore" type="button">取消</button>
+        </div>
+      </div>
+      <div class="hint" id="storeMsg"></div>
+    </div>
+
+  <div class="card" id="logCard">
+    <div class="card-head">
+      <div class="card-title">系統紀錄（查問題用）</div>
+      <div class="card-note" id="logNote">目前 0 筆</div>
+    </div>
+    <div class="hint">每一次「切換示範資料」或「上傳報表」都會留下一筆紀錄——處理了哪些檔案、辨識成什麼報表類型、成功還是失敗，方便追蹤資料來源，也方便除錯。</div>
+    <div class="db-status db-pending" id="logDbStatus">● 正在連線資料庫…</div>
+    <div class="log-wrap">
+      <table class="log-table" id="logTable" hidden>
+        <thead><tr><th>時間</th><th>動作</th><th>檔案</th><th>結果</th></tr></thead>
+        <tbody id="logBody"></tbody>
+      </table>
+    </div>
+    <div class="empty-note" id="logEmpty">還沒有任何紀錄</div>
+    <div class="log-actions">
+      <button class="file-btn" id="btnExportLog" type="button">下載紀錄檔（.txt）</button>
+      <button class="file-btn" id="btnClearLog" type="button">清空畫面上的紀錄</button>
+    </div>
+  </div>
   </div>
 
-
-  <div class="card" id="srcCard" data-open="1">
-    <div class="card-head">
-      <div class="card-title">上傳報表</div>
-      <div class="card-note" id="sourceNote">目前沒有資料</div>
-    </div>
-    <div class="seg src-tabs" id="srcTabs">
-      <button type="button" data-tab="upload" aria-pressed="true">上傳 Excel</button>
-      <button type="button" data-tab="manual" aria-pressed="false">手動輸入</button>
-    </div>
-    <div class="store-row" id="storeRow">
-      <label for="storeSel">分店</label>
-      <select id="storeSel" aria-label="選擇分店"></select>
-      <button class="file-btn" id="btnAddStore" type="button">＋新增分店</button>
-      <button class="file-btn" id="btnRenameStore" type="button">改名</button>
-      <button class="file-btn" id="btnDelStore" type="button">刪除這家店</button>
-    </div>
-    <div class="store-add" id="storeForm" hidden>
-      <div class="store-setup" id="storeSetupHint" hidden>第一次使用：先填你的品牌和店名（沒有品牌可以空白），按「開始使用」。</div>
-      <input id="storeBrand" maxlength="30" placeholder="品牌（例如：品牌A，沒有可空白）" aria-label="品牌">
-      <input id="storeName" maxlength="30" placeholder="分店名稱（例如：南京店）" aria-label="分店名稱">
-      <button class="file-btn es-main" id="btnSaveStore" type="button">新增</button>
-      <button class="file-btn" id="btnCancelStore" type="button">取消</button>
-    </div>
-    <div id="tabUpload">
-    <div class="source-row">
-      <div class="seg">
-        <button id="btnDemo" aria-pressed="false" type="button">使用示範資料</button>
-        <button id="btnUpload" aria-pressed="false" type="button">上傳我的報表</button>
+  <!-- ================= 菜單 ================= -->
+  <div class="pane" id="paneMenu" hidden>
+    <div class="card" id="menuCard" data-fixed>
+      <div class="card-head">
+        <div class="card-title">菜單</div>
+        <div class="card-note" id="menuSum"></div>
       </div>
-      <input type="file" id="fileInput" accept=".csv,.xlsx,.xls" multiple hidden>
-    </div>
-    <div class="hint" id="storeHint">上傳的報表會存到上面選的分店。檔名寫上店名（例如「品牌A_南京店_業績概況_2026-08-01~2026-08-31.xlsx」）會自動放到那家分店，沒有這家店會自動新增。</div>
-    <div class="hint">可以一次選多個檔案（.xlsx / .xls / .csv），例如「營運總覽」+「商品排行」，甚至好幾個月份一起選。欄位名稱看不懂時，會跳出視窗請你指定是哪一欄，選過一次就會記住。</div>
-    <div class="warn" id="parseWarn"></div>
-    <div class="file-chips" id="fileChips" hidden></div>
-    </div>
-    <div id="tabManual" hidden>
-      <div class="hint" style="margin-top:0">沒有 POS 報表也可以用：先把<b>菜單</b>（品項和價格）建好，之後每天只要選日期、填每道菜賣了幾份。系統會自動加總成月報，上面的分析都會跟著更新。<b>同一天重新存檔會取代舊的，不會重複加總。</b></div>
-      <div class="man-step">
-        <div class="man-step-head"><h4>① 菜單</h4><span class="man-step-sum" id="menuSum"></span><button class="file-btn" id="btnMenuEdit" type="button">編輯菜單</button></div>
-        <div id="menuEditor" hidden>
-          <div class="hint">一行一道菜：名稱和價格。設定一次就會記住；之後改價格，不會影響已經存好的日子。</div>
+      <div id="menuWays" hidden>
+        <div class="ways">
+          <div class="way"><b>拍菜單照片</b><button class="file-btn es-main" type="button" data-way="photo">上傳照片</button></div>
+          <div class="way"><b>用 Excel 建菜單</b><button class="file-btn es-main" type="button" data-way="excel">選擇檔案</button></div>
+          <div class="way"><b>手動輸入</b><button class="file-btn es-main" type="button" data-way="manual">新增品項</button></div>
+        </div>
+        <div class="ways-demo">先看效果：<button class="link-btn" id="btnMenuDemo" type="button">載入示範資料</button></div>
+      </div>
+      <input type="file" id="menuFileInput" accept=".csv,.xlsx,.xls" multiple hidden>
+      <div class="ask" id="menuAsk" hidden>
+        <b id="menuAskTitle"></b>
+        <div>此檔案包含各品項的銷售數量與金額，可同時匯入報表分析。</div>
+        <div class="log-actions">
+          <button class="file-btn es-main" id="btnAskImport" type="button">建立菜單並匯入銷售資料</button>
+          <button class="file-btn" id="btnAskMenuOnly" type="button">僅建立菜單</button>
+        </div>
+      </div>
+      <div id="menuEditor" hidden>
+        <div class="menu-tools">
+          <label class="switch"><input type="checkbox" id="menuUseCat"><span class="tog" aria-hidden="true"></span>使用分類</label>
+          <button class="file-btn" id="btnMenuExcel" type="button">用 Excel 匯入</button>
+        </div>
+        <div class="hint" id="catHint" hidden>點菜名可以換分類</div>
           <div class="ocr-row">
             <button class="file-btn es-main" id="btnMenuPhoto" type="button">拍菜單／上傳菜單照片，AI 自動填好</button>
             <button class="file-btn" id="btnMenuAI" type="button" hidden>再試一次 AI</button>
@@ -614,40 +824,70 @@
           <div class="menu-head" aria-hidden="true"><span>品項</span><span>價格</span><span></span></div>
           <div id="menuRows"></div>
           <div class="log-actions">
-            <button class="file-btn" id="btnMenuAdd" type="button">＋再加一道</button>
+            <button class="file-btn es-main" id="btnMenuAdd" type="button">新增品項</button>
+            <button class="file-btn" id="btnCatAdd" type="button" hidden>新增分類</button>
             <button class="file-btn es-main" id="btnMenuSave" type="button">儲存菜單</button>
           </div>
           <div class="hint" id="menuMsg"></div>
-        </div>
       </div>
-      <div class="man-step">
-        <div class="man-step-head"><h4>② 每天填數量</h4></div>
-        <div class="man-top">
-          <label class="fld">日期<input type="date" id="manDate"></label>
-          <label class="fld">來客數<input type="number" id="manCust" min="0" step="1" inputmode="numeric" placeholder="選填"></label>
-          <label class="fld">折扣金額<input type="number" id="manDisc" min="0" step="1" inputmode="numeric" placeholder="選填"></label>
-        </div>
-        <div class="man-state" id="manState"></div>
-        <div class="man-head" aria-hidden="true"><span>品項</span><span>單價</span><span>數量</span><span>金額</span></div>
-        <div id="manRows"></div>
-        <div class="man-total" id="manTotal"></div>
-        <div class="log-actions">
-          <button class="file-btn es-main" id="btnManSave" type="button">存檔（這一天）</button>
-          <button class="file-btn" id="btnManDelete" type="button" hidden>刪除這一天</button>
-        </div>
-        <div class="hint" id="manMsg"></div>
-        <div id="manDays"></div>
-      </div>
+      <div class="done" id="menuDone" hidden><span>菜單已儲存，報表分析與對帳功能已啟用。</span><button class="file-btn es-main" id="btnGoReport" type="button">前往報表分析</button></div>
     </div>
   </div>
 
+  <!-- ================= 報表分析 ================= -->
+  <div class="pane" id="paneReport" hidden>
+  <div class="toolbar">
+    <span class="preview-tag">手機預覽中：老闆用手機看到的樣子</span>
+    <button class="file-btn" id="btnPreview" type="button" aria-pressed="false">手機預覽</button>
+    <button class="file-btn" id="btnExpandAll" type="button">全部展開</button>
+    <button class="file-btn" id="btnCollapseAll" type="button">全部收起</button>
+  </div>
+
+    <div class="card" id="srcCard" data-fixed>
+      <div class="card-head">
+        <div class="card-title">報表分析</div>
+        <div class="card-note" id="sourceNote">目前沒有資料</div>
+      </div>
+      <div class="act-bar">
+        <button class="file-btn es-main" id="btnUpload" type="button" aria-pressed="false">匯入銷售報表</button>
+        <button class="file-btn es-main" id="btnManToggle" type="button">新增每日銷售</button>
+        <button class="file-btn" id="btnDemo" type="button" aria-pressed="false">載入示範資料</button>
+      </div>
+      <input type="file" id="fileInput" accept=".csv,.xlsx,.xls" multiple hidden>
+      <div class="hint">可一次選取多個檔案（.xlsx／.xls／.csv），例如營運總覽與商品排行。檔名含店名時，會自動歸入該店。</div>
+      <div class="new-items" id="newItemsNote" hidden></div>
+      <div class="warn" id="parseWarn"></div>
+      <div class="file-chips" id="fileChips" hidden></div>
+      <div id="tabManual" hidden>
+        <div class="man-step">
+          <div class="man-step-head"><h4>新增每日銷售</h4><span class="man-step-sum" id="manStoreNote"></span></div>
+          <div class="man-top">
+            <label class="fld">日期<input type="date" id="manDate"></label>
+            <label class="fld">來客數<input type="number" id="manCust" min="0" step="1" inputmode="numeric" placeholder="選填"></label>
+            <label class="fld">折扣金額<input type="number" id="manDisc" min="0" step="1" inputmode="numeric" placeholder="選填"></label>
+            <div class="fld">服務費<span class="srv-row"><input type="number" id="manSrv" min="0" step="1" inputmode="numeric" placeholder="選填" aria-label="服務費"><label class="srv-chk"><input type="checkbox" id="manSrv10"> 加收 10%</label></span></div>
+          </div>
+          <div class="man-state" id="manState"></div>
+          <div class="man-head" aria-hidden="true"><span>品項</span><span>單價</span><span>數量</span><span>金額</span></div>
+          <div id="manRows"></div>
+          <div class="man-total" id="manTotal"></div>
+          <div class="log-actions">
+            <button class="file-btn es-main" id="btnManSave" type="button">儲存</button>
+            <button class="file-btn" id="btnManClose" type="button">收合</button>
+            <button class="file-btn" id="btnManDelete" type="button" hidden>刪除這一天</button>
+          </div>
+          <div class="hint" id="manMsg"></div>
+          <div id="manDays"></div>
+        </div>
+      </div>
+    </div>
 
   <div class="banner empty-state" id="emptyState" hidden>
     <div class="es-title">還沒有資料</div>
-    <div class="es-text">請上傳 POS 匯出的報表（營運總覽、商品排行都可以，好幾個月一起選也行）。只是想先看看效果，可以按「先看示範資料」，那是一間虛構小吃店的數字。</div>
+    <div class="es-text">請匯入 POS 匯出的銷售報表，或按「新增每日銷售」登錄當日銷售。想先看效果，可以載入示範資料（虛構小吃店）。</div>
     <div class="log-actions">
-      <button class="file-btn es-main" id="btnEmptyUpload" type="button">上傳我的報表</button>
-      <button class="file-btn" id="btnEmptyDemo" type="button">先看示範資料</button>
+      <button class="file-btn es-main" id="btnEmptyUpload" type="button">匯入銷售報表</button>
+      <button class="file-btn" id="btnEmptyDemo" type="button">載入示範資料</button>
     </div>
   </div>
 
@@ -830,25 +1070,69 @@
       <div class="ai-out" id="aiSuggestOut" hidden></div>
     </div>
   </div>
+  </div>
 
+  <!-- ================= 對帳 ================= -->
+  <div class="pane" id="paneRecon" hidden>
+    <div class="banner" id="reconBrandNote" hidden>對帳以單一分店為單位，請先在「店家資訊」選擇一家店。</div>
 
-  <div class="card" id="logCard">
-    <div class="card-head">
-      <div class="card-title">系統紀錄（查問題用）</div>
-      <div class="card-note" id="logNote">目前 0 筆</div>
+    <div class="card" id="closeCard" data-fixed>
+      <div class="card-head">
+        <div class="card-title">每日關帳</div>
+        <div class="card-note" id="clStoreNote"></div>
+      </div>
+      <div class="cl-top"><label class="fld">日期<input type="date" id="clDate"></label></div>
+      <div class="calc" id="clExpected" hidden></div>
+      <div class="cl-nodata" id="clNoData" hidden><span>這一天尚未登錄銷售資料，請先到「報表分析」新增每日銷售。</span><button class="file-btn es-main" id="btnClGoSales" type="button">前往新增每日銷售</button></div>
+      <div id="clForm" hidden>
+        <div class="cl-grid">
+          <label class="fld">開店時的底錢<small>前一次關帳留下的會自動帶入</small><input type="number" id="clFloat" min="0" step="1" inputmode="numeric"></label>
+          <label class="fld">打烊時抽屜裡的現金<input type="number" id="clCash" min="0" step="1" inputmode="numeric"></label>
+          <label class="fld">從抽屜拿去花的錢<small>買菜、買冰塊等</small><input type="number" id="clExp" min="0" step="1" inputmode="numeric"></label>
+          <label class="fld">刷卡、行動支付<input type="number" id="clCard" min="0" step="1" inputmode="numeric"></label>
+          <label class="fld">外送平台訂單<small>填訂單金額，抽成於月底對帳</small><input type="number" id="clDeliv" min="0" step="1" inputmode="numeric"></label>
+          <label class="fld">今天留給明天的底錢<input type="number" id="clKeep" min="0" step="1" inputmode="numeric"></label>
+        </div>
+        <div class="calc" id="clActual" hidden></div>
+        <div class="cl-st" id="clState" hidden></div>
+        <div class="cl-tol">差額在 <b id="clTolVal">10</b> 元以內視為帳平
+          <button class="file-btn mini" id="btnClTol" type="button">修改</button>
+          <span id="clTolEdit" hidden><input type="number" id="clTolIn" min="0" step="1" inputmode="numeric" aria-label="容許差額"> <button class="file-btn mini es-main" id="btnClTolOk" type="button">確定</button></span>
+        </div>
+        <div class="log-actions">
+          <button class="file-btn es-main" id="btnClSave" type="button">儲存關帳</button>
+          <button class="file-btn" id="btnClDel" type="button" hidden>刪除這天的關帳</button>
+        </div>
+        <div class="hint" id="clMsg"></div>
+      </div>
     </div>
-    <div class="hint">每一次「切換示範資料」或「上傳報表」都會留下一筆紀錄——處理了哪些檔案、辨識成什麼報表類型、成功還是失敗，方便追蹤資料來源，也方便除錯。</div>
-    <div class="db-status db-pending" id="logDbStatus">● 正在連線資料庫…</div>
-    <div class="log-wrap">
-      <table class="log-table" id="logTable" hidden>
-        <thead><tr><th>時間</th><th>動作</th><th>檔案</th><th>結果</th></tr></thead>
-        <tbody id="logBody"></tbody>
-      </table>
+
+    <div class="card" id="closeMonthCard" data-fixed>
+      <div class="card-head">
+        <div class="card-title">本月關帳紀錄</div>
+        <div class="card-note"><input type="month" id="cmMonth" class="mini-month" aria-label="月份"></div>
+      </div>
+      <div id="cmBody"></div>
     </div>
-    <div class="empty-note" id="logEmpty">還沒有任何紀錄</div>
-    <div class="log-actions">
-      <button class="file-btn" id="btnExportLog" type="button">下載紀錄檔（.txt）</button>
-      <button class="file-btn" id="btnClearLog" type="button">清空畫面上的紀錄</button>
+
+    <div class="card" id="monthEndCard" data-fixed>
+      <div class="card-head">
+        <div class="card-title">月底對帳</div>
+        <div class="card-note" id="meStoreNote"></div>
+      </div>
+      <h4 class="sub-h" style="margin-top:0">兩份 POS 報表是否一致 <span class="src-tag">匯入 Excel 的店</span></h4>
+      <div id="meCross"></div>
+      <h4 class="sub-h">帳面 vs 實際入帳 <span class="src-tag">每日關帳的店</span></h4>
+      <div class="hint" style="margin-top:0">收到刷卡月結單、撥款單時，輸入單據上的總額；同一個月可以分次加入。</div>
+      <div class="st-add">
+        <label class="fld">月份<input type="month" id="stMonth"></label>
+        <label class="fld">單據<select id="stKind"><option>刷卡月結單</option><option>行動支付撥款</option><option>外送平台撥款</option><option>其他</option></select></label>
+        <label class="fld">金額<input type="number" id="stAmt" min="0" step="1" inputmode="numeric"></label>
+        <button class="file-btn es-main" id="btnStAdd" type="button">加入</button>
+      </div>
+      <div class="hint" id="stMsg"></div>
+      <div id="stList"></div>
+      <div id="stCmp"></div>
     </div>
   </div>
 
@@ -1384,7 +1668,7 @@
     if (!btn || !inp) return;
     if (!cloudReady()){ btn.parentNode.hidden = true; return; }
     btn.addEventListener("click", function(){
-      if (isBrandView()){ setMenuMsg("請先在上方「分店」選一家店。", true); return; }
+      if (isBrandView()){ setMenuMsg("請先在「店家資訊」選擇一家店。", true); return; }
       if (!cloudUser || !supa){
         setMenuMsg("AI 讀菜單要先「登入同步」才能用（這樣才能保護 Azure 金鑰，也避免被陌生人刷用量）。", true);
         var bar = document.getElementById("cloudBar"); if (bar) bar.scrollIntoView({ behavior:"smooth", block:"center" });
@@ -1441,7 +1725,7 @@
         if (src === "ai"){ nr.setAttribute("data-src", "ai"); nr.querySelector(".mn-name").title = "這一列是 AI 整理的，請確認"; }
         added++;
       });
-      addMenuRow();
+      if (!editCat) addMenuRow(); else updateCatCounts();
       return { added:added, filled:filled };
     }
     function aiErr(status, code){
@@ -1468,11 +1752,13 @@
         return fetch(SUPA_URL + "/functions/v1/menu-ai", { method:"POST", headers:{ "Authorization":"Bearer " + tok, "apikey":SUPA_KEY, "Content-Type":"application/json" }, body:JSON.stringify({ lines:lastLines, image:img }) });
       }).then(function(res){ st = res.status; return res.json().catch(function(){ return {}; }); }).then(function(j){
         if (st !== 200 || !j || !Array.isArray(j.items)) throw { status:st, code:j && j.error };
-        var items = j.items.filter(function(it){ return Array.isArray(it) && it[0] && +it[1] > 0; }).map(function(it){ return [cleanName(it[0]), Math.round(+it[1])]; });
+        var items = j.items.filter(function(it){ return Array.isArray(it) && it[0] && +it[1] > 0; }).map(function(it){ return [cleanName(it[0]), Math.round(+it[1]), it[2] ? cleanName(it[2]).slice(0, 20) : ""]; });
         if (typeof logAppend === "function") logAppend("AI 深度整理菜單", lastFile, items.length ? "ok" : "fail", (j.vision ? "看照片" : "只看文字") + "整理出 " + items.length + " 道菜，" + Math.round((Date.now() - t1) / 100) / 10 + " 秒" + (j.usage ? "，用量 " + j.usage.in + "+" + j.usage.out + " tokens" : ""));
         if (state.storeSel !== sid) return;
         if (!items.length){ setMenuMsg("AI 也整理不出品項和價格，這張照片可能太模糊，或不是菜單。可以換一張照片，或直接手動輸入。", true); return; }
         aiBtn.hidden = true;
+        if (menuOpenFor !== sid) openMenuEditor(sid);
+        menuAdoptCats(items); // AI 看得出分類（飯類、麵類…）就自動用分類整理
         var r = applyItems(sid, items, true, "ai");
         setMenuMsg("AI " + (j.vision ? "看照片" : "依文字") + "整理出 " + items.length + " 道菜，新增 " + r.added + " 道" + (r.filled ? "、補上 " + r.filled + " 個價格" : "") + "。橘色底的列是 AI 整理的，請對照菜單檢查，確認後按「儲存菜單」。");
       }).catch(function(e){
@@ -2054,7 +2340,7 @@
     try { renderStoreCompare(state.dataset); } catch(e){ document.getElementById("storeCmpCard").hidden = true; }
     renderDrill();
     renderTrend(state.dataset);
-    renderRecon(state.dataset);
+    renderRecon(state.dataset); document.getElementById("reconCard").hidden = true;
     renderRanking(state.dataset);
     try { renderWine(state.dataset); } catch(e){ document.getElementById("wineCard").hidden = true; }
     if (typeof updateSummaries === "function") updateSummaries();
@@ -2901,7 +3187,7 @@
     h.addEventListener("click", flip);
     h.addEventListener("keydown", function(e){ if (e.key === "Enter" || e.key === " "){ e.preventDefault(); flip(); } });
   }
-  Array.prototype.forEach.call(document.querySelectorAll(".wrap > .card"), makeCardCollapsible);
+  Array.prototype.forEach.call(document.querySelectorAll(".wrap > .card, .pane > .card:not([data-fixed])"), makeCardCollapsible);
   Array.prototype.forEach.call(document.querySelectorAll("#wineCard .wine-sec"), function(sec, i){ makeSecCollapsible(sec, i === 0); });
 
   function setAll(open){
@@ -3526,7 +3812,7 @@
           (ds.productMonthly[nm] = ds.productMonthly[nm] || {})[mk] = q;
         });
         ds.productFiles.push({ label:monthLabelOf(mk), start:mk, end:mk, products:products });
-        if (s.daily && pr > 0) ds.recon.push({ label:monthLabelOf(mk), dailyRev:s.daily.rev || 0, productRev:pr });
+        if (s.daily && pr > 0 && s.source !== "manual") ds.recon.push({ label:monthLabelOf(mk), dailyRev:s.daily.rev || 0, productRev:pr });
       }
     });
     ds.hasAmount = anyDaily;
@@ -3654,16 +3940,15 @@
     appDb = db;
     Promise.all([loadMappings(db), loadStores(db).then(function(){ return loadSnapshots(db); }).then(function(){ return loadDays(db); }).catch(function(){ setHistMsg("讀取歷史報表失敗，請重新整理頁面再試一次。"); })]).then(function(){
       pickStartStore();
+      migrateMenus();
       renderStoreUI();
       maybeStoreSetup();
       renderHistory();
       // 打開頁面時，有存檔就直接顯示自己店的報表，不顯示示範資料
       if (!state.userTouched && snapMonths().length){
         showView({ type:"all", key:"all" }, true);
-        // 已經有存檔：把「上傳報表」收起來，讓「本月重點」一打開就在最上面
-        var src = document.getElementById("srcCard"), sh = src && src.querySelector(":scope > .card-head.toggle"), sb = src && src.querySelector(":scope > .card-body");
-        if (sh && sb) setOpen(sh, sb, false);
       }
+      showPane(defaultPane());
     });
   }
 
@@ -3918,9 +4203,20 @@
           if (!d || !Array.isArray(d.items)) return;
           var sid = typeof d.store === "string" && d.store ? d.store : "main";
           if (!storeById(sid)) stores.push({ id:sid, brand:"", name:"分店 " + sid });
-          menuStore[sid] = d.items.filter(function(it){ return Array.isArray(it) && cleanName(it[0]); }).map(function(it){ return [cleanName(it[0]), num(it[1])]; });
+          menuStore[sid] = d.items.filter(function(it){ return Array.isArray(it) && cleanName(it[0]); }).map(function(it){ return [cleanName(it[0]), num(it[1]), it[2] ? cleanName(it[2]).slice(0, 20) : ""]; });
+          menuMeta[sid] = { useCat:!!d.useCat, cats:Array.isArray(d.cats) ? d.cats.map(function(c){ return cleanName(c).slice(0, 20); }).filter(function(c){ return c; }) : [], pending:Array.isArray(d.pending) ? d.pending.map(String) : [] };
         });
       }).catch(function(){ /* 讀不到菜單，就請使用者重建 */ });
+    }).then(function(){
+      return db.collection("settlements").get().then(function(snap){
+        (snap.docs || []).forEach(function(doc){
+          var d = doc.data();
+          if (!d || !Array.isArray(d.items)) return;
+          var sid = typeof d.store === "string" && d.store ? d.store : "main";
+          settleStore[sid] = d.items.filter(function(it){ return it && /^\d{4}-\d{2}$/.test(it.mk) && +it.amt > 0; })
+            .map(function(it){ return { mk:it.mk, kind:String(it.kind || "其他").slice(0, 20), amt:Math.round(+it.amt), at:it.at || "" }; });
+        });
+      }).catch(function(){ /* 讀不到單據，不影響其他功能 */ });
     }).then(function(){ renderManual(true); });
   }
   function persistDay(sid, date, rec){
@@ -3931,8 +4227,8 @@
   }
   function persistMenu(sid){
     if (!appDb) return;
-    var id = "menus/" + sid, items = menuStore[sid] || [];
-    persistChain = persistChain.then(function(){ return items.length ? appDb.doc(id).set({ store:sid, items:items, savedAt:new Date().toISOString() }) : appDb.doc(id).delete(); })
+    var id = "menus/" + sid, items = menuStore[sid] || [], m = metaOf(sid);
+    persistChain = persistChain.then(function(){ return items.length ? appDb.doc(id).set({ store:sid, items:items, useCat:!!m.useCat, cats:m.cats || [], pending:m.pending || [], savedAt:new Date().toISOString() }) : appDb.doc(id).delete(); })
       .catch(function(err){ setMenuMsg("菜單存進資料庫失敗（" + ((err && err.code) || "未知原因") + "），這次頁面內仍可使用。", true); });
   }
 
@@ -3947,15 +4243,15 @@
       }
       return;
     }
-    var rev = 0, cust = 0, disc = 0, open = 0, hasCust = false, hasDisc = false, prods = {};
+    var rev = 0, cust = 0, disc = 0, srvSum = 0, open = 0, hasCust = false, hasDisc = false, prods = {};
     days.forEach(function(d){
       var r = dayStore[sid][d], dayRev = 0;
       r.items.forEach(function(it){
         var nm = String(it[0]), q = num(it[1]), a = num(it[2]);
         var p = prods[nm] || (prods[nm] = [0, 0]); p[0] += q; p[1] += a; dayRev += a;
       });
-      var dd = num(r.disc);
-      rev += dayRev - dd; disc += dd; cust += num(r.cust);
+      var dd = num(r.disc), ss = num(r.srv);
+      rev += dayRev + ss - dd; disc += dd; srvSum += ss; cust += num(r.cust);
       if (num(r.cust) > 0) hasCust = true;
       if (dd > 0) hasDisc = true;
       if (dayRev > 0) open++;
@@ -3964,7 +4260,7 @@
     var dim = daysInMonth(mk), tmk = todayMk();
     var totalDays = mk === tmk ? new Date().getDate() : dim;
     var s = { month:mk, savedAt:new Date().toISOString(), files:["手動輸入（" + days.length + " 天）"], source:"manual", store:sid,
-      daily:{ rev:r2(rev), cust:cust, disc:disc, open:open, days:Math.max(totalDays, open), hasCust:hasCust, hasDisc:hasDisc },
+      daily:{ rev:r2(rev), cust:cust, disc:disc, srv:srvSum, open:open, days:Math.max(totalDays, open), hasCust:hasCust, hasDisc:hasDisc },
       products:Object.keys(prods).map(function(n){ return [n, r2(prods[n][0]), r2(prods[n][1])]; }) };
     target[mk] = s;
     var latest = latestProductMonth(target);
@@ -3975,64 +4271,199 @@
   function setManMsg(t, bad){ var el = byId("manMsg"); if (!el) return; el.textContent = t || ""; el.style.color = bad ? "var(--warn)" : ""; }
   function setMenuMsg(t, bad){ var el = byId("menuMsg"); if (!el) return; el.textContent = t || ""; el.style.color = bad ? "var(--warn)" : ""; }
 
-  // ---------- ① 菜單 ----------
+  // ---------- 菜單 ----------
+  // 菜單：[[品名, 價格, 分類]]；分類可以不用（空字串）
+  // menuMeta：{ useCat:是否用分類, cats:分類順序, pending:銷售報表裡新出現、還沒確認的品項 }
+  // 分類只是幫忙整理；每天的紀錄還是記「品項賣了幾份」，所以改分類不會改到任何數字
+  var menuMeta = {};
+  var editCat = false;          // 編輯器目前是不是分類模式
+  var menuImportPending = null; // 用 Excel 建菜單時，一起讀到的銷售資料（等老闆決定要不要匯入）
   function menuOf(sid){ return menuStore[sid] || []; }
+  function metaOf(sid){ return menuMeta[sid] || (menuMeta[sid] = { useCat:false, cats:[], pending:[] }); }
   // 這家店以前手動輸入過的品項（沿用舊資料時，拿來當菜單草稿）
   function pastItemsOf(sid){
     var cat = {};
     Object.keys(dayStore[sid] || {}).sort().forEach(function(d){
       dayStore[sid][d].items.forEach(function(it){ var q = num(it[1]); if (q > 0) cat[String(it[0])] = Math.round(num(it[2]) / q); });
     });
-    return Object.keys(cat).map(function(n){ return [n, cat[n]]; });
+    return Object.keys(cat).map(function(n){ return [n, cat[n], ""]; });
   }
-  function addMenuRow(item){
+  function catBlocks(){ return Array.prototype.slice.call(byId("menuRows").querySelectorAll(":scope > .cat-block")); }
+  function catNames(){ return catBlocks().map(function(b){ return b.getAttribute("data-cat"); }).filter(function(c){ return c; }); }
+  function catBlock(name, create){
+    name = name || "";
+    var found = null;
+    catBlocks().forEach(function(b){ if (b.getAttribute("data-cat") === name) found = b; });
+    if (found || !create) return found;
+    var bl = document.createElement("div");
+    bl.className = "cat-block"; bl.setAttribute("data-cat", name);
+    bl.innerHTML = '<div class="cat-h">' + (name ? '<input class="cat-name" maxlength="20" aria-label="分類名稱">' : '<span class="cat-fixed">未分類</span>') +
+      '<span class="cat-n"></span>' + (name ? '<button type="button" class="file-btn cat-del">刪除分類</button>' : '') + '</div>' +
+      '<div class="menu-head" aria-hidden="true"><span>品項</span><span>價格</span><span></span></div>' +
+      '<div class="cat-rows"></div>' +
+      '<button type="button" class="file-btn es-main cat-add-row">新增品項</button>';
+    if (name) bl.querySelector(".cat-name").value = name;
+    var un = name ? catBlock("", false) : null;
+    if (un) byId("menuRows").insertBefore(bl, un); else byId("menuRows").appendChild(bl);
+    return bl;
+  }
+  function updateCatCounts(){
+    var named = catNames().length;
+    catBlocks().forEach(function(b){
+      var n = b.querySelectorAll(".menu-row").length;
+      b.querySelector(".cat-n").textContent = n + " 道";
+      if (!b.getAttribute("data-cat")) b.hidden = !n && named > 0;
+    });
+  }
+  function rowCat(row){
+    var bl = row.closest ? row.closest(".cat-block") : null;
+    return bl ? (bl.getAttribute("data-cat") || "") : (row.getAttribute("data-cat") || "");
+  }
+  function addMenuRow(item, block){
     var row = document.createElement("div");
     row.className = "menu-row";
-    row.innerHTML = '<input class="mn-name" placeholder="品項名稱，例如：鮭魚握壽司" aria-label="品項">' +
+    row.innerHTML = '<input class="mn-name" placeholder="品項名稱" aria-label="品項">' +
       '<input class="mn-price" type="number" min="0" step="1" inputmode="numeric" placeholder="價格" aria-label="價格">' +
-      '<button type="button" class="man-del" aria-label="刪除這一道">×</button>';
-    byId("menuRows").appendChild(row);
-    if (item){ row.querySelector(".mn-name").value = item[0]; row.querySelector(".mn-price").value = item[1] || ""; }
+      '<button type="button" class="man-del" aria-label="刪除這一道">×</button>' +
+      '<div class="mn-drawer" hidden><span>分類</span><select class="mn-cat" aria-label="分類"></select></div>';
+    var cat = item && item[2] ? String(item[2]) : "";
+    row.setAttribute("data-cat", cat);
+    if (editCat){
+      var bl = block || catBlock(cat, true);
+      bl.hidden = false;
+      bl.querySelector(".cat-rows").appendChild(row);
+    } else byId("menuRows").appendChild(row);
+    if (item){ row.querySelector(".mn-name").value = item[0] || ""; row.querySelector(".mn-price").value = item[1] || ""; }
+    if (editCat) updateCatCounts();
     return row;
   }
-  function openMenuEditor(sid){
-    menuOpenFor = sid;
-    var box = byId("menuRows"); box.innerHTML = "";
-    var items = menuOf(sid), draft = false;
-    if (!items.length){ items = pastItemsOf(sid); draft = items.length > 0; }
-    items.forEach(function(it){ addMenuRow(it); });
-    for (var k = items.length; k < Math.max(3, items.length + 1); k++) addMenuRow();
-    byId("menuEditor").hidden = false;
-    byId("btnMenuEdit").textContent = "收起菜單";
-    setMenuMsg(draft ? "已經先帶入你以前輸入過的品項和價格，確認後按「儲存菜單」。" : "");
+  function addFlag(row, text){
+    var f = row.querySelector(".mn-flag");
+    if (!f){ f = document.createElement("div"); f.className = "mn-flag"; row.appendChild(f); }
+    f.textContent = text;
   }
-  function closeMenuEditor(){
-    menuOpenFor = null;
-    byId("menuEditor").hidden = true;
-    byId("btnMenuEdit").textContent = "編輯菜單";
+  // 分類模式：點菜名（或價格）才出現「分類」選單
+  function openDrawer(row){
+    Array.prototype.forEach.call(byId("menuRows").querySelectorAll(".menu-row.open"), function(r){
+      if (r !== row){ r.classList.remove("open"); r.querySelector(".mn-drawer").hidden = true; }
+    });
+    if (!editCat || !row || row.classList.contains("open")) return;
+    var sel = row.querySelector(".mn-cat");
+    sel.innerHTML = catNames().map(function(c){ return '<option value="' + esc(c) + '">' + esc(c) + '</option>'; }).join("") + '<option value="">未分類</option>';
+    sel.value = rowCat(row);
+    row.querySelector(".mn-drawer").hidden = false;
+    row.classList.add("open");
+  }
+  function moveRowTo(row, cat){
+    var bl = catBlock(cat, true);
+    bl.hidden = false;
+    bl.querySelector(".cat-rows").appendChild(row);
+    row.setAttribute("data-cat", cat);
+    row.setAttribute("data-moved", "1");
+    row.classList.remove("open");
+    row.querySelector(".mn-drawer").hidden = true;
+    updateCatCounts();
+    row.classList.remove("flash"); void row.offsetWidth; row.classList.add("flash");
+    try { row.scrollIntoView({ behavior:"smooth", block:"nearest" }); } catch(e){ /* 舊瀏覽器 */ }
+  }
+  function readMenuRows(){
+    return Array.prototype.map.call(byId("menuRows").querySelectorAll(".menu-row"), function(r){
+      var fl = r.querySelector(".mn-flag");
+      return { row:r, name:cleanName(r.querySelector(".mn-name").value), price:num(r.querySelector(".mn-price").value), cat:rowCat(r), src:r.getAttribute("data-src") || "", flag:fl ? fl.textContent : "" };
+    });
+  }
+  function buildMenuEditor(sid, items, useCat, cats, marks){
+    menuOpenFor = sid;
+    editCat = !!useCat;
+    byId("menuRows").innerHTML = "";
+    byId("menuEditor").classList.toggle("cat-mode", editCat);
+    byId("menuUseCat").checked = editCat;
+    byId("catHint").hidden = !editCat;
+    byId("btnCatAdd").hidden = !editCat;
+    byId("btnMenuAdd").hidden = editCat;
+    if (editCat) (cats || []).forEach(function(c){ if (c) catBlock(c, true); });
+    var pend = metaOf(sid).pending || [];
+    items.forEach(function(it){
+      var r = addMenuRow(it), mk = marks && marks[it[0]];
+      if (mk && mk.src) r.setAttribute("data-src", mk.src);
+      else if (pend.indexOf(it[0]) !== -1){ r.setAttribute("data-src", "new"); r.querySelector(".mn-name").title = "銷售報表中新出現的品項，請確認"; }
+      if (mk && mk.flag) addFlag(r, mk.flag);
+    });
+    if (!editCat){ for (var k = items.length; k < Math.max(3, items.length + 1); k++) addMenuRow(); }
+    else if (!items.length) addMenuRow();
+    updateCatCounts();
+  }
+  // 切換「使用分類」：畫面上已經填的內容都保留
+  function setCatMode(on){
+    var sid = state.storeSel; if (isBrandView()) return;
+    var rows = readMenuRows(), marks = {}, items = [];
+    var cats = on ? (metaOf(sid).cats || []).slice() : catNames();
+    rows.forEach(function(r){
+      if (!r.name && !r.price) return;
+      items.push([r.name, r.price || "", r.cat]);
+      marks[r.name] = { src:r.src, flag:r.flag };
+      if (on && r.cat && cats.indexOf(r.cat) === -1) cats.push(r.cat);
+    });
+    if (!on) metaOf(sid).cats = cats; // 先記住分類順序，再打開時還原
+    buildMenuEditor(sid, items, on, cats, marks);
+  }
+  // AI 或 Excel 讀到兩個以上的分類：自動打開分類
+  function menuAdoptCats(items){
+    var cs = {}; items.forEach(function(it){ if (it[2]) cs[it[2]] = 1; });
+    if (Object.keys(cs).length >= 2 && !editCat) setCatMode(true);
+  }
+  function openMenuEditor(sid){
+    byId("menuWays").hidden = true;
+    byId("menuEditor").hidden = false;
+    if (menuOpenFor === sid && byId("menuRows").children.length) return;
+    var items = menuOf(sid), m = metaOf(sid), draft = false;
+    if (!items.length){ items = pastItemsOf(sid); draft = items.length > 0; }
+    buildMenuEditor(sid, items, m.useCat, m.cats);
+    setMenuMsg(draft ? "已帶入以前登錄過的品項與價格，請確認後按「儲存菜單」。" : "");
+  }
+  function closeMenuEditor(){ menuOpenFor = null; }
+  function renderMenuPane(){
+    var sid = state.storeSel;
+    if (isBrandView()){
+      byId("menuSum").textContent = "請先在「店家資訊」選擇一家店";
+      ["menuWays","menuEditor","menuAsk","menuDone"].forEach(function(id){ byId(id).hidden = true; });
+      menuOpenFor = null;
+      return;
+    }
+    var menu = menuOf(sid);
+    byId("menuSum").textContent = storeLabel(storeById(sid)) + (menu.length ? "．" + menu.length + " 項品項" : "");
+    if (menuOpenFor && menuOpenFor !== sid){ menuOpenFor = null; byId("menuAsk").hidden = true; byId("menuDone").hidden = true; menuImportPending = null; }
+    if (!menu.length && !menuOpenFor){ byId("menuWays").hidden = false; byId("menuEditor").hidden = true; return; }
+    openMenuEditor(sid);
   }
   function saveMenu(){
     var sid = state.storeSel;
-    if (isBrandView()) return;
+    if (isBrandView()) return false;
     var items = [], seen = {}, dup = [], noPrice = [];
-    Array.prototype.forEach.call(document.querySelectorAll("#menuRows .menu-row"), function(r){
-      var nm = cleanName(r.querySelector(".mn-name").value), pr = num(r.querySelector(".mn-price").value);
-      if (!nm) return;
-      if (seen[nm]){ dup.push(nm); return; }
-      seen[nm] = 1;
-      if (pr <= 0) noPrice.push(nm);
-      items.push([nm, pr]);
+    readMenuRows().forEach(function(r){
+      if (!r.name) return;
+      if (seen[r.name]){ dup.push(r.name); return; }
+      seen[r.name] = 1;
+      if (r.price <= 0) noPrice.push(r.name);
+      items.push([r.name, Math.round(r.price), r.cat]);
     });
-    if (!items.length){ setMenuMsg("至少要有一道菜（名稱和價格）。", true); return; }
-    if (noPrice.length){ setMenuMsg("這些品項還沒填價格：" + noPrice.slice(0, 5).join("、") + (noPrice.length > 5 ? "…" : ""), true); return; }
+    if (!items.length){ setMenuMsg("至少要有一項品項（名稱與價格）。", true); return false; }
+    if (noPrice.length){ setMenuMsg("以下品項尚未填寫價格：" + noPrice.slice(0, 5).join("、") + (noPrice.length > 5 ? "…" : ""), true); return false; }
+    var cats = editCat ? catNames() : (metaOf(sid).cats || []).slice();
+    items.forEach(function(it){ if (it[2] && cats.indexOf(it[2]) === -1) cats.push(it[2]); });
+    var first = !menuOf(sid).length;
     var keep = readQtyMap();
     menuStore[sid] = items;
+    menuMeta[sid] = { useCat:editCat, cats:cats, pending:[] };
     persistMenu(sid);
-    closeMenuEditor();
+    buildMenuEditor(sid, items, editCat, cats);
     renderManual(true, keep);
-    setMenuMsg("");
-    setManMsg("菜單已儲存：共 " + items.length + " 道" + (dup.length ? "（重複的「" + dup.slice(0, 3).join("、") + "」只留一個）" : "") + "。現在可以在下面填數量了。");
-    logAppend("儲存菜單", storeLabel(storeById(sid)), "ok", items.length + " 道菜");
+    byId("menuSum").textContent = storeLabel(storeById(sid)) + "．" + items.length + " 項品項";
+    setMenuMsg("菜單已儲存，共 " + items.length + " 項" + (dup.length ? "（重複的「" + dup.slice(0, 3).join("、") + "」只保留一項）" : "") + "。");
+    byId("menuDone").hidden = !first;
+    updateTabs();
+    logAppend("儲存菜單", storeLabel(storeById(sid)), "ok", items.length + " 項品項" + (editCat ? "，" + cats.length + " 個分類" : ""));
+    return true;
   }
 
   // ---------- ② 每天填數量 ----------
@@ -4072,13 +4503,19 @@
   function updateManTotal(){
     var items = readManRows(), q = 0, a = 0;
     items.forEach(function(it){ q += it[1]; a += it[2]; });
-    var d = num(byId("manDisc").value), c = num(byId("manCust").value);
+    var srvEl = byId("manSrv");
+    if (byId("manSrv10").checked && srvEl.getAttribute("data-manual") !== "1") srvEl.value = a ? Math.round(a * 0.1) : "";
+    var s = num(srvEl.value), d = num(byId("manDisc").value), c = num(byId("manCust").value), t = a + s - d;
     byId("manTotal").innerHTML = items.length
-      ? '這一天：' + items.length + ' 個品項、共 ' + fmtInt(q) + ' 份，營業額 <b>' + esc(fmtMoney(a - d)) + '</b>' + (d ? '（已扣折扣 ' + esc(fmtMoney(d)) + '）' : '') + (c ? '，平均每位客人 ' + esc(fmtMoney((a - d) / c)) : '')
-      : '還沒有填任何數量。';
+      ? '當日：' + items.length + ' 項、共 ' + fmtInt(q) + ' 份，營業額 <b>' + esc(fmtMoney(t)) + '</b>' +
+        (s || d ? '（菜色 ' + esc(fmtMoney(a)) + (s ? ' ＋ 服務費 ' + esc(fmtMoney(s)) : '') + (d ? ' − 折扣 ' + esc(fmtMoney(d)) : '') + '）' : '') +
+        (c ? '，客單價 ' + esc(fmtMoney(t / c)) : '')
+      : '尚未填寫任何數量。';
   }
 
   // keep：重畫時保留使用者剛剛填、還沒存的數量（例如中途改了菜單）
+  function srvPrefKey(sid){ return "canyin_srv10_" + sid; }
+  function srvPref(sid){ try { return localStorage.getItem(srvPrefKey(sid)) === "1"; } catch(e){ return false; } }
   function renderManual(force, keep){
     var tab = byId("tabManual"); if (!tab) return;
     var dateEl = byId("manDate");
@@ -4086,13 +4523,7 @@
     dateEl.max = todayStr();
     var brand = isBrandView(), sid = state.storeSel, menu = brand ? [] : menuOf(sid);
     byId("btnManSave").disabled = brand;
-    byId("btnMenuEdit").disabled = brand;
-
-    // ① 菜單摘要；換了店就把編輯器收起來；還沒有菜單就直接打開
-    if (menuOpenFor && menuOpenFor !== sid) closeMenuEditor();
-    byId("menuSum").textContent = brand ? "請先選一家店" : (menu.length ? "已設定 " + menu.length + " 道菜" : "還沒有菜單，先把品項和價格建起來");
-    if (!brand && !menu.length && !menuOpenFor) openMenuEditor(sid);
-    if (brand && menuOpenFor) closeMenuEditor();
+    byId("manStoreNote").textContent = brand ? "" : storeLabel(storeById(sid));
 
     var date = dateEl.value, key = sid + "|" + date;
     var rec = !brand && dayStore[sid] ? dayStore[sid][date] : null;
@@ -4101,78 +4532,94 @@
       var box = byId("manRows"); box.innerHTML = "";
       var recMap = {};
       if (rec) rec.items.forEach(function(it){ recMap[String(it[0])] = it; });
-      // 菜單上的每一道菜：這一天存過就用「當天的價格」，沒存過用菜單價格
-      menu.forEach(function(m){
-        var it = recMap[m[0]], q = it ? num(it[1]) : 0;
-        var price = it && q ? Math.round(num(it[2]) / q) : m[1];
-        var qv = keep && keep[m[0]] != null ? keep[m[0]] : (q || "");
-        addQtyRow(m[0], price, qv, false);
-        delete recMap[m[0]];
+      // 有用分類：照分類一區一區排
+      var meta = brand ? null : metaOf(sid), groups = [];
+      if (meta && meta.useCat){
+        var order = (meta.cats || []).slice(), by = {};
+        menu.forEach(function(m){ var c = m[2] || ""; if (c && order.indexOf(c) === -1) order.push(c); (by[c] = by[c] || []).push(m); });
+        order.concat([""]).forEach(function(c){ if (by[c] && by[c].length) groups.push({ cat:c || "未分類", items:by[c] }); });
+      } else groups.push({ cat:"", items:menu });
+      groups.forEach(function(g){
+        if (g.cat){ var hd = document.createElement("div"); hd.className = "man-cat"; hd.textContent = g.cat; box.appendChild(hd); }
+        // 菜單上的每一道菜：這一天存過就用「當天的價格」，沒存過用菜單價格
+        g.items.forEach(function(m){
+          var it = recMap[m[0]], q = it ? num(it[1]) : 0;
+          var price = it && q ? Math.round(num(it[2]) / q) : m[1];
+          var qv = keep && keep[m[0]] != null ? keep[m[0]] : (q || "");
+          addQtyRow(m[0], price, qv, false);
+          delete recMap[m[0]];
+        });
       });
       // 這一天存過、但菜單上已經刪掉的品項：保留下來，免得改存時資料不見
       Object.keys(recMap).forEach(function(n){
         var it = recMap[n], q = num(it[1]);
         addQtyRow(n, q ? Math.round(num(it[2]) / q) : 0, q || "", true);
       });
-      if (!box.children.length) box.innerHTML = '<div class="hint">' + (brand ? '' : '先在上面「① 菜單」建好品項和價格，這裡就會出現每一道菜，只要填數量。') + '</div>';
+      if (!box.children.length) box.innerHTML = brand ? '' : '<div class="hint">尚未建立菜單。<button type="button" class="link-btn" data-go="menu">前往建立菜單</button></div>';
       byId("manCust").value = rec && rec.cust ? rec.cust : "";
       byId("manDisc").value = rec && rec.disc ? rec.disc : "";
+      var srvEl = byId("manSrv");
+      byId("manSrv10").checked = !brand && srvPref(sid);
+      srvEl.value = rec && rec.srv ? rec.srv : "";
+      if (rec && rec.srv) srvEl.setAttribute("data-manual", "1"); else srvEl.removeAttribute("data-manual");
       byId("btnManSave").removeAttribute("data-confirm");
       setManMsg("");
     }
     byId("manState").innerHTML = brand
-      ? '<b>現在選的是「全部分店加總」</b>，請先在上方「分店」選一家店，再輸入那家店的資料。'
-      : '正在輸入：<b>' + esc(storeLabel(storeById(sid))) + '</b>　' + esc(date) + '（週' + weekdayOf(date) + '）' +
-        (rec ? '　·　這一天已經有資料，修改後按存檔會<b>取代</b>舊的' : '');
+      ? '<b>目前選擇的是「全部分店加總」</b>，請先到「店家資訊」選擇一家店，再登錄該店的銷售。'
+      : '登錄：<b>' + esc(storeLabel(storeById(sid))) + '</b>　' + esc(date) + '（週' + weekdayOf(date) + '）' +
+        (rec ? '　·　這一天已有資料，儲存後將<b>取代</b>原資料' : '');
     byId("btnManDelete").hidden = !rec;
     updateManTotal();
 
-    // 這個月已輸入的日子
+    // 這個月已登錄的日子（旁邊標示關帳結果）
     var mk = date.slice(0, 7), days = brand ? [] : Object.keys(dayStore[sid] || {}).filter(function(d){ return d.slice(0, 7) === mk; }).sort();
     var dbox = byId("manDays");
-    if (!days.length){ dbox.innerHTML = brand ? "" : '<div class="hint">' + esc(monthLabelOf(mk)) + ' 還沒有手動輸入的日子。</div>'; return; }
+    if (!days.length){ dbox.innerHTML = brand ? "" : '<div class="hint">' + esc(monthLabelOf(mk)) + ' 尚未登錄每日銷售。</div>'; return; }
     var rows = days.map(function(d){
-      var r = dayStore[sid][d], a = 0; r.items.forEach(function(it){ a += num(it[2]); }); a -= num(r.disc);
-      return { d:d, rev:a, n:r.items.length };
+      var r = dayStore[sid][d];
+      return { d:d, rev:dayExpected(r).total, n:r.items.length, st:closeStatus(sid, d) };
     });
     var tot = rows.reduce(function(x, r){ return x + r.rev; }, 0);
     var snapM = storeSnaps[sid] && storeSnaps[sid][mk];
-    dbox.innerHTML = '<div class="man-days"><h4 style="margin:0 0 6px">' + esc(monthLabelOf(mk)) + ' 已輸入 ' + days.length + ' 天，合計 ' + esc(fmtMoney(tot)) + '</h4>' +
+    dbox.innerHTML = '<div class="man-days"><h4 style="margin:0 0 6px">' + esc(monthLabelOf(mk)) + ' 已登錄 ' + days.length + ' 天，合計 ' + esc(fmtMoney(tot)) + '</h4>' +
       rows.map(function(r){
-        return '<div class="man-day' + (r.d === date ? ' cur' : '') + '"><span class="d">' + r.d.slice(5).replace("-", "/") + '（' + weekdayOf(r.d) + '）</span><span>' + r.n + ' 個品項</span><span class="r">' + esc(fmtMoney(r.rev)) + '</span>' +
-          '<button type="button" class="file-btn" data-day="' + r.d + '">' + (r.d === date ? '正在編輯' : '修改') + '</button></div>';
+        var pill = r.st ? '<span class="pill ' + r.st.cls + '">' + esc(r.st.label) + '</span>' : '<span class="pill no">未關帳</span>';
+        return '<div class="man-day' + (r.d === date ? ' cur' : '') + '"><span class="d">' + r.d.slice(5).replace("-", "/") + '（' + weekdayOf(r.d) + '）</span><span>' + r.n + ' 項</span><span class="r">' + esc(fmtMoney(r.rev)) + '</span>' + pill +
+          '<button type="button" class="file-btn" data-day="' + r.d + '">' + (r.d === date ? '編輯中' : '修改') + '</button><button type="button" class="file-btn" data-close="' + r.d + '">對帳</button></div>';
       }).join("") +
       (rows.length >= 2 ? '<h4>每天的營業額</h4>' + hbarHtml(rows.map(function(r){ return { name:r.d.slice(5).replace("-", "/") + "（" + weekdayOf(r.d) + "）", val:r.rev, hi:r.d === date }; }), fmtMoney) : '') +
-      (snapM && snapM.source !== "manual" ? '<div class="hint">注意：' + esc(monthLabelOf(mk)) + ' 目前用的是上傳的報表；存檔後這個月會改用手動輸入的資料。</div>' : '') +
+      (snapM && snapM.source !== "manual" ? '<div class="hint">注意：' + esc(monthLabelOf(mk)) + ' 目前使用匯入的銷售報表；儲存後，這個月將改用每日銷售資料。</div>' : '') +
       '</div>';
   }
 
   function saveManualDay(){
     if (isBrandView()) return;
     var sid = state.storeSel, date = byId("manDate").value;
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(date)){ setManMsg("請先選日期。", true); return; }
-    if (date > todayStr()){ setManMsg("不能輸入未來的日期。", true); return; }
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date)){ setManMsg("請先選擇日期。", true); return; }
+    if (date > todayStr()){ setManMsg("不能登錄未來的日期。", true); return; }
     var items = readManRows();
-    if (!items.length){ setManMsg(menuOf(sid).length ? "至少要填一道菜的數量。" : "請先在上面「① 菜單」建好品項和價格。", true); return; }
+    if (!items.length){ setManMsg(menuOf(sid).length ? "至少要填一項品項的數量。" : "請先到「菜單」建立品項與價格。", true); return; }
     var mk = date.slice(0, 7), btn = byId("btnManSave");
     var snapM = storeSnaps[sid] && storeSnaps[sid][mk];
-    // 這個月原本是上傳的報表：存檔會改用手動資料，先確認一次
+    // 這個月原本是匯入的銷售報表：儲存會改用每日銷售資料，先確認一次（不會兩份加在一起）
     if (snapM && snapM.source !== "manual" && btn.getAttribute("data-confirm") !== "1"){
       btn.setAttribute("data-confirm", "1");
-      setManMsg(monthLabelOf(mk) + " 已經有上傳的報表。存檔後，這個月的分析會改用手動輸入的資料（上傳的會被取代）。確定的話再按一次「存檔」。", true);
+      setManMsg(monthLabelOf(mk) + " 已匯入銷售報表。儲存後，這個月將改用每日銷售資料（取代匯入的報表），不會重複計算。確定請再按一次「儲存」。", true);
       return;
     }
     btn.removeAttribute("data-confirm");
-    var existed = !!(dayStore[sid] && dayStore[sid][date]);
-    var rec = { store:sid, date:date, items:items, cust:num(byId("manCust").value), disc:num(byId("manDisc").value), savedAt:new Date().toISOString() };
+    var old = dayStore[sid] && dayStore[sid][date], existed = !!old;
+    var rec = { store:sid, date:date, items:items, cust:num(byId("manCust").value), disc:num(byId("manDisc").value), srv:num(byId("manSrv").value), savedAt:new Date().toISOString() };
+    if (old && old.close) rec.close = old.close; // 已經關帳的日子：保留關帳資料
     (dayStore[sid] = dayStore[sid] || {})[date] = rec;
     persistDay(sid, date, rec);
     rebuildMonthFromDays(sid, mk);
     afterManualChange(sid);
-    var total = items.reduce(function(x, it){ return x + it[2]; }, 0) - rec.disc;
+    var total = dayExpected(rec).total;
     renderManual(true);
-    setManMsg("已存檔：" + date + "（週" + weekdayOf(date) + "）營業額 " + fmtMoney(total) + (existed ? "，已取代這一天原本的資料。" : "。"));
-    logAppend(existed ? "修改每日資料" : "手動輸入", storeLabel(storeById(sid)), "ok", date + "：" + items.length + " 個品項，營業額 " + fmtMoney(total));
+    setManMsg("已儲存：" + date + "（週" + weekdayOf(date) + "）營業額 " + fmtMoney(total) + (existed ? "，已取代這一天原本的資料。" : "。"));
+    logAppend(existed ? "修改每日銷售" : "新增每日銷售", storeLabel(storeById(sid)), "ok", date + "：" + items.length + " 項，營業額 " + fmtMoney(total));
   }
   function deleteManualDay(){
     var sid = state.storeSel, date = byId("manDate").value, btn = byId("btnManDelete");
@@ -4203,22 +4650,31 @@
     renderAll(); renderHistory(); renderStoreUI();
   }
 
-  // 分頁切換、表單事件
-  byId("srcTabs").addEventListener("click", function(e){
-    var b = e.target.closest ? e.target.closest("button[data-tab]") : null; if (!b) return;
-    var t = b.getAttribute("data-tab");
-    Array.prototype.forEach.call(document.querySelectorAll("#srcTabs button"), function(x){ x.setAttribute("aria-pressed", String(x === b)); });
-    byId("tabUpload").hidden = t !== "upload";
-    byId("tabManual").hidden = t !== "manual";
-    if (t === "manual") renderManual();
+  // ---------- 每日銷售：表單事件 ----------
+  byId("btnManToggle").addEventListener("click", function(){
+    var t = byId("tabManual"); t.hidden = !t.hidden;
+    if (!t.hidden){ renderManual(); try { t.scrollIntoView({ behavior:"smooth", block:"start" }); } catch(e){ /* 舊瀏覽器 */ } }
   });
+  byId("btnManClose").addEventListener("click", function(){ byId("tabManual").hidden = true; });
   byId("manDate").addEventListener("change", function(){ renderManual(); });
   byId("btnManSave").addEventListener("click", saveManualDay);
   byId("btnManDelete").addEventListener("click", deleteManualDay);
   ["manCust","manDisc"].forEach(function(id){ byId(id).addEventListener("input", updateManTotal); });
+  byId("manSrv").addEventListener("input", function(){ byId("manSrv").setAttribute("data-manual", "1"); updateManTotal(); });
+  byId("manSrv10").addEventListener("change", function(){
+    var on = byId("manSrv10").checked, el = byId("manSrv");
+    el.removeAttribute("data-manual");
+    if (!on) el.value = "";
+    if (!isBrandView()){ try { localStorage.setItem(srvPrefKey(state.storeSel), on ? "1" : "0"); } catch(e){ /* 記不住也沒關係 */ } }
+    updateManTotal();
+  });
   byId("manRows").addEventListener("input", function(e){
     var row = e.target.closest ? e.target.closest(".man-row") : null; if (!row) return;
     updateRowAmt(row); updateManTotal();
+  });
+  byId("manRows").addEventListener("click", function(e){
+    var g = e.target.closest ? e.target.closest("[data-go]") : null;
+    if (g) showPane(g.getAttribute("data-go"));
   });
   // 數量填完按 Enter：跳到下一道菜，不用拿滑鼠
   byId("manRows").addEventListener("keydown", function(e){
@@ -4228,22 +4684,79 @@
     if (k >= 0 && k < all.length - 1) all[k + 1].focus(); else byId("btnManSave").focus();
   });
   byId("manDays").addEventListener("click", function(e){
+    var c = e.target.closest ? e.target.closest("button[data-close]") : null;
+    if (c){ openClose(c.getAttribute("data-close")); return; }
     var b = e.target.closest ? e.target.closest("button[data-day]") : null; if (!b) return;
     byId("manDate").value = b.getAttribute("data-day");
     renderManual();
     byId("manDate").scrollIntoView({ behavior:"smooth", block:"center" });
   });
-  byId("btnMenuEdit").addEventListener("click", function(){
-    if (isBrandView()) return;
-    if (menuOpenFor) closeMenuEditor(); else openMenuEditor(state.storeSel);
-  });
-  byId("btnMenuAdd").addEventListener("click", function(){ addMenuRow().querySelector(".mn-name").focus(); });
-  byId("btnMenuSave").addEventListener("click", saveMenu);
-  byId("menuRows").addEventListener("click", function(e){
-    if (e.target.classList && e.target.classList.contains("man-del")){
-      e.target.parentNode.remove();
-      if (!document.querySelector("#menuRows .menu-row")) addMenuRow();
+
+  // ---------- 菜單：表單事件 ----------
+  byId("menuWays").addEventListener("click", function(e){
+    var b = e.target.closest ? e.target.closest("button[data-way]") : null;
+    if (!b || isBrandView()) return;
+    var w = b.getAttribute("data-way");
+    if (w === "excel"){ byId("menuFileInput").click(); return; }
+    openMenuEditor(state.storeSel);
+    if (w === "photo"){
+      var pb = byId("btnMenuPhoto");
+      if (pb && !pb.parentNode.hidden) pb.click();
+      else setMenuMsg("這個版本無法使用拍照辨識，請改用 Excel 或手動輸入。", true);
+    } else {
+      var f = byId("menuRows").querySelector(".mn-name"); if (f) f.focus();
     }
+  });
+  byId("btnMenuExcel").addEventListener("click", function(){ byId("menuFileInput").click(); });
+  byId("btnMenuDemo").addEventListener("click", function(){ byId("btnDemo").click(); });
+  byId("btnGoReport").addEventListener("click", function(){ showPane("report"); });
+  byId("menuUseCat").addEventListener("change", function(){ setCatMode(byId("menuUseCat").checked); });
+  byId("btnMenuAdd").addEventListener("click", function(){ addMenuRow().querySelector(".mn-name").focus(); });
+  byId("btnCatAdd").addEventListener("click", function(){
+    var n = 1, nm;
+    do { nm = "新分類" + (n > 1 ? n : ""); n++; } while (catNames().indexOf(nm) !== -1);
+    var bl = catBlock(nm, true); updateCatCounts();
+    var ip = bl.querySelector(".cat-name"); ip.focus(); ip.select();
+  });
+  byId("btnMenuSave").addEventListener("click", function(){ saveMenu(); });
+  byId("menuRows").addEventListener("click", function(e){
+    var t = e.target;
+    if (t.classList && t.classList.contains("man-del")){
+      var row = t.closest(".menu-row"); if (row) row.remove();
+      if (!document.querySelector("#menuRows .menu-row")) addMenuRow();
+      if (editCat) updateCatCounts();
+      return;
+    }
+    var bl = t.closest ? t.closest(".cat-block") : null; if (!bl) return;
+    if (t.classList.contains("cat-del")){
+      var un = catBlock("", true);
+      Array.prototype.slice.call(bl.querySelectorAll(".menu-row")).forEach(function(r){ un.querySelector(".cat-rows").appendChild(r); r.setAttribute("data-cat", ""); });
+      un.hidden = false;
+      bl.remove(); updateCatCounts();
+      return;
+    }
+    if (t.classList.contains("cat-add-row")){
+      addMenuRow(["", "", bl.getAttribute("data-cat") || ""], bl).querySelector(".mn-name").focus();
+    }
+  });
+  byId("menuRows").addEventListener("focusin", function(e){
+    var t = e.target;
+    if (t.classList && t.classList.contains("cat-name")){ t.setAttribute("data-old", t.value); return; }
+    if (t.classList && (t.classList.contains("mn-name") || t.classList.contains("mn-price"))) openDrawer(t.closest(".menu-row"));
+  });
+  byId("menuRows").addEventListener("change", function(e){
+    var t = e.target;
+    if (t.classList && t.classList.contains("mn-cat")){ moveRowTo(t.closest(".menu-row"), t.value); return; }
+    if (t.classList && t.classList.contains("cat-name")){
+      var bl = t.closest(".cat-block"), old = bl.getAttribute("data-cat"), v = cleanName(t.value).slice(0, 20);
+      if (!v || (v !== old && catNames().indexOf(v) !== -1)){ t.value = old; setMenuMsg("分類名稱不能空白，也不能跟其他分類重複。", true); return; }
+      t.value = v; bl.setAttribute("data-cat", v);
+    }
+  });
+  byId("menuRows").addEventListener("input", function(e){
+    var row = e.target.closest ? e.target.closest(".menu-row") : null; if (!row) return;
+    var src = row.getAttribute("data-src");
+    if (src === "excel" || src === "new"){ row.removeAttribute("data-src"); var f = row.querySelector(".mn-flag"); if (f && e.target.classList.contains("mn-price")) f.remove(); }
   });
 
   // ================= 分店選單 =================
@@ -4266,6 +4779,9 @@
     var setupNow = needsStoreSetup();
     var row = byId("storeRow"); if (row) row.hidden = setupNow;
     if (!setupNow && storeFormMode === "setup") byId("storeForm").hidden = true;
+    var scn = byId("storeCardNote"); if (scn) scn.textContent = setupNow ? "" : selLabel();
+    // 還沒填店名：只能用「店家資訊」；還沒有菜單：報表分析、對帳先鎖住
+    updateTabs();
     var rn = byId("btnRenameStore"); if (rn) rn.disabled = isBrandView();
     var dl = byId("btnDelStore");
     if (dl && dl.getAttribute("data-confirm") !== "1"){
@@ -4314,23 +4830,95 @@
     }
     renderStoreUI();
     renderManual();
+    showNewItems([]);
+    if (paneNow === "menu") renderMenuPane();
+    if (paneNow === "recon"){ clKey = null; renderReconPane(true); }
     if (!silent) logAppend("切換分店", "", "ok", selLabel());
   }
 
   var storeFormMode = "add";
+  function setStoreMsg(t, bad){ var el = byId("storeMsg"); if (!el) return; el.textContent = t || ""; el.style.color = bad ? "var(--warn)" : ""; }
+  // 單店：品牌空白、店名＝店名；有分店：品牌＝店名、店名＝分店
+  function storeFormVals(){
+    var nm = byId("storeName").value.trim().replace(/[_~]/g, " ").slice(0, 30);
+    var multi = byId("storeMulti").checked;
+    var br = byId("storeBranch").value.trim().replace(/[_~]/g, " ").slice(0, 30);
+    return multi ? { brand:nm, name:br, ok:!!(nm && br) } : { brand:"", name:nm, ok:!!nm };
+  }
   function openStoreForm(mode){
     storeFormMode = mode;
     var f = byId("storeForm"); f.hidden = false;
-    var cur = storeById(state.storeSel);
+    var cur = isBrandView() ? null : storeById(state.storeSel);
     var setup = mode === "setup";
-    byId("storeSetupHint").hidden = !setup;
-    byId("storeBrand").value = setup ? "" : mode === "rename" && cur ? cur.brand : (isBrandView() ? brandOfSel() : (cur ? cur.brand : ""));
-    byId("storeName").value = setup ? "" : mode === "rename" && cur ? cur.name : "";
-    byId("btnSaveStore").textContent = setup ? "開始使用" : mode === "rename" ? "儲存名稱" : "新增";
+    f.classList.toggle("is-setup", setup);
+    byId("storeSetupHint").textContent = setup ? "先填你的店名" : mode === "rename" ? "修改店名" : "新增分店";
+    var nm = "", multi = false, br = "";
+    if (mode === "rename" && cur){ if (cur.brand){ nm = cur.brand; multi = true; br = cur.name; } else nm = cur.name; }
+    if (mode === "add"){ multi = true; nm = isBrandView() ? brandOfSel() : (cur ? (cur.brand || cur.name) : ""); }
+    byId("storeName").value = nm; byId("storeMulti").checked = multi; byId("storeBranch").value = br;
+    byId("storeName").classList.remove("filled");
+    byId("storeBan").value = ""; byId("btnBanLookup").disabled = true; setBanMsg("");
+    byId("btnSaveStore").textContent = setup ? "開始使用" : mode === "rename" ? "儲存名稱" : "新增分店";
     byId("btnCancelStore").hidden = setup;
+    setStoreMsg("");
+    syncStoreForm();
     // 第一次打開頁面時不自動跳出手機鍵盤
-    if (!setup) byId("storeName").focus();
+    if (!setup) (mode === "add" ? byId("storeBranch") : byId("storeName")).focus();
   }
+  // 即時顯示「品牌｜分店」；必填沒填不能按
+  function syncStoreForm(){
+    var multi = byId("storeMulti").checked;
+    byId("branchWrap").hidden = !multi;
+    byId("branchNote").hidden = !multi || storeFormMode !== "setup";
+    byId("storeNameLabel").innerHTML = multi ? "品牌（店名） <em>（必填）</em>" : "店名 <em>（必填）</em>";
+    var v = storeFormVals(), l = v.ok ? (v.brand ? v.brand + "｜" + v.name : v.name) : "";
+    var pv = byId("storePreview");
+    pv.textContent = "畫面上會顯示為：";
+    var bb = document.createElement("b");
+    bb.textContent = l || (multi && byId("storeName").value.trim() ? "（請填分店）" : "（請先填店名）");
+    pv.appendChild(bb);
+    byId("btnSaveStore").disabled = !v.ok;
+  }
+  ["storeName","storeBranch"].forEach(function(id){
+    byId(id).addEventListener("input", function(){ if (id === "storeName") byId("storeName").classList.remove("filled"); syncStoreForm(); });
+  });
+  byId("storeMulti").addEventListener("change", function(){ syncStoreForm(); if (byId("storeMulti").checked) byId("storeBranch").focus(); });
+
+  // ---------- 統一編號：檢查碼＋查登記名稱（查詢服務在 Supabase 函式 ban-lookup） ----------
+  // 財政部檢查碼規則：加權後各位數相加能被 5 整除；第 7 碼是 7 時有特例
+  function banOk(s){
+    if (!/^\d{8}$/.test(s)) return false;
+    var w = [1,2,1,2,1,2,4,1], t = 0;
+    for (var i = 0; i < 8; i++){ var p = +s.charAt(i) * w[i]; t += Math.floor(p / 10) + p % 10; }
+    if (t % 5 === 0) return true;
+    return s.charAt(6) === "7" && (t + 1) % 5 === 0;
+  }
+  function setBanMsg(html, bad){ var el = byId("banMsg"); el.innerHTML = html || ""; el.className = "sf-msg" + (bad ? " bad" : ""); }
+  byId("storeBan").addEventListener("input", function(){
+    var el = byId("storeBan"); el.value = el.value.replace(/\D/g, "").slice(0, 8);
+    byId("btnBanLookup").disabled = el.value.length !== 8;
+    setBanMsg("");
+  });
+  byId("btnBanLookup").addEventListener("click", function(){
+    var b = byId("storeBan").value, btn = byId("btnBanLookup");
+    if (!banOk(b)){ setBanMsg("統一編號檢查碼不正確，請再確認；不確定也可以不填。", true); return; }
+    if (typeof SUPA_URL === "undefined" || !SUPA_URL){ setBanMsg("號碼格式正確。這個版本無法查詢登記資料，請直接輸入店名。"); return; }
+    btn.disabled = true; setBanMsg("查詢中…");
+    var st = 0;
+    fetch(SUPA_URL + "/functions/v1/ban-lookup?ban=" + b, { headers:{ "apikey":SUPA_KEY, "Authorization":"Bearer " + SUPA_KEY } })
+      .then(function(r){ st = r.status; return r.json().catch(function(){ return {}; }); })
+      .then(function(j){
+        if (st !== 200 || !j){ setBanMsg("號碼格式正確。目前無法查詢登記資料，請直接輸入店名。"); logAppend("統編查詢", "", "fail", b + "：查詢服務回應 " + st); return; }
+        if (!j.name){ setBanMsg("查不到這個統一編號的登記資料，請直接輸入店名。"); logAppend("統編查詢", "", "fail", b + "：查無資料"); return; }
+        var ip = byId("storeName"); ip.value = String(j.name).slice(0, 30); ip.classList.add("filled");
+        syncStoreForm();
+        setBanMsg("查到：<b>" + esc(j.name) + "</b>，已帶入店名。<small>這是登記名稱，可以直接改成招牌上的店名。</small>");
+        logAppend("統編查詢", "", "ok", b + "：" + j.name);
+      })
+      .catch(function(){ setBanMsg("號碼格式正確。目前無法查詢登記資料，請直接輸入店名。"); })
+      .then(function(){ btn.disabled = byId("storeBan").value.length !== 8; });
+  });
+
   // 還沒設定過店名：只有系統預設的「我的店」
   function needsStoreSetup(){
     return stores.length === 1 && stores[0].id === "main" && !stores[0].brand && stores[0].name === "我的店";
@@ -4340,33 +4928,34 @@
     return !!(Object.keys(storeSnaps[sid] || {}).length || Object.keys(ds[sid] || {}).length || (ms[sid] || []).length);
   }
   function maybeStoreSetup(){
-    if (needsStoreSetup()){ if (state.storeSel !== "main") selectStore("main", true); openStoreForm("setup"); }
+    if (needsStoreSetup()){ if (state.storeSel !== "main") selectStore("main", true); openStoreForm("setup"); showPane("store"); }
     else if (storeFormMode === "setup") byId("storeForm").hidden = true;
   }
 
-  // 刪除目前這家店：報表、每日資料、菜單一起刪，再把店從清單拿掉
+  // 刪除目前這家店：報表、每日資料、菜單、單據一起刪，再把店從清單拿掉
   function deleteCurrentStore(){
-    if (isBrandView()){ setHistMsg("「全部分店加總」不能直接刪除，請先在上方選一家分店。"); return Promise.resolve(); }
+    if (isBrandView()){ setStoreMsg("「全部分店加總」不能直接刪除，請先選擇一家店。", true); return Promise.resolve(); }
     var sid = state.storeSel, s = storeById(sid); if (!s) return Promise.resolve();
     var label = storeLabel(s);
-    var mks = Object.keys(storeSnaps[sid] || {}), days = Object.keys(dayStore[sid] || {}), hasMenu = !!(menuStore[sid] || []).length;
+    var mks = Object.keys(storeSnaps[sid] || {}), days = Object.keys(dayStore[sid] || {}), hasMenu = !!(menuStore[sid] || []).length, hasSt = !!(settleStore[sid] || []).length;
     var fails = 0, chain = persistChain;
     if (appDb){
       mks.forEach(function(mk){ chain = chain.then(function(){ return appDb.doc("reports/" + reportDocId(sid, mk)).delete(); }).catch(function(){ fails++; }); });
       days.forEach(function(d){ chain = chain.then(function(){ return appDb.doc("days/" + reportDocId(sid, d)).delete(); }).catch(function(){ fails++; }); });
       if (hasMenu) chain = chain.then(function(){ return appDb.doc("menus/" + sid).delete(); }).catch(function(){ fails++; });
+      if (hasSt) chain = chain.then(function(){ return appDb.doc("settlements/" + sid).delete(); }).catch(function(){ fails++; });
     }
     persistChain = chain;
     var btn = byId("btnDelStore"); btn.disabled = true;
-    setHistMsg("刪除中⋯⋯");
+    setStoreMsg("刪除中⋯⋯");
     return chain.then(function(){
       if (fails){
         btn.disabled = false;
-        setHistMsg("「" + label + "」有 " + fails + " 筆資料刪除失敗，請重新整理頁面再按一次。");
+        setStoreMsg("「" + label + "」有 " + fails + " 筆資料刪除失敗，請重新整理頁面再按一次。", true);
         logAppend("刪除分店", "", "fail", label + "：" + fails + " 筆刪除失敗");
         return;
       }
-      delete dayStore[sid]; delete menuStore[sid];
+      delete dayStore[sid]; delete menuStore[sid]; delete menuMeta[sid]; delete settleStore[sid];
       if (sid === "main"){ s.brand = ""; s.name = "我的店"; storeSnaps.main = {}; }
       else {
         for (var i = stores.length - 1; i >= 0; i--) if (stores[i].id === sid) stores.splice(i, 1);
@@ -4377,9 +4966,9 @@
       if (menuOpenFor === sid) menuOpenFor = null;
       manKey = null;
       var next = stores.slice().sort(function(a, b){ return monthsOfStore(b.id) - monthsOfStore(a.id); })[0];
-      logAppend("刪除分店", "", "ok", label + "：刪除 " + mks.length + " 個月報表、" + days.length + " 天每日資料" + (hasMenu ? "、菜單" : ""));
+      logAppend("刪除分店", "", "ok", label + "：刪除 " + mks.length + " 個月報表、" + days.length + " 天每日資料" + (hasMenu ? "、菜單" : "") + (hasSt ? "、對帳單據" : ""));
       selectStore(next ? next.id : "main", true);
-      setHistMsg("已刪除「" + label + "」和它的報表、每日資料、菜單。");
+      setStoreMsg("已刪除「" + label + "」和它的報表、每日資料、菜單。");
       maybeStoreSetup();
     });
   }
@@ -4397,27 +4986,30 @@
     deleteCurrentStore();
   });
   function saveStoreForm(){
-    var brand = byId("storeBrand").value.trim().replace(/[_~]/g, " ").slice(0, 30);
-    var name = byId("storeName").value.trim().replace(/[_~]/g, " ").slice(0, 30);
-    if (!name){ byId("storeName").focus(); setHistMsg("請輸入分店名稱。"); return; }
-    var dup = stores.filter(function(s){ return s.brand === brand && s.name === name && !(storeFormMode === "rename" && s.id === state.storeSel); });
-    if (dup.length){ setHistMsg("已經有「" + storeLabel(dup[0]) + "」了。"); return; }
+    var v = storeFormVals();
+    if (!v.ok){ (byId("storeName").value.trim() ? byId("storeBranch") : byId("storeName")).focus(); return; }
+    var brand = v.brand, name = v.name;
+    var dup = stores.filter(function(s){ return s.brand === brand && s.name === name && !((storeFormMode === "rename" || storeFormMode === "setup") && s.id === state.storeSel); });
+    if (dup.length){ setStoreMsg("已經有「" + storeLabel(dup[0]) + "」了。", true); return; }
     byId("storeForm").hidden = true;
+    setStoreMsg("");
     if (storeFormMode === "rename" || storeFormMode === "setup"){
       var cur = storeById(state.storeSel); if (!cur) return;
-      var old = storeLabel(cur);
+      var old = storeLabel(cur), wasSetup = storeFormMode === "setup";
       cur.brand = brand; cur.name = name;
       saveStores();
-      if (storeFormMode === "setup") logAppend("設定店名", "", "ok", storeLabel(cur));
+      if (wasSetup) logAppend("設定店名", "", "ok", storeLabel(cur));
       else logAppend("分店改名", "", "ok", old + " → " + storeLabel(cur));
       storeFormMode = "add";
       selectStore(state.storeSel, true);
+      if (wasSetup) showPane(defaultPane());
     } else {
       var s = { id:newStoreId(), brand:brand, name:name };
       stores.push(s); storeSnaps[s.id] = {};
       saveStores();
       logAppend("新增分店", "", "ok", storeLabel(s));
       selectStore(s.id, true);
+      setStoreMsg("已新增「" + storeLabel(s) + "」。下一步：到「菜單」建立這家店的品項。");
     }
   }
   byId("storeSel").addEventListener("change", function(){ selectStore(byId("storeSel").value); });
@@ -4425,7 +5017,7 @@
   byId("btnRenameStore").addEventListener("click", function(){ if (!isBrandView()) openStoreForm("rename"); });
   byId("btnCancelStore").addEventListener("click", function(){ byId("storeForm").hidden = true; });
   byId("btnSaveStore").addEventListener("click", saveStoreForm);
-  ["storeBrand","storeName"].forEach(function(id){ byId(id).addEventListener("keydown", function(e){ if (e.key === "Enter"){ e.preventDefault(); saveStoreForm(); } }); });
+  ["storeName","storeBranch"].forEach(function(id){ byId(id).addEventListener("keydown", function(e){ if (e.key === "Enter"){ e.preventDefault(); saveStoreForm(); } }); });
 
   // ================= 分店比較（只在「全部分店加總」時顯示） =================
   function renderStoreCompare(ds){
@@ -4533,6 +5125,383 @@
     });
   }
 
+  // ================= 四個分頁 =================
+  var paneNow = "store";
+  var PANES = { store:"paneStore", menu:"paneMenu", report:"paneReport", recon:"paneRecon" };
+  function hasMenuSel(){
+    if (isBrandView()) return storesOfBrand(brandOfSel()).some(function(s){ return menuOf(s.id).length > 0; });
+    return menuOf(state.storeSel).length > 0;
+  }
+  function paneAllowed(p){
+    if (p === "store") return true;
+    if (needsStoreSetup()) return false;
+    if (p === "menu") return true;
+    if (p === "report") return hasMenuSel() || state.dataset === DEMO;
+    return hasMenuSel();
+  }
+  function defaultPane(){
+    if (needsStoreSetup()) return "store";
+    if (!hasMenuSel() && state.dataset !== DEMO) return "menu";
+    return "report";
+  }
+  function updateTabs(){
+    if (!PANES) return;
+    Array.prototype.forEach.call(document.querySelectorAll("#mainTabs button"), function(b){
+      var p = b.getAttribute("data-pane"), ok = paneAllowed(p);
+      b.disabled = !ok;
+      var why = ok ? "" : (needsStoreSetup() ? "（需先設定店名）" : "（需先建立菜單）");
+      var lk = b.querySelector(".lk");
+      if (why && !lk){ lk = document.createElement("span"); lk.className = "lk"; b.appendChild(lk); }
+      if (lk) lk.textContent = why;
+      b.title = why.replace(/[（）]/g, "");
+    });
+    if (!paneAllowed(paneNow)) showPane(defaultPane());
+  }
+  function showPane(p){
+    if (!PANES) return;
+    if (!paneAllowed(p)) p = defaultPane();
+    paneNow = p;
+    Object.keys(PANES).forEach(function(k){ var el = byId(PANES[k]); if (el) el.hidden = k !== p; });
+    Array.prototype.forEach.call(document.querySelectorAll("#mainTabs button"), function(b){ b.setAttribute("aria-selected", String(b.getAttribute("data-pane") === p)); });
+    if (p === "menu") renderMenuPane();
+    if (p === "recon") renderReconPane();
+    if (p === "report"){ try { if (!state.dataset.empty) renderTrend(state.dataset); } catch(e){ /* 圖表失敗不影響其他功能 */ } }
+  }
+  byId("mainTabs").addEventListener("click", function(e){
+    var b = e.target.closest ? e.target.closest("button[data-pane]") : null;
+    if (!b || b.disabled) return;
+    showPane(b.getAttribute("data-pane"));
+  });
+
+  // ================= 菜單 ↔ 銷售報表 =================
+  // 匯入銷售報表後：菜單上沒有的品項自動加進菜單（橘色標示，請老闆確認）；這家店還沒有菜單就直接用報表建一份
+  function syncMenuWithSales(sid, mks){
+    var snaps = storeSnaps[sid] || {}, agg = {}, names = [];
+    mks.forEach(function(mk){
+      var s = snaps[mk]; if (!s || !Array.isArray(s.products)) return;
+      s.products.forEach(function(pd){
+        if (!Array.isArray(pd)) return;
+        var n = cleanName(pd[0]); if (!n) return;
+        if (!agg[n]){ agg[n] = [0, 0]; names.push(n); }
+        agg[n][0] += +pd[1] || 0; agg[n][1] += +pd[2] || 0;
+      });
+    });
+    var menu = menuOf(sid), have = {};
+    menu.forEach(function(m){ have[m[0]] = 1; });
+    var fresh = names.filter(function(n){ return !have[n] && agg[n][0] > 0 && agg[n][1] > 0; });
+    if (!fresh.length) return [];
+    var add = fresh.map(function(n){ return [n, Math.round(agg[n][1] / agg[n][0]), ""]; });
+    if (!menu.length){
+      menuStore[sid] = add;
+      metaOf(sid).pending = [];
+      persistMenu(sid);
+      logAppend("自動建立菜單", storeLabel(storeById(sid)), "ok", "依銷售報表建立 " + add.length + " 項品項");
+      if (menuOpenFor === sid) menuOpenFor = null;
+      return [];
+    }
+    menuStore[sid] = menu.concat(add);
+    var m = metaOf(sid); m.pending = (m.pending || []).concat(fresh);
+    persistMenu(sid);
+    if (menuOpenFor === sid) menuOpenFor = null;
+    logAppend("新品項加入菜單", storeLabel(storeById(sid)), "ok", fresh.slice(0, 10).join("、") + (fresh.length > 10 ? "…" : ""));
+    return fresh;
+  }
+  // 舊資料：有銷售報表、但還沒有菜單的店，打開頁面時自動建一份
+  function migrateMenus(){
+    stores.forEach(function(s){
+      if (menuOf(s.id).length) return;
+      var mks = Object.keys(storeSnaps[s.id] || {});
+      if (mks.length) syncMenuWithSales(s.id, mks);
+    });
+  }
+  // 「品名＋價格」的簡單菜單檔（沒有數量欄）
+  function menuFromRows(rows){
+    var NAME = /^(品名|品項|名稱|品項名稱|商品名稱|商品|菜名|餐點|項目)$/, PRICE = /^(價格|單價|售價|定價|價錢|金額)$/, QTY = /(數量|銷量|份數|銷售量)/, CAT = /^(分類|類別|類型|類)$/;
+    for (var hr = 0; hr < Math.min(rows.length, 10); hr++){
+      var hdr = (rows[hr] || []).map(function(c){ return String(c == null ? "" : c).replace(/\s/g, ""); });
+      var ni = -1, pi = -1, ci = -1, hasQ = false;
+      hdr.forEach(function(c, i){
+        if (QTY.test(c)) hasQ = true;
+        if (ni < 0 && NAME.test(c)) ni = i; else if (pi < 0 && PRICE.test(c)) pi = i; else if (ci < 0 && CAT.test(c)) ci = i;
+      });
+      if (ni < 0 || pi < 0 || hasQ) continue;
+      var out = [], seen = {};
+      rows.slice(hr + 1).forEach(function(r){
+        r = r || [];
+        var n = cleanName(r[ni]), pr = num(r[pi]);
+        if (!n || !(pr > 0) || seen[n]) return;
+        seen[n] = 1;
+        out.push([n, Math.round(pr), ci > -1 ? cleanName(r[ci]).slice(0, 20) : ""]);
+      });
+      return out.length ? out : null;
+    }
+    return null;
+  }
+
+  // ================= 對帳 =================
+  // 每天的關帳存在當天的每日銷售資料裡：close = { float, cash, exp, card, deliv, keep }
+  // 實收 =（抽屜現金 − 開店底錢 ＋ 拿去花的錢）＋ 刷卡、行動支付 ＋ 外送訂單
+  // 應收 = 菜色金額 ＋ 服務費 − 折扣
+  var settleStore = {}; // 分店 id -> [{ mk, kind, amt, at }]（月底的刷卡月結單、撥款單）
+  function tolKey(sid){ return "canyin_tol_" + sid; }
+  function tolOf(sid){
+    var v = null; try { v = localStorage.getItem(tolKey(sid)); } catch(e){ v = null; }
+    var n = v == null || v === "" ? 10 : +v;
+    return isNaN(n) || n < 0 ? 10 : n;
+  }
+  function dayExpected(rec){
+    var a = 0; (rec.items || []).forEach(function(it){ a += num(it[2]); });
+    var s = num(rec.srv), d = num(rec.disc);
+    return { items:a, srv:s, disc:d, total:a + s - d };
+  }
+  function closeCalc(c){
+    var cashIn = num(c.cash) - num(c.float) + num(c.exp);
+    return { cashIn:cashIn, card:num(c.card), deliv:num(c.deliv), actual:cashIn + num(c.card) + num(c.deliv) };
+  }
+  function judge(diff, tol){
+    return Math.abs(diff) <= tol ? { cls:"ok", label:"帳平" } : diff < 0 ? { cls:"bad", label:"短少 " + fmtInt(-diff) } : { cls:"over", label:"多收 " + fmtInt(diff) };
+  }
+  function closeStatus(sid, date){
+    var r = dayStore[sid] && dayStore[sid][date]; if (!r || !r.close) return null;
+    var e = dayExpected(r), k = closeCalc(r.close), diff = Math.round(k.actual - e.total), j = judge(diff, tolOf(sid));
+    return { diff:diff, cls:j.cls, label:j.label, actual:k.actual, expected:e.total, k:k };
+  }
+  // 開店底錢：前一次關帳時「留給明天的底錢」
+  function prevKeep(sid, date){
+    var all = dayStore[sid] || {}, ds = Object.keys(all).filter(function(d){ return d < date && all[d].close; }).sort();
+    for (var i = ds.length - 1; i >= 0; i--){ var c = all[ds[i]].close; if (c.keep != null && c.keep !== "") return num(c.keep); }
+    return null;
+  }
+  var CL_IDS = ["clFloat","clCash","clExp","clCard","clDeliv","clKeep"], CL_KEYS = ["float","cash","exp","card","deliv","keep"];
+  var clKey = null;
+  function setClMsg(t, bad){ var el = byId("clMsg"); el.textContent = t || ""; el.style.color = bad ? "var(--warn)" : ""; }
+  function setStMsg(t, bad){ var el = byId("stMsg"); el.textContent = t || ""; el.style.color = bad ? "var(--warn)" : ""; }
+  function dayLabel(d){ return d.slice(5).replace("-", "/") + "（" + weekdayOf(d) + "）"; }
+  function rowR(a, b, cls){ return '<div class="r' + (cls ? " " + cls : "") + '"><span>' + a + '</span><span>' + b + '</span></div>'; }
+  function renderReconPane(force){
+    var brand = isBrandView();
+    ["closeCard","closeMonthCard","monthEndCard"].forEach(function(id){ byId(id).hidden = brand; });
+    byId("reconBrandNote").hidden = !brand;
+    if (brand) return;
+    var sid = state.storeSel, lbl = storeLabel(storeById(sid));
+    byId("clStoreNote").textContent = lbl;
+    byId("meStoreNote").textContent = lbl;
+    var dEl = byId("clDate");
+    if (!dEl.value) dEl.value = todayStr();
+    dEl.max = todayStr();
+    var date = dEl.value, rec = dayStore[sid] && dayStore[sid][date];
+    var ex = byId("clExpected");
+    if (rec){
+      var e = dayExpected(rec);
+      ex.innerHTML = rowR("當日應收（來自報表分析的每日銷售）", "", "m") + rowR("菜色金額", esc(fmtMoney(e.items))) +
+        (e.srv ? rowR("服務費", "＋ " + esc(fmtMoney(e.srv))) : "") + (e.disc ? rowR("折扣", "− " + esc(fmtMoney(e.disc))) : "") +
+        rowR("應收", esc(fmtMoney(e.total)), "sum");
+    }
+    ex.hidden = !rec;
+    byId("clNoData").hidden = !!rec;
+    byId("clForm").hidden = !rec;
+    var key = sid + "|" + date;
+    if (force || key !== clKey){
+      clKey = key;
+      var c = rec && rec.close ? rec.close : {};
+      CL_IDS.forEach(function(id, i){ var v = c[CL_KEYS[i]]; byId(id).value = v == null || v === "" ? "" : v; });
+      if (rec && !rec.close){ var pk = prevKeep(sid, date); if (pk != null) byId("clFloat").value = pk; }
+      var del = byId("btnClDel");
+      del.hidden = !(rec && rec.close); del.removeAttribute("data-confirm"); del.textContent = "刪除這天的關帳";
+      setClMsg("");
+    }
+    byId("clTolVal").textContent = fmtInt(tolOf(sid));
+    byId("clTolEdit").hidden = true; byId("btnClTol").hidden = false;
+    updateCloseCalc();
+    renderCloseMonth();
+    renderMonthEnd();
+  }
+  function readClose(){
+    var o = {};
+    CL_IDS.forEach(function(id, i){ var v = byId(id).value; o[CL_KEYS[i]] = v === "" ? null : num(v); });
+    return o;
+  }
+  function updateCloseCalc(){
+    var sid = state.storeSel, date = byId("clDate").value, rec = dayStore[sid] && dayStore[sid][date];
+    var act = byId("clActual"), st = byId("clState"), c = readClose();
+    if (!rec || (c.cash == null && c.card == null && c.deliv == null)){ act.hidden = true; st.hidden = true; return; }
+    var k = closeCalc(c), e = dayExpected(rec), diff = Math.round(k.actual - e.total), tol = tolOf(sid), j = judge(diff, tol);
+    act.innerHTML = rowR("現金收入（" + fmtInt(num(c.cash)) + " − " + fmtInt(num(c.float)) + " ＋ " + fmtInt(num(c.exp)) + "）", esc(fmtMoney(k.cashIn))) +
+      rowR("刷卡、行動支付", esc(fmtMoney(k.card))) + rowR("外送平台訂單", esc(fmtMoney(k.deliv))) + rowR("實收", esc(fmtMoney(k.actual)), "sum");
+    act.hidden = false;
+    var tail = "實收 " + fmtMoney(k.actual) + "，應收 " + fmtMoney(e.total);
+    st.className = "cl-st " + j.cls;
+    st.innerHTML = j.cls === "ok" ? "帳平<small>" + esc(tail) + (diff ? "，差 " + fmtInt(Math.abs(diff)) + " 元，在 " + fmtInt(tol) + " 元以內" : "") + "。</small>"
+      : j.cls === "bad" ? "短少 " + fmtInt(-diff) + " 元<small>" + esc(tail) + "。可能找錯錢或漏記支出。</small>"
+      : "多收 " + fmtInt(diff) + " 元<small>" + esc(tail) + "。可能有單沒有登錄。</small>";
+    st.hidden = false;
+  }
+  function saveClose(){
+    if (isBrandView()) return;
+    var sid = state.storeSel, date = byId("clDate").value, rec = dayStore[sid] && dayStore[sid][date];
+    if (!rec) return;
+    var c = readClose();
+    if (c.cash == null && c.card == null && c.deliv == null){ setClMsg("請至少填寫抽屜裡的現金，或刷卡、外送的收入。", true); return; }
+    ["float","cash","exp","card","deliv"].forEach(function(k){ if (c[k] == null) c[k] = 0; });
+    c.savedAt = new Date().toISOString();
+    rec.close = c;
+    persistDay(sid, date, rec);
+    var s = closeStatus(sid, date);
+    renderReconPane(true);
+    setClMsg("已儲存 " + dayLabel(date) + " 的關帳：" + s.label + "。");
+    logAppend("每日關帳", storeLabel(storeById(sid)), "ok", date + "：實收 " + fmtMoney(s.actual) + "，應收 " + fmtMoney(s.expected) + "，" + s.label);
+    renderManual();
+  }
+  function deleteClose(){
+    var sid = state.storeSel, date = byId("clDate").value, rec = dayStore[sid] && dayStore[sid][date], btn = byId("btnClDel");
+    if (!rec || !rec.close) return;
+    if (btn.getAttribute("data-confirm") !== "1"){ btn.setAttribute("data-confirm", "1"); btn.textContent = "確定刪除 " + dayLabel(date) + " 的關帳？再按一次"; return; }
+    delete rec.close;
+    persistDay(sid, date, rec);
+    renderReconPane(true);
+    setClMsg("已刪除 " + dayLabel(date) + " 的關帳。");
+    logAppend("刪除關帳", storeLabel(storeById(sid)), "ok", date);
+    renderManual();
+  }
+  function openClose(date){
+    if (isBrandView()) return;
+    byId("clDate").value = date;
+    showPane("recon");
+    renderReconPane(true);
+    try { byId("closeCard").scrollIntoView({ behavior:"smooth", block:"start" }); } catch(e){ /* 舊瀏覽器 */ }
+  }
+  function openDailySales(date){
+    showPane("report");
+    byId("tabManual").hidden = false;
+    if (date) byId("manDate").value = date;
+    renderManual();
+    try { byId("tabManual").scrollIntoView({ behavior:"smooth", block:"start" }); } catch(e){ /* 舊瀏覽器 */ }
+  }
+  function renderCloseMonth(){
+    var sid = state.storeSel, mEl = byId("cmMonth");
+    if (!mEl.value) mEl.value = (byId("clDate").value || todayStr()).slice(0, 7);
+    var mk = mEl.value, all = dayStore[sid] || {}, body = byId("cmBody");
+    var days = Object.keys(all).filter(function(d){ return d.slice(0, 7) === mk; }).sort();
+    if (!days.length){ body.innerHTML = '<div class="hint" style="margin-top:0">' + esc(monthLabelOf(mk)) + ' 沒有每日銷售資料。每日關帳需要先在「報表分析」登錄每日銷售。</div>'; return; }
+    var closed = [], cashIn = 0, card = 0, deliv = 0, diffSum = 0;
+    days.forEach(function(d){
+      var s = closeStatus(sid, d); if (!s) return;
+      closed.push({ d:d, s:s }); cashIn += s.k.cashIn; card += s.k.card; deliv += s.k.deliv; diffSum += s.diff;
+    });
+    var tj = diffSum === 0 ? { cls:"ok", label:"帳平" } : diffSum < 0 ? { cls:"bad", label:"短少 " + fmtInt(-diffSum) } : { cls:"over", label:"多收 " + fmtInt(diffSum) };
+    function k(t, v, cls){ return '<div class="k"><small>' + t + '</small><b' + (cls ? ' class="' + cls + '"' : '') + '>' + v + '</b></div>'; }
+    var html = '<div class="kpi5">' + k("已關帳", closed.length + " 天") + k("現金收入", esc(fmtMoney(cashIn))) + k("刷卡、行動支付", esc(fmtMoney(card))) +
+      k("外送平台訂單", esc(fmtMoney(deliv))) + k("全月累計", closed.length ? esc(tj.label) : "—", closed.length ? tj.cls : "") + '</div>';
+    var bad = closed.filter(function(x){ return x.s.cls !== "ok"; });
+    if (bad.length){
+      html += '<div class="hint">有 ' + bad.length + ' 天帳不平，點日期可回到當天檢查：</div>' +
+        bad.map(function(x){ return '<div class="cl-day" data-day="' + x.d + '" role="button" tabindex="0"><span>' + dayLabel(x.d) + '</span><span>實收 ' + esc(fmtMoney(x.s.actual)) + '．應收 ' + esc(fmtMoney(x.s.expected)) + '</span><span class="pill ' + x.s.cls + '">' + esc(x.s.label) + '</span></div>'; }).join("");
+    }
+    if (closed.length && closed.length > bad.length) html += '<div class="hint">' + (bad.length ? '其他 ' + (closed.length - bad.length) + ' 天帳平。' : '已關帳的日子都帳平。') + '</div>';
+    if (days.length > closed.length) html += '<div class="hint">另有 ' + (days.length - closed.length) + ' 天已登錄銷售、尚未關帳。</div>';
+    body.innerHTML = html;
+  }
+  function persistSettle(sid){
+    if (!appDb) return;
+    var id = "settlements/" + sid, items = settleStore[sid] || [];
+    persistChain = persistChain.then(function(){ return items.length ? appDb.doc(id).set({ store:sid, items:items, savedAt:new Date().toISOString() }) : appDb.doc(id).delete(); })
+      .catch(function(){ setStMsg("單據存進資料庫失敗，這次頁面內仍可查看。", true); });
+  }
+  function renderMonthEnd(){
+    var sid = state.storeSel, snaps = storeSnaps[sid] || {}, rows = [];
+    // 一、兩份 POS 報表交叉核對（營運總覽 vs 商品排行）
+    Object.keys(snaps).sort().forEach(function(mk){
+      var s = snaps[mk];
+      if (!s || s.source === "manual" || !s.daily || !Array.isArray(s.products)) return;
+      var pr = 0; s.products.forEach(function(pd){ if (Array.isArray(pd)) pr += +pd[2] || 0; });
+      var rev = +s.daily.rev || 0;
+      if (!(pr > 0) || !(rev > 0)) return;
+      var disc = +s.daily.disc || 0, diff = rev - pr, un = diff + disc;
+      rows.push({ mk:mk, rev:rev, pr:pr, diff:diff, disc:disc, un:un, pct:un / rev * 100 });
+    });
+    var cross = byId("meCross");
+    if (!rows.length) cross.innerHTML = '<div class="hint" style="margin-top:0">需要同一個月份的「營運總覽」與「商品排行」兩份報表，才能交叉核對。</div>';
+    else {
+      var sgn = function(v){ v = Math.round(v); return (v > 0 ? "+" : v < 0 ? "−" : "") + fmtInt(Math.abs(v)); };
+      var html = '<div class="recon-wrap"><table class="recon-table"><thead><tr><th>月份</th><th>營運總覽</th><th>商品加總</th><th>差額</th><th>折扣</th><th>還對不上</th></tr></thead><tbody>' +
+        rows.map(function(r){
+          var hi = Math.abs(r.pct) >= 3;
+          return '<tr><td>' + esc(monthLabelOf(r.mk)) + '</td><td>' + fmtInt(r.rev) + '</td><td>' + fmtInt(r.pr) + '</td><td>' + sgn(r.diff) + '</td><td>' + fmtInt(r.disc) + '</td><td' + (hi ? ' class="gap-hi"' : '') + '>' +
+            (Math.round(r.un) ? sgn(r.un) + '（' + Math.abs(r.pct).toFixed(1) + '%）' : '0') + '</td></tr>';
+        }).join("") + '</tbody></table></div>';
+      var ps = rows.map(function(r){ return r.pct; }), mx = Math.max.apply(null, ps), mn = Math.min.apply(null, ps);
+      if (rows.length >= 3 && Math.min(Math.abs(mn), Math.abs(mx)) >= 1 && mx - mn < 1.5 && (mn > 0) === (mx > 0))
+        html += '<div class="hint">每個月都差約 ' + Math.abs((mx + mn) / 2).toFixed(1) + '%，可能是服務費或稅金等固定項目，屬於正常差額。</div>';
+      else html += '<div class="hint">「還對不上」＝差額扣除折扣後剩下的金額；超過營業額 3% 以紅字標示。</div>';
+      cross.innerHTML = html;
+    }
+    // 二、帳面 vs 實際入帳（月結單、撥款單）
+    var sm = byId("stMonth"); if (!sm.value) sm.value = byId("cmMonth").value || todayStr().slice(0, 7);
+    var items = settleStore[sid] || [];
+    var idx = items.map(function(it, i){ return i; }).sort(function(a, b){ return items[a].mk < items[b].mk ? 1 : items[a].mk > items[b].mk ? -1 : a - b; });
+    byId("stList").innerHTML = idx.map(function(i){
+      var it = items[i];
+      return '<div class="st-item"><span>' + esc(monthLabelOf(it.mk)) + '．' + esc(it.kind) + '</span><b>' + esc(fmtMoney(it.amt)) + '</b><button type="button" class="man-del" data-st="' + i + '" aria-label="刪除這筆單據">×</button></div>';
+    }).join("");
+    var byMk = {}; items.forEach(function(it){ byMk[it.mk] = (byMk[it.mk] || 0) + it.amt; });
+    var mks = Object.keys(byMk).sort().reverse(), cmp = byId("stCmp");
+    if (!mks.length){ cmp.innerHTML = ""; return; }
+    cmp.innerHTML = '<div class="recon-wrap" style="margin-top:12px"><table class="recon-table"><thead><tr><th>月份</th><th>帳面非現金</th><th>單據加總</th><th>差額</th><th class="tl">可能原因</th></tr></thead><tbody>' +
+      mks.map(function(mk){
+        var all = dayStore[sid] || {}, book = 0, n = 0;
+        Object.keys(all).forEach(function(d){ if (d.slice(0, 7) !== mk) return; var s = closeStatus(sid, d); if (s){ book += s.k.card + s.k.deliv; n++; } });
+        var tot = byMk[mk];
+        if (!n) return '<tr><td>' + esc(monthLabelOf(mk)) + '</td><td>—</td><td>' + fmtInt(tot) + '</td><td>—</td><td class="tl">需要該月每日關帳資料才能比對</td></tr>';
+        var diff = Math.round(tot - book);
+        var why = Math.abs(diff) <= Math.max(10, book * 0.002) ? "一致" : diff < 0 && -diff <= book * 0.1 ? "可能是外送抽成、刷卡手續費" : diff < 0 ? "差額偏大，請檢查是否漏記單據或關帳資料" : "單據加總大於帳面，請檢查是否重複輸入或漏關帳";
+        return '<tr><td>' + esc(monthLabelOf(mk)) + '</td><td>' + fmtInt(book) + '</td><td>' + fmtInt(tot) + '</td><td' + (diff < 0 && -diff > book * 0.1 ? ' class="gap-hi"' : '') + '>' +
+          (diff > 0 ? "+" : diff < 0 ? "−" : "") + fmtInt(Math.abs(diff)) + '</td><td class="tl">' + why + '</td></tr>';
+      }).join("") + '</tbody></table></div>';
+  }
+  byId("clDate").addEventListener("change", function(){ renderReconPane(); });
+  CL_IDS.forEach(function(id){ byId(id).addEventListener("input", updateCloseCalc); });
+  byId("btnClSave").addEventListener("click", saveClose);
+  byId("btnClDel").addEventListener("click", deleteClose);
+  byId("btnClGoSales").addEventListener("click", function(){ openDailySales(byId("clDate").value); });
+  byId("btnClTol").addEventListener("click", function(){
+    byId("clTolIn").value = tolOf(state.storeSel);
+    byId("clTolEdit").hidden = false; byId("btnClTol").hidden = true; byId("clTolIn").focus();
+  });
+  byId("btnClTolOk").addEventListener("click", function(){
+    var v = Math.max(0, Math.round(num(byId("clTolIn").value)));
+    try { localStorage.setItem(tolKey(state.storeSel), String(v)); } catch(e){ /* 記不住也沒關係 */ }
+    logAppend("修改容許差額", storeLabel(storeById(state.storeSel)), "ok", v + " 元");
+    renderReconPane(); renderManual();
+  });
+  byId("cmMonth").addEventListener("change", renderCloseMonth);
+  byId("cmBody").addEventListener("click", function(e){ var d = e.target.closest ? e.target.closest("[data-day]") : null; if (d) openClose(d.getAttribute("data-day")); });
+  byId("cmBody").addEventListener("keydown", function(e){
+    if (e.key !== "Enter" && e.key !== " ") return;
+    var d = e.target.closest ? e.target.closest("[data-day]") : null; if (!d) return;
+    e.preventDefault(); openClose(d.getAttribute("data-day"));
+  });
+  byId("btnStAdd").addEventListener("click", function(){
+    if (isBrandView()) return;
+    var sid = state.storeSel, mk = byId("stMonth").value, amt = Math.round(num(byId("stAmt").value)), kind = byId("stKind").value;
+    if (!/^\d{4}-\d{2}$/.test(mk)){ setStMsg("請選擇月份。", true); return; }
+    if (!(amt > 0)){ setStMsg("請輸入單據金額。", true); return; }
+    (settleStore[sid] = settleStore[sid] || []).push({ mk:mk, kind:kind, amt:amt, at:new Date().toISOString() });
+    persistSettle(sid);
+    byId("stAmt").value = "";
+    setStMsg("已加入：" + monthLabelOf(mk) + "．" + kind + " " + fmtMoney(amt) + "。");
+    logAppend("月底對帳", storeLabel(storeById(sid)), "ok", "加入單據：" + mk + " " + kind + " " + fmtMoney(amt));
+    renderMonthEnd();
+  });
+  byId("stList").addEventListener("click", function(e){
+    var b = e.target.closest ? e.target.closest("button[data-st]") : null; if (!b) return;
+    var sid = state.storeSel, items = settleStore[sid] || [], i = +b.getAttribute("data-st"), it = items[i]; if (!it) return;
+    items.splice(i, 1);
+    persistSettle(sid);
+    setStMsg("已刪除：" + monthLabelOf(it.mk) + "．" + it.kind + " " + fmtMoney(it.amt) + "。");
+    logAppend("月底對帳", storeLabel(storeById(sid)), "ok", "刪除單據：" + it.mk + " " + it.kind + " " + fmtMoney(it.amt));
+    renderMonthEnd();
+  });
+
   // ---------------- wiring ----------------
   var btnDemo = document.getElementById("btnDemo");
   var btnUpload = document.getElementById("btnUpload");
@@ -4550,6 +5519,8 @@
     warnBox.classList.remove("show");
     document.getElementById("fileChips").hidden = true;
     renderAll(); renderHistory();
+    showNewItems([]);
+    updateTabs(); showPane("report");
     logAppend("切換資料來源", "", "ok", "改用示範資料（虛構小吃店，12個月）");
   });
   btnUpload.addEventListener("click", function(){ fileInput.click(); });
@@ -4563,7 +5534,7 @@
     renderLog();
   });
 
-  function readFileAsync(file){
+  function readFileAsync(file, mode){
     return new Promise(function(resolve){
       var ext = (file.name.split(".").pop()||"").toLowerCase();
       var reader = new FileReader();
@@ -4580,6 +5551,10 @@
             var wb = XLSX.read(new Uint8Array(reader.result), { type:"array" });
             rows = sheetToRows(wb);
           }
+          if (mode === "menu"){
+            var mr = menuFromRows(rows);
+            if (mr){ resolve({ ok:true, type:"menu", typeName:"菜單", items:mr, fileName:file.name }); return; }
+          }
           var result = classifyAndExtract(file.name, rows);
           result.fileName = file.name;
           resolve(result);
@@ -4593,14 +5568,12 @@
     });
   }
 
-  fileInput.addEventListener("change", async function(){
-    var files = Array.prototype.slice.call(fileInput.files||[]);
-    fileInput.value = ""; // 同一個檔案可以再選一次
-    if (!files.length) return;
+  // 讀檔（看不懂的欄位會一個一個問老闆）
+  async function parseUploads(files, mode){
     state.userTouched = true;
     // 先記「開始處理」：就算中途當掉，也能從「有開始、沒結束」看出卡在哪一步
     logAppend("開始處理", files.map(function(f){ return f.name; }).join("、"), "ok", "準備讀取 " + files.length + " 個檔案");
-    var parsedList = await Promise.all(files.map(readFileAsync));
+    var parsedList = await Promise.all(files.map(function(f){ return readFileAsync(f, mode); }));
 
     // 看不懂的檔案：一個一個問老闆
     for (var i=0; i<parsedList.length; i++){
@@ -4622,6 +5595,11 @@
       parsedList[i] = r;
     }
 
+    return parsedList;
+  }
+  // 讀好的檔案存進報表分析（每個檔案歸到檔名上的店，沒有就放目前選的店；forceSid 指定店）
+  function importParsed(parsedList, opts){
+    opts = opts || {};
     renderFileChips(parsedList);
     var badOnes = parsedList.filter(function(p){ return !p.ok; });
     var goodOnes = parsedList.filter(function(p){ return p.ok; });
@@ -4639,6 +5617,7 @@
     });
 
     if (!goodOnes.length){
+      showPane("report");
       warnBox.innerHTML = "<b>這些檔案都沒辦法辨識：</b>" + badOnes.map(function(b){ return esc(b.fileName) + "（" + esc(b.reason) + "）"; }).join("；") + "。已保留原本的資料。";
       warnBox.classList.add("show");
       return;
@@ -4654,8 +5633,8 @@
     // 每個檔案歸到哪一家分店：檔名有店名就用檔名，沒有就用上方選的分店
     var groups = {}, order = [], noStore = [];
     goodOnes.forEach(function(g){
-      var hit = storeFromFileName(g.fileName);
-      var sid = hit ? hit.id : (isBrandView() ? null : state.storeSel);
+      var hit = opts.forceSid ? null : storeFromFileName(g.fileName);
+      var sid = opts.forceSid || (hit ? hit.id : (isBrandView() ? null : state.storeSel));
       if (!sid){ noStore.push(g.fileName); return; }
       g.storeId = sid;
       if (hit && hit.created) logAppend("新增分店", g.fileName, "ok", "從檔名認出新分店「" + storeLabel(hit) + "」");
@@ -4668,12 +5647,15 @@
       warnBox.classList.add("show");
       noStore.forEach(function(n){ logAppend("上傳檔案", n, "fail", "不知道是哪一家分店，已略過"); });
     }
-    if (!order.length){ renderStoreUI(); return; }
+    if (!order.length){ renderStoreUI(); showPane("report"); return; }
+    var newItems = [];
 
     order.forEach(function(sid){
       var g = groups[sid];
       var merged = mergeParsedFiles(g);
       var savedMks = saveUploadToHistory(merged, g.map(function(x){ return x.fileName; }), sid);
+      var fresh = syncMenuWithSales(sid, savedMks);
+      if (fresh.length) newItems.push({ sid:sid, names:fresh, mks:savedMks });
       var mergedTot = monthsTotal(merged);
       logAppend("合併報表", "", "ok", storeLabel(storeById(sid)) + "：成功合併 " + g.length + " 個檔案，涵蓋 " + merged.months.length + " 個月" +
         (merged.hasAmount ? "，總營業額 " + fmtMoney(mergedTot.totalRev) : "") +
@@ -4699,6 +5681,107 @@
     renderAll();
     renderHistory();
     if (order.length > 1) setHistMsg("這次上傳了 " + order.length + " 家分店：" + order.map(function(sid){ return storeLabel(storeById(sid)); }).join("、") + "。可以在上方「分店」切換。");
+    showNewItems(newItems);
+    updateTabs();
+    showPane("report");
+  }
+  fileInput.addEventListener("change", async function(){
+    var files = Array.prototype.slice.call(fileInput.files||[]);
+    fileInput.value = ""; // 同一個檔案可以再選一次
+    if (!files.length) return;
+    importParsed(await parseUploads(files, "sales"));
+  });
+
+  // 報表裡出現菜單上沒有的品項
+  function showNewItems(list){
+    var el = byId("newItemsNote"); if (!el) return;
+    if (!list || !list.length){ el.hidden = true; el.innerHTML = ""; return; }
+    var all = [], mks = {};
+    list.forEach(function(x){ all = all.concat(x.names); x.mks.forEach(function(m){ mks[m] = 1; }); });
+    var ml = Object.keys(mks).sort(), lab = ml.length <= 2 ? ml.map(monthLabelOf).join("、") : monthLabelOf(ml[0]) + "～" + monthLabelOf(ml[ml.length - 1]);
+    el.innerHTML = '<b>' + esc(lab) + ' 銷售報表中有 ' + all.length + ' 項品項未列於菜單：</b>' + esc(all.slice(0, 8).join("、")) + (all.length > 8 ? "…" : "") +
+      '。已自動加入菜單（橘色標示），請確認為新品項或既有品項更名。<div class="log-actions"><button type="button" class="file-btn" data-sid="' + esc(list[0].sid) + '">前往菜單確認</button></div>';
+    el.hidden = false;
+  }
+  byId("newItemsNote").addEventListener("click", function(e){
+    var b = e.target.closest ? e.target.closest("button[data-sid]") : null; if (!b) return;
+    var sid = b.getAttribute("data-sid");
+    if (state.storeSel !== sid && storeById(sid)) selectStore(sid, true);
+    showPane("menu");
+  });
+
+  // ---------- 用 Excel 建菜單 ----------
+  byId("menuFileInput").addEventListener("change", async function(){
+    var inp = byId("menuFileInput"), files = Array.prototype.slice.call(inp.files || []);
+    inp.value = "";
+    if (!files.length) return;
+    if (isBrandView()){ setMenuMsg("請先在「店家資訊」選擇一家店。", true); return; }
+    var sid = state.storeSel;
+    setMenuMsg("讀取中…");
+    var list = await parseUploads(files, "menu");
+    var good = list.filter(function(x){ return x.ok; }), bad = list.filter(function(x){ return !x.ok; });
+    var agg = {}, order = [], sales = [], labels = [], flags = {};
+    good.forEach(function(x){
+      if (x.type === "menu"){
+        x.items.forEach(function(it){ if (!agg[it[0]]){ agg[it[0]] = { price:it[1], cat:it[2] || "" }; order.push(it[0]); } });
+      } else if (x.type === "product"){
+        sales.push(x); labels.push(x.periodLabel || monthLabelOf(x.month));
+        Object.keys(x.products).forEach(function(n0){
+          var n = cleanName(n0), q = x.products[n0].qty, r = x.products[n0].rev;
+          if (!n || !(q > 0) || !(r > 0)) return;
+          var a = agg[n];
+          if (!a){ a = agg[n] = { qty:0, rev:0, cat:"" }; order.push(n); }
+          if (a.price == null){ a.qty += q; a.rev += r; }
+        });
+      } else if (x.type === "daily"){
+        sales.push(x); (x.months || []).forEach(function(m){ labels.push(monthLabelOf(m)); });
+      }
+    });
+    var items = order.map(function(n){
+      var a = agg[n];
+      if (a.price != null) return [n, Math.round(a.price), a.cat];
+      var raw = a.rev / a.qty, pr = Math.round(raw);
+      if (Math.abs(raw - pr) > 0.01) flags[n] = "單價由「銷售金額 ÷ 數量」推算為 " + (Math.round(raw * 10) / 10) + "，可能含折扣或招待，請確認售價。";
+      return [n, pr, ""];
+    });
+    if (!items.length){
+      setMenuMsg(good.some(function(x){ return x.type === "daily"; }) ? "這份檔案是營運總覽，沒有品項資料。請改用商品排行，或只有品名與價格的菜單檔。" :
+        "讀不到品名與價格，請確認檔案有「品名」與「價格」欄位。" + (bad.length ? "（" + bad.map(function(x){ return x.fileName + "：" + x.reason; }).join("；") + "）" : ""), true);
+      logAppend("用 Excel 建菜單", files.map(function(f){ return f.name; }).join("、"), "fail", "讀不到品項");
+      return;
+    }
+    openMenuEditor(sid);
+    menuAdoptCats(items);
+    // 加進編輯器：已經有的品項只補價格；新的標成橘色
+    var have = {}, added = 0;
+    readMenuRows().forEach(function(r){ if (!r.name && !r.price) r.row.remove(); else if (r.name) have[r.name] = r.row; });
+    items.forEach(function(it){
+      var r = have[it[0]];
+      if (r){ var pi = r.querySelector(".mn-price"); if (!pi.value) pi.value = it[1]; return; }
+      var nr = addMenuRow(it); nr.setAttribute("data-src", "excel"); added++;
+      if (flags[it[0]]) addFlag(nr, flags[it[0]]);
+    });
+    if (!editCat) addMenuRow();
+    updateCatCounts();
+    byId("menuDone").hidden = true;
+    if (sales.length){
+      menuImportPending = { sid:sid, list:sales };
+      byId("menuAskTitle").textContent = "偵測到 " + labels.filter(function(v, i, a){ return a.indexOf(v) === i; }).join("、") + " 銷售資料";
+      byId("menuAsk").hidden = false;
+    } else { menuImportPending = null; byId("menuAsk").hidden = true; }
+    setMenuMsg("已讀取 " + items.length + " 項品項，新增 " + added + " 項。橘色底的是從檔案帶入的，請確認後" + (sales.length ? "選擇上方的匯入方式。" : "按「儲存菜單」。"));
+    logAppend("用 Excel 建菜單", files.map(function(f){ return f.name; }).join("、"), "ok", "讀取 " + items.length + " 項品項" + (sales.length ? "，含 " + labels.length + " 個月份銷售資料" : ""));
+  });
+  byId("btnAskImport").addEventListener("click", function(){
+    var pend = menuImportPending;
+    if (!saveMenu()) return;
+    byId("menuAsk").hidden = true; menuImportPending = null;
+    if (pend && pend.sid === state.storeSel) importParsed(pend.list, { forceSid:pend.sid });
+    else showPane("report");
+  });
+  byId("btnAskMenuOnly").addEventListener("click", function(){
+    if (!saveMenu()) return;
+    byId("menuAsk").hidden = true; menuImportPending = null;
   });
 
   try { renderAll(); } catch(e){ /* fail quiet, keep static markup visible */ }
