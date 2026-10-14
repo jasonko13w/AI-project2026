@@ -813,6 +813,7 @@
       <div id="menuEditor" hidden>
         <div class="menu-tools">
           <label class="switch"><input type="checkbox" id="menuUseCat"><span class="tog" aria-hidden="true"></span>使用分類</label>
+          <button class="file-btn es-main" id="btnCatAdd" type="button" hidden>新增分類</button>
           <button class="file-btn" id="btnMenuExcel" type="button">用 Excel 匯入</button>
         </div>
         <div class="hint" id="catHint" hidden>點菜名可以換分類</div>
@@ -825,7 +826,6 @@
           <div id="menuRows"></div>
           <div class="log-actions">
             <button class="file-btn es-main" id="btnMenuAdd" type="button">新增品項</button>
-            <button class="file-btn" id="btnCatAdd" type="button" hidden>新增分類</button>
             <button class="file-btn es-main" id="btnMenuSave" type="button">儲存菜單</button>
           </div>
           <div class="hint" id="menuMsg"></div>
@@ -4716,7 +4716,8 @@
     var n = 1, nm;
     do { nm = "新分類" + (n > 1 ? n : ""); n++; } while (catNames().indexOf(nm) !== -1);
     var bl = catBlock(nm, true); updateCatCounts();
-    var ip = bl.querySelector(".cat-name"); ip.focus(); ip.select();
+    try { bl.scrollIntoView({ behavior:"smooth", block:"center" }); } catch(e){ /* 舊瀏覽器 */ }
+    var ip = bl.querySelector(".cat-name"); ip.focus({ preventScroll:true }); ip.select();
   });
   byId("btnMenuSave").addEventListener("click", function(){ saveMenu(); });
   byId("menuRows").addEventListener("click", function(e){
