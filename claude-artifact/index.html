@@ -203,7 +203,21 @@
   .warn.show{ display:block; }
   .warn b{ color:var(--warn); }
 
-  .file-chips{ display:flex; flex-direction:column; gap:6px; margin-top:12px; }
+  .fmt-box{ margin-top:14px; padding-top:12px; border-top:1px solid var(--border); }
+  .fmt-h{ font-size:13px; font-weight:700; color:var(--text-secondary, #52514e); margin-bottom:4px; }
+  .fmt-list{ margin:0; padding-left:18px; font-size:13px; color:var(--text-secondary, #52514e); }
+  .fmt-note{ font-size:12px; color:var(--muted); margin-top:4px; }
+  .file-chips{ display:flex; flex-direction:column; gap:8px; margin-top:12px; }
+  .fc2{ display:flex; gap:10px; align-items:flex-start; border:1px solid var(--border); border-radius:12px; padding:10px 12px; background:#e2f3e7; border-color:#bfe2c9; color:#2b2b2b; }
+  .fc2.bad{ background:#fdf1dc; border-color:#f0d8a8; }
+  .fc2 .fc-ic{ width:22px; height:22px; border-radius:50%; flex:none; display:inline-flex; align-items:center; justify-content:center; font-size:12px; font-weight:800; color:#fff; background:#2f8a4f; margin-top:1px; }
+  .fc2.bad .fc-ic{ background:#a15c00; }
+  .fc2 .fc-body{ flex:1; min-width:0; }
+  .fc2 .fc-t{ font-size:13.5px; font-weight:700; }
+  .fc2 .fc-fn{ font-weight:400; color:#777; font-size:12px; word-break:break-all; margin-left:6px; }
+  .fc2 .fc-d{ font-size:13px; color:#52514e; }
+  .fc2 .fc-act{ display:flex; gap:6px; flex-wrap:wrap; margin-top:8px; }
+  .fc2 .fc-act button{ font:inherit; font-size:12.5px; font-weight:700; border:1px solid #e6e1da; background:#fff; color:#52514e; border-radius:999px; padding:5px 12px; cursor:pointer; }
   .file-chip{
     display:flex; align-items:center; gap:10px; padding:8px 10px; border-radius:10px;
     background:var(--surface-2); font-size:12.5px;
@@ -813,7 +827,7 @@
         <button class="file-btn" id="btnDemo" type="button" aria-pressed="false">載入示範資料</button>
       </div>
       <input type="file" id="fileInput" accept=".csv,.xlsx,.xls" multiple hidden>
-      <div class="hint">可一次選取多個檔案（.xlsx／.xls／.csv），例如營運總覽與商品排行。檔名含店名時，會自動歸入該店。</div>
+      <div class="fmt-box"><div class="fmt-h">支援格式：iChef 匯出報表（可一次選多個檔案）</div><ul class="fmt-list"><li>業績概況：每日營業額、來客數、折扣</li><li>商品排行：品項銷售量、銷售額</li></ul><div class="fmt-note">其他 POS 或自製報表，可用「新增每日銷售」輸入。</div></div>
       <div class="new-items" id="newItemsNote" hidden></div>
       <div class="warn" id="parseWarn"></div>
       <div class="file-chips" id="fileChips" hidden></div>
@@ -1094,7 +1108,7 @@
 </div>
 
 <dialog class="map-dlg" id="mapDlg" aria-labelledby="mapTitle">
-  <div class="dlg-title" id="mapTitle">有些欄位我看不懂，請幫我確認</div>
+  <div class="dlg-title" id="mapTitle">手動指定欄位</div>
   <div class="hint" id="mapFile" style="margin-top:0"></div>
   <label class="fld"><span class="mapfld-label">欄位名稱在第幾列</span><select id="mapHeaderRow"></select></label>
   <div class="recon-wrap"><table class="recon-table preview" id="mapPreview"></table></div>
@@ -1109,7 +1123,7 @@
   <div class="dlg-actions">
     <button type="button" class="file-btn" id="mapAi" hidden>讓 AI 幫我猜</button>
     <span style="flex:1"></span>
-    <button type="button" class="file-btn" id="mapSkip">略過這個檔案</button>
+    <button type="button" class="file-btn" id="mapSkip">取消</button>
     <button type="button" class="btn-primary" id="mapOk">確認</button>
   </div>
 </dialog>
@@ -2874,7 +2888,7 @@
 
     // 類型二：商品排行（單一期間的快照，月份從檔名猜，猜不到就問老闆）
     var period = manualMonth ? periodFromFilename(manualMonth) : periodFromFilename(fileName);
-    if (!period) return { ok:false, needsMonth:true, reason:"這是商品排行類的報表，但檔名裡找不到日期，沒辦法判斷是哪個月份" };
+    if (!period) return { ok:false, needsMonth:true, reason:"商品排行的檔名沒有日期，無法判斷月份。" };
     var mk2 = period.months[0];
     var products = {};
     body.forEach(function(r){
@@ -2893,7 +2907,7 @@
   function classifyAndExtract(fileName, rows){
     if (!rows.length) return { ok:false, reason:"檔案是空的" };
     var det = detectHeaderRow(rows);
-    if (!det) return { ok:false, needsMapping:true, rows:rows, reason:"欄位名稱跟內建對照表對不上，看不出這是「營運總覽」還是「商品排行」" };
+    if (!det) return { ok:false, needsMapping:true, rows:rows, reason:"非 iChef 報表格式，系統無法辨識。" };
     var r = extractWith(fileName, rows, det.h, det.map);
     r.mapSource = det.source;
     if (!r.ok && r.needsMonth){ r.needsMapping = true; r.rows = rows; r.preset = det; }
@@ -3045,7 +3059,7 @@
       dlg.item = item; dlg.resolve = resolve; dlg.confirmWarn = false;
       var rows = item.rows;
       byId("mapFile").textContent = "檔案：「" + item.fileName + "」" +
-        (item.needsMonth ? "——欄位看懂了，但檔名裡沒有日期，請告訴我這是哪個月份。" : "——欄位名稱跟內建對照表對不上，請告訴我每一欄是什麼。下面是檔案的前幾列，看數字比較好判斷。");
+        (item.needsMonth ? "——請指定這份報表的月份。" : "——請指定每個項目對應的欄位。");
       var hs = byId("mapHeaderRow"); hs.innerHTML = "";
       for (var h=0; h<Math.min(10, rows.length); h++){
         var o = document.createElement("option"); o.value = String(h); o.textContent = "第 " + (h+1) + " 列"; hs.appendChild(o);
@@ -4581,27 +4595,67 @@
   }
 
   // ---------------- 檔案清單 UI ----------------
+  var chipList = [];
+  function chipSummary(p){
+    if (p.type === "daily"){
+      var tot = 0; p.months.forEach(function(mk){ tot += p.revByMonth[mk] || 0; });
+      var when = p.months.length === 1 ? monthLabelOf(p.months[0]) : (p.months.length + " 個月");
+      return { t:"業績概況　" + when, d:"營業額 " + fmtMoney(tot) };
+    }
+    var names = Object.keys(p.products), rev = 0;
+    names.forEach(function(n){ rev += p.products[n].rev || 0; });
+    return { t:"商品排行　" + (p.periodLabel || monthLabelOf(p.month)), d:names.length + " 個品項" + (p.hasRev ? "，銷售額 " + fmtMoney(rev) : "") };
+  }
   function renderFileChips(parsedList){
+    if (parsedList) chipList = parsedList.slice();
     var box = document.getElementById("fileChips");
     box.innerHTML = "";
-    if (!parsedList.length){ box.hidden = true; return; }
+    if (!chipList.length){ box.hidden = true; return; }
     box.hidden = false;
-    parsedList.forEach(function(p){
+    chipList.forEach(function(p, i){
       var chip = document.createElement("div");
-      chip.className = "file-chip" + (p.ok ? "" : " fc-bad");
-      var nameEl = document.createElement("div");
-      nameEl.className = "fc-name";
-      nameEl.textContent = p.fileName;
-      var tagEl = document.createElement("div");
-      tagEl.className = "fc-tag";
-      tagEl.textContent = p.ok ? p.typeName : "無法辨識";
-      var monthEl = document.createElement("div");
-      monthEl.className = "fc-month";
-      monthEl.textContent = p.ok ? (p.type==="daily" ? (p.months.length+"個月") : (p.periodLabel || monthLabelOf(p.month))) : (p.reason||"");
-      chip.appendChild(nameEl); chip.appendChild(tagEl); chip.appendChild(monthEl);
+      chip.className = "fc2" + (p.ok ? "" : " bad");
+      var ic = document.createElement("span"); ic.className = "fc-ic"; ic.textContent = p.ok ? "✓" : "!";
+      var body = document.createElement("div"); body.className = "fc-body";
+      var t = document.createElement("div"); t.className = "fc-t";
+      var fn = document.createElement("span"); fn.className = "fc-fn"; fn.textContent = p.fileName;
+      var d = document.createElement("div"); d.className = "fc-d";
+      if (p.ok){
+        var sm = chipSummary(p);
+        t.textContent = sm.t; d.textContent = sm.d + (p.sheetNote ? "。" + p.sheetNote : "");
+      } else {
+        t.textContent = "未匯入"; d.textContent = (p.reason || "") + (p.sheetNote ? p.sheetNote : "");
+      }
+      t.appendChild(fn); body.appendChild(t); body.appendChild(d);
+      if (!p.ok){
+        var act = document.createElement("div"); act.className = "fc-act";
+        if (p.needsMapping){
+          var b1 = document.createElement("button"); b1.type = "button"; b1.setAttribute("data-fc-map", i);
+          b1.textContent = p.needsMonth ? "指定月份" : "手動指定欄位"; act.appendChild(b1);
+        }
+        var b2 = document.createElement("button"); b2.type = "button"; b2.setAttribute("data-fc-del", i); b2.textContent = "移除";
+        act.appendChild(b2); body.appendChild(act);
+      }
+      chip.appendChild(ic); chip.appendChild(body);
       box.appendChild(chip);
     });
   }
+  document.getElementById("fileChips").addEventListener("click", async function(e){
+    var del = e.target.closest("[data-fc-del]"), mp = e.target.closest("[data-fc-map]");
+    if (del){ chipList.splice(+del.getAttribute("data-fc-del"), 1); renderFileChips(); return; }
+    if (!mp) return;
+    var i = +mp.getAttribute("data-fc-map"), p = chipList[i];
+    var ans = await askMapping(p);
+    if (!ans) return;
+    var r = extractWith(p.fileName, p.rows, ans.h, normMap(ans.map), ans.month);
+    r.fileName = p.fileName;
+    if (!r.ok){ r.needsMapping = true; r.rows = p.rows; r.needsMonth = !!r.needsMonth; chipList[i] = r; renderFileChips(); return; }
+    r.mapSource = "老闆指定";
+    if (ans.remember) rememberMapping(ans.headers, normMap(ans.map));
+    logAppend("欄位對應", p.fileName, "ok", "老闆指定為「" + KIND_NAMES[ans.map.kind] + "」" + (ans.remember ? "，已記住這個格式" : ""));
+    chipList[i] = r;
+    importParsed([r], { chips:chipList });
+  });
 
   // ================= 四個分頁 =================
   var paneNow = "store";
@@ -5046,6 +5100,7 @@
             }
             var wb = XLSX.read(new Uint8Array(reader.result), { type:"array" });
             rows = sheetToRows(wb);
+            var sheetCount = wb.SheetNames.length;
           }
           if (mode === "menu"){
             var mr = menuFromRows(rows);
@@ -5053,6 +5108,7 @@
           }
           var result = classifyAndExtract(file.name, rows);
           result.fileName = file.name;
+          if (sheetCount > 1) result.sheetNote = "此檔案有 " + sheetCount + " 個分頁，只讀取第一頁。";
           resolve(result);
         } catch(e){
           resolve({ ok:false, fileName:file.name, reason:"讀取檔案時發生錯誤：" + e.message });
@@ -5071,32 +5127,13 @@
     logAppend("開始處理", files.map(function(f){ return f.name; }).join("、"), "ok", "準備讀取 " + files.length + " 個檔案");
     var parsedList = await Promise.all(files.map(function(f){ return readFileAsync(f, mode); }));
 
-    // 看不懂的檔案：一個一個問老闆
-    for (var i=0; i<parsedList.length; i++){
-      var p = parsedList[i];
-      if (p.ok || !p.needsMapping) continue;
-      var ans = await askMapping(p);
-      if (!ans){
-        parsedList[i] = { ok:false, fileName:p.fileName, reason:"欄位看不懂，老闆選擇略過" };
-        logAppend("欄位對應", p.fileName, "fail", "老闆選擇略過這個檔案");
-        continue;
-      }
-      var r = extractWith(p.fileName, p.rows, ans.h, normMap(ans.map), ans.month);
-      r.fileName = p.fileName;
-      if (r.ok){
-        r.mapSource = "老闆指定";
-        if (ans.remember) rememberMapping(ans.headers, normMap(ans.map));
-        logAppend("欄位對應", p.fileName, "ok", "老闆指定為「" + KIND_NAMES[ans.map.kind] + "」" + (ans.remember ? "，已記住這個格式" : ""));
-      }
-      parsedList[i] = r;
-    }
-
+    parsedList.forEach(function(p){ if (!p.ok && p.needsMapping) logAppend("上傳檔案", p.fileName, "fail", p.reason); });
     return parsedList;
   }
   // 讀好的檔案存進報表分析（每個檔案歸到檔名上的店，沒有就放目前選的店；forceSid 指定店）
   function importParsed(parsedList, opts){
     opts = opts || {};
-    renderFileChips(parsedList);
+    renderFileChips(opts.chips || parsedList);
     var badOnes = parsedList.filter(function(p){ return !p.ok; });
     var goodOnes = parsedList.filter(function(p){ return p.ok; });
 
@@ -5113,18 +5150,12 @@
     });
 
     if (!goodOnes.length){
+      warnBox.classList.remove("show");
       showPane("report");
-      warnBox.innerHTML = "<b>這些檔案都沒辦法辨識：</b>" + badOnes.map(function(b){ return esc(b.fileName) + "（" + esc(b.reason) + "）"; }).join("；") + "。已保留原本的資料。";
-      warnBox.classList.add("show");
       return;
     }
 
-    if (badOnes.length){
-      warnBox.innerHTML = "<b>有 " + badOnes.length + " 個檔案沒辦法辨識，已略過：</b>" + badOnes.map(function(b){ return esc(b.fileName); }).join("、") + "。其餘檔案已正常合併。";
-      warnBox.classList.add("show");
-    } else {
-      warnBox.classList.remove("show");
-    }
+    warnBox.classList.remove("show");
 
     // 每個檔案歸到哪一家分店：檔名有店名就用檔名，沒有就用上方選的分店
     var groups = {}, order = [], noStore = [];
@@ -5242,7 +5273,7 @@
     });
     if (!items.length){
       setMenuMsg(good.some(function(x){ return x.type === "daily"; }) ? "這份檔案是營運總覽，沒有品項資料。請改用商品排行，或只有品名與價格的菜單檔。" :
-        "讀不到品名與價格，請確認檔案有「品名」與「價格」欄位。" + (bad.length ? "（" + bad.map(function(x){ return x.fileName + "：" + x.reason; }).join("；") + "）" : ""), true);
+        "讀不到品名與價格，請確認檔案有「品名」與「價格」欄位。" + (bad.some(function(x){ return !x.needsMapping; }) ? "（" + bad.filter(function(x){ return !x.needsMapping; }).map(function(x){ return x.fileName + "：" + x.reason; }).join("；") + "）" : ""), true);
       logAppend("用 Excel 建菜單", files.map(function(f){ return f.name; }).join("、"), "fail", "讀不到品項");
       return;
     }
