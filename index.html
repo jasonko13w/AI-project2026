@@ -208,6 +208,7 @@
   .fmt-list{ margin:0; padding-left:18px; font-size:13px; color:var(--text-secondary, #52514e); }
   .fmt-note{ font-size:12px; color:var(--muted); margin-top:4px; }
   .file-chips{ display:flex; flex-direction:column; gap:8px; margin-top:12px; }
+  html.no-recon #mainTabs button[data-pane="recon"], html.no-recon #paneRecon, html.no-recon .man-day .pill, html.no-recon .man-day [data-close]{ display:none !important; }
   .fc-head{ display:flex; align-items:center; gap:8px; font-size:13px; font-weight:700; color:var(--text-primary); }
   .fc-head .fc-sum{ flex:1; min-width:0; }
   .fc-head .fc-sum small{ font-weight:400; color:var(--muted); margin-left:6px; }
@@ -5239,7 +5240,10 @@
     if (isBrandView()) return storesOfBrand(brandOfSel()).some(function(s){ return menuOf(s.id).length > 0; });
     return menuOf(state.storeSel).length > 0;
   }
+  var RECON_ON = false;
+  if (!RECON_ON) document.documentElement.classList.add("no-recon");
   function paneAllowed(p){
+    if (p === "recon" && !RECON_ON) return false;
     if (p === "store") return true;
     if (needsStoreSetup()) return false;
     if (p === "menu") return true;
