@@ -3747,7 +3747,11 @@
   }
 
   function setManMsg(t, bad){ var el = byId("manMsg"); if (!el) return; el.textContent = t || ""; el.style.color = bad ? "var(--warn)" : ""; }
-  function setMenuMsg(t, bad){ var el = byId("menuMsg"); if (!el) return; el.textContent = t || ""; el.style.color = bad ? "var(--warn)" : ""; }
+  function setMenuMsg(t, bad){
+    var ed = byId("menuEditor"), useWays = ed && ed.hidden && byId("waysMsg");
+    var el = useWays ? byId("waysMsg") : byId("menuMsg"); if (!el) return;
+    el.textContent = t || ""; el.style.color = bad ? "var(--warn)" : (useWays ? "var(--muted)" : "");
+  }
 
   // ---------- 菜單 ----------
   // 菜單：[[品名, 價格, 分類]]；分類可以不用（空字串）
@@ -5272,8 +5276,12 @@
       return [n, pr, ""];
     });
     if (!items.length){
-      setMenuMsg(good.some(function(x){ return x.type === "daily"; }) ? "這份檔案是營運總覽，沒有品項資料。請改用商品排行，或只有品名與價格的菜單檔。" :
-        "讀不到品名與價格，請確認檔案有「品名」與「價格」欄位。" + (bad.some(function(x){ return !x.needsMapping; }) ? "（" + bad.filter(function(x){ return !x.needsMapping; }).map(function(x){ return x.fileName + "：" + x.reason; }).join("；") + "）" : ""), true);
+      var why = list.map(function(x){
+        if (x.ok && x.type === "daily") return "「" + x.fileName + "」是業績概況，沒有品項資料";
+        if (!x.ok) return "「" + x.fileName + "」" + (x.needsMapping && !x.needsMonth ? "格式無法辨識" : "：" + String(x.reason || "").replace(/。$/, ""));
+        return "「" + x.fileName + "」讀不到品名與價格";
+      });
+      setMenuMsg("無法建立菜單：" + why.join("；") + "。請使用 iChef 商品排行，或有「品名」「價格」兩欄的 Excel。", true);
       logAppend("用 Excel 建菜單", files.map(function(f){ return f.name; }).join("、"), "fail", "讀不到品項");
       return;
     }
