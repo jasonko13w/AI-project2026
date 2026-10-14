@@ -33,7 +33,9 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: CORS });
   if (req.method !== "POST") return reply(405, { error: "method_not_allowed" });
 
-  const endpoint = (Deno.env.get("AZURE_OPENAI_ENDPOINT") || "").replace(/\/+$/, "");
+  // 端點只取「https://主機名稱」：貼完整的 Target URI（含 /openai/deployments/...）也沒關係
+  let endpoint = (Deno.env.get("AZURE_OPENAI_ENDPOINT") || "").trim();
+  try { endpoint = new URL(endpoint).origin; } catch { endpoint = endpoint.replace(/\/+$/, ""); }
   const key = Deno.env.get("AZURE_OPENAI_KEY") || "";
   const deployment = Deno.env.get("AZURE_OPENAI_DEPLOYMENT") || "";
   if (!endpoint || !key || !deployment) return reply(500, { error: "not_configured" });
