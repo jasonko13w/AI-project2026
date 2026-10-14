@@ -505,8 +505,8 @@
 
 
   <div class="toolbar">
-    <span class="preview-tag">📱 手機預覽中：老闆用手機看到的樣子</span>
-    <button class="file-btn" id="btnPreview" type="button" aria-pressed="false">📱 手機預覽</button>
+    <span class="preview-tag">手機預覽中：老闆用手機看到的樣子</span>
+    <button class="file-btn" id="btnPreview" type="button" aria-pressed="false">手機預覽</button>
     <button class="file-btn" id="btnExpandAll" type="button">全部展開</button>
     <button class="file-btn" id="btnCollapseAll" type="button">全部收起</button>
   </div>
@@ -1432,7 +1432,7 @@
       if (lack.length) alerts.push(lack.map(function(s){ return esc(s.name); }).join("、") + " 還沒有 " + monthLabelOf(mk) + " 的報表，全品牌加總會偏低。");
     }
     html += '<div class="sum-sec"><div class="sum-sec-title">要注意</div><ul class="sum-alerts">' +
-      (alerts.length ? alerts.map(function(a){ return '<li>⚠ ' + a + '</li>'; }).join("") : '<li class="ok">沒有發現需要特別注意的地方。</li>') +
+      (alerts.length ? alerts.map(function(a){ return '<li>' + a + '</li>'; }).join("") : '<li class="ok">沒有發現需要特別注意的地方。</li>') +
       (infoLine ? '<li class="ok">' + infoLine + '</li>' : '') + '</ul></div>';
 
     // 下一季：預估營業額＋建議主打
@@ -1477,7 +1477,7 @@
       var on = !document.documentElement.classList.contains("m-preview");
       document.documentElement.classList.toggle("m-preview", on);
       btn.setAttribute("aria-pressed", String(on));
-      btn.textContent = on ? "💻 回到電腦版" : "📱 手機預覽";
+      btn.textContent = on ? "回到電腦版" : "手機預覽";
       try { renderTrend(state.dataset); } catch(e){ /* 圖畫不出來不影響其他內容 */ }
       window.scrollTo({ top:0 });
       if (typeof logAppend === "function") logAppend(on ? "切換手機預覽" : "回到電腦版", "", "ok", on ? "畫面縮成手機寬度" : "畫面回到電腦寬度");

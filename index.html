@@ -518,7 +518,7 @@
     <div class="banner">這是<b>公開試用版</b>，不用登入就能使用。上傳的報表只在你的瀏覽器裡計算，不會傳到任何伺服器；歷史報表存在<b>這台裝置</b>的瀏覽器裡。AI 功能只在完整版提供。</div>
     <div class="cloud-bar" id="cloudBar" hidden>
       <div class="cloud-row" id="cloudOut">
-        <span class="cloud-txt">☁️ 想在手機、其他電腦也看到同一份資料？</span>
+        <span class="cloud-txt">想在手機、其他電腦也看到同一份資料？</span>
         <button class="file-btn es-main" id="btnCloudLogin" type="button">登入同步</button>
       </div>
       <form class="cloud-form" id="cloudForm" hidden>
@@ -545,7 +545,7 @@
         </div>
       </form>
       <div class="cloud-row" id="cloudIn" hidden>
-        <span class="cloud-txt">☁️ 已登入：<b id="cloudWho"></b>，資料存在雲端</span>
+        <span class="cloud-txt">已登入：<b id="cloudWho"></b>，資料存在雲端</span>
         <button class="file-btn" id="btnCloudUpload" type="button" hidden>把這台裝置的資料搬上雲端</button>
         <button class="file-btn" id="btnCloudLogout" type="button">登出</button>
       </div>
@@ -556,8 +556,8 @@
 
 
   <div class="toolbar">
-    <span class="preview-tag">📱 手機預覽中：老闆用手機看到的樣子</span>
-    <button class="file-btn" id="btnPreview" type="button" aria-pressed="false">📱 手機預覽</button>
+    <span class="preview-tag">手機預覽中：老闆用手機看到的樣子</span>
+    <button class="file-btn" id="btnPreview" type="button" aria-pressed="false">手機預覽</button>
     <button class="file-btn" id="btnExpandAll" type="button">全部展開</button>
     <button class="file-btn" id="btnCollapseAll" type="button">全部收起</button>
   </div>
@@ -604,8 +604,8 @@
         <div id="menuEditor" hidden>
           <div class="hint">一行一道菜：名稱和價格。設定一次就會記住；之後改價格，不會影響已經存好的日子。</div>
           <div class="ocr-row">
-            <button class="file-btn es-main" id="btnMenuPhoto" type="button">📷 拍菜單／上傳菜單照片，AI 自動填好</button>
-            <button class="file-btn" id="btnMenuAI" type="button" hidden>🔄 再試一次 AI</button>
+            <button class="file-btn es-main" id="btnMenuPhoto" type="button">拍菜單／上傳菜單照片，AI 自動填好</button>
+            <button class="file-btn" id="btnMenuAI" type="button" hidden>再試一次 AI</button>
             <input type="file" id="menuPhoto" accept="image/*" hidden>
           </div>
           <div class="menu-head" aria-hidden="true"><span>品項</span><span>價格</span><span></span></div>
@@ -1435,7 +1435,7 @@
         var r = have[it[0]];
         if (r){ var pi = r.querySelector(".mn-price"); if (!pi.value){ pi.value = it[1]; filled++; } return; }
         var nr = addMenuRow(it); nr.setAttribute("data-ocr", "1");
-        if (src === "ai"){ nr.setAttribute("data-src", "ai"); nr.querySelector(".mn-name").title = "✨ 這一列是 AI 整理的，請確認"; }
+        if (src === "ai"){ nr.setAttribute("data-src", "ai"); nr.querySelector(".mn-name").title = "這一列是 AI 整理的，請確認"; }
         added++;
       });
       addMenuRow();
@@ -1453,9 +1453,9 @@
     }
     // 把讀到的文字交給 Azure OpenAI 依語意整理；auto=true 表示是規則配對太少時自動觸發
     function runAi(sid, fallbackItems, auto){
-      if (!lastLines || !lastLines.length){ setMenuMsg("請先按「📷 拍菜單」上傳一張照片。", true); return Promise.resolve(); }
+      if (!lastLines || !lastLines.length){ setMenuMsg("請先按「拍菜單」上傳一張照片。", true); return Promise.resolve(); }
       aiBtn.disabled = true; btn.disabled = true;
-      setMenuMsg("✨ AI 正在看照片整理菜單…（大約 5～20 秒）");
+      setMenuMsg("AI 正在看照片整理菜單…（大約 5～20 秒）");
       var t1 = Date.now(), st = 0;
       var tok = "";
       return supa.auth.getSession().then(function(r){
@@ -1471,7 +1471,7 @@
         if (!items.length){ setMenuMsg("AI 也整理不出品項和價格，這張照片可能太模糊，或不是菜單。可以換一張照片，或直接手動輸入。", true); return; }
         aiBtn.hidden = true;
         var r = applyItems(sid, items, true, "ai");
-        setMenuMsg("✨ AI " + (j.vision ? "看照片" : "依文字") + "整理出 " + items.length + " 道菜，新增 " + r.added + " 道" + (r.filled ? "、補上 " + r.filled + " 個價格" : "") + "。橘色底的列是 AI 整理的，請對照菜單檢查，確認後按「儲存菜單」。");
+        setMenuMsg("AI " + (j.vision ? "看照片" : "依文字") + "整理出 " + items.length + " 道菜，新增 " + r.added + " 道" + (r.filled ? "、補上 " + r.filled + " 個價格" : "") + "。橘色底的列是 AI 整理的，請對照菜單檢查，確認後按「儲存菜單」。");
       }).catch(function(e){
         var msg = e && e.status !== undefined ? aiErr(e.status, e.code) : "連不上 AI 服務，請檢查網路後再試。";
         // 暫時性的失敗（網路、太忙、AI 回傳格式怪）才顯示「再試一次」；設定問題再按也沒用
@@ -1977,7 +1977,7 @@
       if (lack.length) alerts.push(lack.map(function(s){ return esc(s.name); }).join("、") + " 還沒有 " + monthLabelOf(mk) + " 的報表，全品牌加總會偏低。");
     }
     html += '<div class="sum-sec"><div class="sum-sec-title">要注意</div><ul class="sum-alerts">' +
-      (alerts.length ? alerts.map(function(a){ return '<li>⚠ ' + a + '</li>'; }).join("") : '<li class="ok">沒有發現需要特別注意的地方。</li>') +
+      (alerts.length ? alerts.map(function(a){ return '<li>' + a + '</li>'; }).join("") : '<li class="ok">沒有發現需要特別注意的地方。</li>') +
       (infoLine ? '<li class="ok">' + infoLine + '</li>' : '') + '</ul></div>';
 
     // 下一季：預估營業額＋建議主打
@@ -2022,7 +2022,7 @@
       var on = !document.documentElement.classList.contains("m-preview");
       document.documentElement.classList.toggle("m-preview", on);
       btn.setAttribute("aria-pressed", String(on));
-      btn.textContent = on ? "💻 回到電腦版" : "📱 手機預覽";
+      btn.textContent = on ? "回到電腦版" : "手機預覽";
       try { renderTrend(state.dataset); } catch(e){ /* 圖畫不出來不影響其他內容 */ }
       window.scrollTo({ top:0 });
       if (typeof logAppend === "function") logAppend(on ? "切換手機預覽" : "回到電腦版", "", "ok", on ? "畫面縮成手機寬度" : "畫面回到電腦寬度");
