@@ -209,6 +209,8 @@
   .fmt-note{ font-size:12px; color:var(--muted); margin-top:4px; }
   .file-chips{ display:flex; flex-direction:column; gap:8px; margin-top:12px; }
   html.no-recon #mainTabs button[data-pane="recon"], html.no-recon #paneRecon, html.no-recon .man-day .pill, html.no-recon .man-day [data-close]{ display:none !important; }
+  html.no-season #rankCard, html.no-season #legendNote, html.no-season #overviewCard .stat[data-drill="season"]{ display:none !important; }
+  @media (min-width:561px){ html.no-season #overviewCard .stats{ grid-template-columns:repeat(3, minmax(0,1fr)); } }
   .fc-head{ display:flex; align-items:center; gap:8px; font-size:13px; font-weight:700; color:var(--text-primary); }
   .fc-head .fc-sum{ flex:1; min-width:0; }
   .fc-head .fc-sum small{ font-weight:400; color:var(--muted); margin-left:6px; }
@@ -1209,6 +1211,8 @@
   var TODAY_MONTH = new Date().getMonth(); // 0-11
   var NEXT_SEASON_IDX = (currentSeasonIndex(TODAY_MONTH) + 1) % 4;
   var TARGET_SEASON_NAME = SEASON_NAMES[NEXT_SEASON_IDX];
+  var SEASON_ON = false;
+  if (!SEASON_ON) document.documentElement.classList.add("no-season");
   var TARGET_MONTH_NUMS = SEASON_MONTHS[NEXT_SEASON_IDX].map(function(i){ return i+1; }); // 1-12
 
   // ---------------- 示範資料（12個月、一間虛構小吃店） ----------------
@@ -2101,7 +2105,7 @@
 
     series.forEach(function(v,i){
       var isTarget = TARGET_MONTH_NUMS.indexOf(monthNumOf(months[i])) !== -1;
-      var dot = el("circle", {cx:x(i), cy:y(v), r:5, class:"trend-dot" + (isTarget?" target":"")});
+      var dot = el("circle", {cx:x(i), cy:y(v), r:5, class:"trend-dot" + (isTarget && SEASON_ON?" target":"")});
       svg.appendChild(dot);
     });
 
@@ -2313,14 +2317,14 @@
       var fc = sf.baseTotal ? (sf.total / sf.baseTotal - 1) * 100 : null;
       nextLine = '<div class="sum-line">預估' + TARGET_SEASON_NAME + '營業額約 <b>' + esc(fmtV(sf.total)) + '</b>' + (fc !== null && sf.g !== null ? '（比去年同季' + (fc >= 0 ? "多 " : "少 ") + Math.abs(fc).toFixed(1) + '%）' : '') + '，這是參考值。</div>';
     }
-    html += '<div class="sum-sec"><div class="sum-sec-title">下一季（' + TARGET_SEASON_NAME + '）</div>' + nextLine +
+    if (SEASON_ON) html += '<div class="sum-sec"><div class="sum-sec-title">下一季（' + TARGET_SEASON_NAME + '）</div>' + nextLine +
       (recs.length ? '<div class="sum-line" style="margin-bottom:6px">過去一到' + TARGET_SEASON_NAME + '就特別好賣，可以考慮主打：</div><div class="sum-recs">' + recs.map(function(it){ return '<span>' + esc(it.name) + '</span>'; }).join("") + '</div>' +
         (sr.otherMonths.length < 2 ? '<div class="hint">資料月份還太少，這個推薦僅供參考。</div>' : '')
         : '<div class="sum-line">需要「商品排行」報表，才能推薦要主打什麼。</div>') + '</div>';
 
     html += '<div class="sum-actions"><button class="file-btn" type="button" data-sum="rev">看營業額細節</button>' +
       '<button class="file-btn" type="button" data-sum="hist">切換月份</button>' +
-      (recs.length ? '<button class="file-btn" type="button" data-sum="rank">看完整推薦</button>' : '') + '</div>';
+      (SEASON_ON && recs.length ? '<button class="file-btn" type="button" data-sum="rank">看完整推薦</button>' : '') + '</div>';
     body.innerHTML = html;
   }
   // 打開某張卡片並捲過去
