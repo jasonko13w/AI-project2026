@@ -208,6 +208,11 @@
   .fmt-list{ margin:0; padding-left:18px; font-size:13px; color:var(--text-secondary, #52514e); }
   .fmt-note{ font-size:12px; color:var(--muted); margin-top:4px; }
   .file-chips{ display:flex; flex-direction:column; gap:8px; margin-top:12px; }
+  .fc-head{ display:flex; align-items:center; gap:8px; font-size:13px; font-weight:700; color:var(--text-primary); }
+  .fc-head .fc-sum{ flex:1; min-width:0; }
+  .fc-head .fc-sum small{ font-weight:400; color:var(--muted); margin-left:6px; }
+  .fc-head button{ font:inherit; font-size:12.5px; font-weight:700; border:1px solid var(--border); background:var(--surface); color:var(--text-primary); border-radius:999px; padding:4px 12px; cursor:pointer; white-space:nowrap; }
+  .file-chips.collapsed .fc2{ display:none; }
   .fc2{ display:flex; gap:10px; align-items:flex-start; border:1px solid var(--border); border-radius:12px; padding:10px 12px; background:#e2f3e7; border-color:#bfe2c9; color:#2b2b2b; }
   .fc2.bad{ background:#fdf1dc; border-color:#f0d8a8; }
   .fc2 .fc-ic{ width:22px; height:22px; border-radius:50%; flex:none; display:inline-flex; align-items:center; justify-content:center; font-size:12px; font-weight:800; color:#fff; background:#2f8a4f; margin-top:1px; }
@@ -5150,7 +5155,7 @@
   }
 
   // ---------------- 檔案清單 UI ----------------
-  var chipList = [];
+  var chipList = [], chipsCollapsed = false;
   function chipSummary(p){
     if (p.type === "daily"){
       var tot = 0; p.months.forEach(function(mk){ tot += p.revByMonth[mk] || 0; });
@@ -5162,11 +5167,22 @@
     return { t:"商品排行　" + (p.periodLabel || monthLabelOf(p.month)), d:names.length + " 個品項" + (p.hasRev ? "，銷售額 " + fmtMoney(rev) : "") };
   }
   function renderFileChips(parsedList){
-    if (parsedList) chipList = parsedList.slice();
+    if (parsedList){ chipList = parsedList.slice(); chipsCollapsed = chipList.every(function(x){ return x.ok; }); }
     var box = document.getElementById("fileChips");
     box.innerHTML = "";
     if (!chipList.length){ box.hidden = true; return; }
     box.hidden = false;
+    var okN = chipList.filter(function(x){ return x.ok; }).length, badN = chipList.length - okN;
+    var head = document.createElement("div"); head.className = "fc-head";
+    var sum = document.createElement("span"); sum.className = "fc-sum";
+    sum.textContent = "匯入結果";
+    var sm = document.createElement("small"); sm.textContent = "成功 " + okN + " 個" + (badN ? "，未匯入 " + badN + " 個" : "");
+    sum.appendChild(sm);
+    var tg = document.createElement("button"); tg.type = "button"; tg.setAttribute("data-fc-toggle", "1"); tg.textContent = chipsCollapsed ? "展開" : "收合";
+    var cl = document.createElement("button"); cl.type = "button"; cl.setAttribute("data-fc-close", "1"); cl.textContent = "關閉";
+    head.appendChild(sum); head.appendChild(tg); head.appendChild(cl);
+    box.appendChild(head);
+    box.classList.toggle("collapsed", chipsCollapsed);
     chipList.forEach(function(p, i){
       var chip = document.createElement("div");
       chip.className = "fc2" + (p.ok ? "" : " bad");
@@ -5196,6 +5212,8 @@
     });
   }
   document.getElementById("fileChips").addEventListener("click", async function(e){
+    if (e.target.closest("[data-fc-toggle]")){ chipsCollapsed = !chipsCollapsed; renderFileChips(); return; }
+    if (e.target.closest("[data-fc-close]")){ chipList = []; renderFileChips(); return; }
     var del = e.target.closest("[data-fc-del]"), mp = e.target.closest("[data-fc-map]");
     if (del){ chipList.splice(+del.getAttribute("data-fc-del"), 1); renderFileChips(); return; }
     if (!mp) return;
