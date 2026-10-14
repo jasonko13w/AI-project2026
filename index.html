@@ -227,6 +227,28 @@
   .src-foot .link-btn{ font-size:12.5px; padding:0; }
   .src-foot .link-btn:disabled{ opacity:.5; cursor:default; }
   .src-foot .db-status{ width:100%; margin-top:2px; }
+  .ai-cat{ border:1px solid #f0c9b4; background:#fff8f4; border-radius:12px; padding:12px 14px; margin-bottom:12px; color:#2b2b2b; }
+  .ai-cat b{ display:block; margin-bottom:2px; }
+  .ai-cat-hint{ font-size:13px; color:#52514e; margin-bottom:8px; }
+  .ai-cat-row{ display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+  .ai-cat-msg{ font-size:12.5px; color:#777; }
+  .ai-cat-msg .link-btn{ font-size:12.5px; }
+  .ai-cat-out{ margin-top:10px; }
+  .aic-blk{ border:1px solid #e6e1da; background:#fff; border-radius:10px; padding:8px 12px; margin-bottom:6px; }
+  .aic-blk h5{ margin:0 0 2px; font-size:14px; display:flex; align-items:center; gap:8px; }
+  .aic-blk h5 small{ margin-left:auto; font-size:12px; color:#777; font-weight:400; }
+  .aic-blk div{ font-size:13px; color:#52514e; }
+  .wtag{ font-size:11px; font-weight:700; color:#7a4b63; background:#f3e6ee; border-radius:999px; padding:1px 8px; }
+  .cat-alc{ display:inline-flex; align-items:center; gap:4px; font-size:12.5px; font-weight:400; color:var(--text-secondary, #52514e); white-space:nowrap; margin-left:auto; }
+  .mix-row{ display:grid; grid-template-columns:96px 1fr 150px; gap:10px; align-items:center; padding:8px 0; border-bottom:1px solid var(--border); font-size:13.5px; }
+  .mix-row:last-child{ border-bottom:0; }
+  .mix-bar{ height:10px; background:var(--surface-2); border-radius:999px; overflow:hidden; }
+  .mix-bar i{ display:block; height:100%; background:var(--accent); border-radius:999px; }
+  .mix-bar i.alc{ background:#7a4b63; }
+  .mix-num{ text-align:right; font-variant-numeric:tabular-nums; }
+  .mix-num small{ display:block; font-size:12px; color:var(--muted); }
+  .mix-items{ font-size:12px; color:var(--muted); }
+  @media (max-width:560px){ .mix-row{ grid-template-columns:72px 1fr 112px; } }
   .fc-head{ display:flex; align-items:center; gap:8px; font-size:13px; font-weight:700; color:var(--text-primary); }
   .fc-head .fc-sum{ flex:1; min-width:0; }
   .fc-head .fc-sum small{ font-weight:400; color:var(--muted); margin-left:6px; }
@@ -864,6 +886,12 @@
         </div>
       </div>
       <div id="menuEditor" hidden>
+        <div class="ai-cat" id="aiCatBox" hidden>
+          <b id="aiCatTitle">讓 AI 推薦分類</b>
+          <div class="ai-cat-hint" id="aiCatHint">分好類，報表才看得出主食、飲料、酒類各賣多少。AI 只給建議，套用前可以修改。</div>
+          <div class="ai-cat-row"><button type="button" class="file-btn es-main" id="btnAiCat">AI 推薦分類</button><span class="ai-cat-msg" id="aiCatMsg"></span></div>
+          <div class="ai-cat-out" id="aiCatOut" hidden></div>
+        </div>
         <div class="menu-tools">
           <label class="switch"><input type="checkbox" id="menuUseCat"><span class="tog" aria-hidden="true"></span>使用分類</label>
           <button class="file-btn es-main" id="btnCatAdd" type="button" hidden>新增分類</button>
@@ -884,7 +912,7 @@
           </div>
           <div class="hint" id="menuMsg"></div>
       </div>
-      <div class="done" id="menuDone" hidden><span>菜單已儲存，報表分析與對帳功能已啟用。</span><button class="file-btn es-main" id="btnGoReport" type="button">前往報表分析</button></div>
+      <div class="done" id="menuDone" hidden><span>菜單已儲存，報表分析已啟用。</span><button class="file-btn es-main" id="btnGoReport" type="button">前往報表分析</button></div>
     </div>
   </div>
 
@@ -1025,6 +1053,14 @@
       <div class="tooltip" id="trendTooltip"></div>
     </div>
     <div class="legend-note" id="legendNote">深色的點是下一季的月份</div>
+  </div>
+
+  <div class="card" id="mixCard" data-open="1" hidden>
+    <div class="card-head">
+      <div class="card-title">品項結構</div>
+      <div class="card-note" id="mixNote"></div>
+    </div>
+    <div id="mixBody"></div>
   </div>
 
 
@@ -2384,7 +2420,7 @@
     var es = document.getElementById("emptyState"); if (es) es.hidden = !isEmpty;
     ["overviewCard","trendCard","rankCard"].forEach(function(id){ var el = document.getElementById(id); if (el) el.hidden = isEmpty; });
     if (isEmpty){
-      ["reconCard","wineCard","storeCmpCard","summaryCard"].forEach(function(id){ var el = document.getElementById(id); if (el) el.hidden = true; });
+      ["reconCard","wineCard","storeCmpCard","summaryCard","mixCard"].forEach(function(id){ var el = document.getElementById(id); if (el) el.hidden = true; });
       document.getElementById("sourceNote").textContent = "目前沒有資料";
       state.drill = null;
       if (typeof updateSummaries === "function") updateSummaries();
@@ -2398,8 +2434,53 @@
     renderRecon(state.dataset); document.getElementById("reconCard").hidden = true;
     renderRanking(state.dataset);
     try { renderWine(state.dataset); } catch(e){ document.getElementById("wineCard").hidden = true; }
+    try { renderMix(state.dataset); } catch(e){ document.getElementById("mixCard").hidden = true; }
     if (typeof updateSummaries === "function") updateSummaries();
   }
+  function renderMix(ds){
+    var card = byId("mixCard");
+    var sids = isBrandView() ? storesOfBrand(brandOfSel()).map(function(s){ return s.id; }) : [state.storeSel];
+    var catOf = {}, alc = {}, anyCat = false;
+    sids.forEach(function(sid){
+      var m = metaOf(sid);
+      menuOf(sid).forEach(function(it){ if (it[2] && m.useCat){ catOf[it[0]] = it[2]; anyCat = true; } });
+      (m.alc || []).forEach(function(c){ alc[c] = 1; });
+    });
+    var sums = {}, total = 0, hasRev = false;
+    (ds.productFiles || []).forEach(function(pf){
+      Object.keys(pf.products || {}).forEach(function(n){
+        var p = pf.products[n], c = catOf[cleanName(n)] || catOf[n] || "未分類";
+        var s = sums[c] || (sums[c] = { rev:0, qty:0, items:{} });
+        s.rev += p.rev || 0; s.qty += p.qty || 0; s.items[n] = (s.items[n] || 0) + (p.qty || 0);
+        total += p.rev || 0; if (p.rev) hasRev = true;
+      });
+    });
+    if (!Object.keys(sums).length || !hasRev){ card.hidden = true; return; }
+    card.hidden = false;
+    byId("mixNote").textContent = ds.label ? ds.label.replace(/^歷史報表：/, "") : "";
+    var body = byId("mixBody");
+    if (!anyCat){
+      body.innerHTML = '<div class="hint" style="margin-top:0">菜單還沒有分類。到「菜單」分好類（可以讓 AI 推薦），這裡會顯示主食、飲料、酒類各賣多少。</div>' +
+        '<div class="log-actions"><button type="button" class="file-btn" data-mix-menu="1">前往菜單分類</button></div>';
+      return;
+    }
+    var list = Object.keys(sums).map(function(c){ return { c:c, s:sums[c] }; }).sort(function(a, b){ return (a.c === "未分類") - (b.c === "未分類") || b.s.rev - a.s.rev; });
+    var alcRev = list.filter(function(x){ return alc[x.c]; }).reduce(function(a, x){ return a + x.s.rev; }, 0);
+    var html = '<div class="stats" style="margin-bottom:6px">' +
+      '<div class="stat"><div class="label">分類數</div><div class="value">' + list.filter(function(x){ return x.c !== "未分類"; }).length + '</div></div>' +
+      (Object.keys(alc).length ? '<div class="stat"><div class="label">酒類營收</div><div class="value">' + esc(fmtMoney(alcRev)) + '</div><div class="sub">占 ' + pctStr(alcRev, total) + '</div></div>' : '') +
+      '</div>';
+    html += list.map(function(x){
+      var top = Object.keys(x.s.items).sort(function(a, b){ return x.s.items[b] - x.s.items[a]; });
+      return '<div class="mix-row"><b>' + esc(x.c) + (alc[x.c] && x.c !== "酒類" ? ' <span class="wtag">酒類</span>' : '') + '</b><div><div class="mix-bar"><i' + (alc[x.c] ? ' class="alc"' : '') + ' style="width:' + (total ? (x.s.rev / total * 100).toFixed(1) : 0) + '%"></i></div>' +
+        '<div class="mix-items">' + top.slice(0, 4).map(esc).join("、") + (top.length > 4 ? " 等 " + top.length + " 項" : "") + '</div></div>' +
+        '<div class="mix-num">' + esc(fmtMoney(x.s.rev)) + '<small>' + pctStr(x.s.rev, total) + '．' + fmtInt(x.s.qty) + ' 份</small></div></div>';
+    }).join("");
+    if (!Object.keys(alc).length) html += '<div class="hint">菜單裡沒有勾選為「酒類」的分類，所以無法計算酒類營收。有賣酒的話，到菜單把酒獨立成一類並勾選「酒類」。</div>';
+    if (sums["未分類"]) html += '<div class="hint">「未分類」是菜單上沒有分類、或菜單上沒有的品項。</div>';
+    body.innerHTML = html;
+  }
+  byId("mixBody").addEventListener("click", function(e){ if (e.target.closest && e.target.closest("[data-mix-menu]")) showPane("menu"); });
 
   // ================= 酒水分析（加值功能） =================
   // 先用「品名關鍵字規則」分類，規則判斷不出來的才交給 AI（省時間、省 AI 用量）
@@ -4270,7 +4351,7 @@
           var sid = typeof d.store === "string" && d.store ? d.store : "main";
           if (!storeById(sid)) stores.push({ id:sid, brand:"", name:"分店 " + sid });
           menuStore[sid] = d.items.filter(function(it){ return Array.isArray(it) && cleanName(it[0]); }).map(function(it){ return [cleanName(it[0]), num(it[1]), it[2] ? cleanName(it[2]).slice(0, 20) : ""]; });
-          menuMeta[sid] = { useCat:!!d.useCat, cats:Array.isArray(d.cats) ? d.cats.map(function(c){ return cleanName(c).slice(0, 20); }).filter(function(c){ return c; }) : [], pending:Array.isArray(d.pending) ? d.pending.map(String) : [] };
+          menuMeta[sid] = { useCat:!!d.useCat, cats:Array.isArray(d.cats) ? d.cats.map(function(c){ return cleanName(c).slice(0, 20); }).filter(function(c){ return c; }) : [], pending:Array.isArray(d.pending) ? d.pending.map(String) : [], alc:Array.isArray(d.alc) ? d.alc.map(String) : [] };
         });
       }).catch(function(){ /* 讀不到菜單，就請使用者重建 */ });
     }).then(function(){
@@ -4294,7 +4375,7 @@
   function persistMenu(sid){
     if (!appDb) return;
     var id = "menus/" + sid, items = menuStore[sid] || [], m = metaOf(sid);
-    persistChain = persistChain.then(function(){ return items.length ? appDb.doc(id).set({ store:sid, items:items, useCat:!!m.useCat, cats:m.cats || [], pending:m.pending || [], savedAt:new Date().toISOString() }) : appDb.doc(id).delete(); })
+    persistChain = persistChain.then(function(){ return items.length ? appDb.doc(id).set({ store:sid, items:items, useCat:!!m.useCat, cats:m.cats || [], pending:m.pending || [], alc:m.alc || [], savedAt:new Date().toISOString() }) : appDb.doc(id).delete(); })
       .catch(function(err){ setMenuMsg("菜單存進資料庫失敗（" + ((err && err.code) || "未知原因") + "），這次頁面內仍可使用。", true); });
   }
 
@@ -4368,7 +4449,7 @@
     var bl = document.createElement("div");
     bl.className = "cat-block"; bl.setAttribute("data-cat", name);
     bl.innerHTML = '<div class="cat-h">' + (name ? '<input class="cat-name" maxlength="20" aria-label="分類名稱">' : '<span class="cat-fixed">未分類</span>') +
-      '<span class="cat-n"></span>' + (name ? '<button type="button" class="file-btn cat-del">刪除分類</button>' : '') + '</div>' +
+      '<span class="cat-n"></span>' + (name ? '<label class="cat-alc"><input type="checkbox" class="cat-alc-in"' + (alcCats[name] ? ' checked' : '') + '> 酒類</label><button type="button" class="file-btn cat-del">刪除分類</button>' : '') + '</div>' +
       '<div class="menu-head" aria-hidden="true"><span>品項</span><span>價格</span><span></span></div>' +
       '<div class="cat-rows"></div>' +
       '<button type="button" class="file-btn es-main cat-add-row">新增品項</button>';
@@ -4442,7 +4523,9 @@
       return { row:r, name:cleanName(r.querySelector(".mn-name").value), price:num(r.querySelector(".mn-price").value), cat:rowCat(r), src:r.getAttribute("data-src") || "", flag:fl ? fl.textContent : "" };
     });
   }
+  var alcCats = {};
   function buildMenuEditor(sid, items, useCat, cats, marks){
+    if (menuOpenFor !== sid){ alcCats = {}; (metaOf(sid).alc || []).forEach(function(c){ alcCats[c] = 1; }); }
     menuOpenFor = sid;
     editCat = !!useCat;
     byId("menuRows").innerHTML = "";
@@ -4462,6 +4545,7 @@
     if (!editCat){ for (var k = items.length; k < Math.max(3, items.length + 1); k++) addMenuRow(); }
     else if (!items.length) addMenuRow();
     updateCatCounts();
+    syncAiCat();
   }
   // 切換「使用分類」：畫面上已經填的內容都保留
   function setCatMode(on){
@@ -4524,7 +4608,8 @@
     var first = !menuOf(sid).length;
     var keep = readQtyMap();
     menuStore[sid] = items;
-    menuMeta[sid] = { useCat:editCat, cats:cats, pending:[] };
+    var alcKeep = editCat ? cats.filter(function(c){ return alcCats[c]; }) : (metaOf(sid).alc || []);
+    menuMeta[sid] = { useCat:editCat, cats:cats, pending:[], alc:alcKeep };
     persistMenu(sid);
     buildMenuEditor(sid, items, editCat, cats);
     renderManual(true, keep);
@@ -4830,11 +4915,13 @@
   });
   byId("menuRows").addEventListener("change", function(e){
     var t = e.target;
-    if (t.classList && t.classList.contains("mn-cat")){ moveRowTo(t.closest(".menu-row"), t.value); return; }
+    if (t.classList && t.classList.contains("mn-cat")){ moveRowTo(t.closest(".menu-row"), t.value); syncAiCat(); return; }
+    if (t.classList && t.classList.contains("cat-alc-in")){ var cb = t.closest(".cat-block").getAttribute("data-cat"); if (t.checked) alcCats[cb] = 1; else delete alcCats[cb]; return; }
     if (t.classList && t.classList.contains("cat-name")){
       var bl = t.closest(".cat-block"), old = bl.getAttribute("data-cat"), v = cleanName(t.value).slice(0, 20);
       if (!v || (v !== old && catNames().indexOf(v) !== -1)){ t.value = old; setMenuMsg("分類名稱不能空白，也不能跟其他分類重複。", true); return; }
       t.value = v; bl.setAttribute("data-cat", v);
+      if (alcCats[old] && old !== v){ delete alcCats[old]; alcCats[v] = 1; }
     }
   });
   byId("menuRows").addEventListener("input", function(e){
@@ -5299,7 +5386,81 @@
     syncPhotoAvail();
   }
   // 拍照辨識要登入才能用（保護 Azure 金鑰）：沒登入時按鈕變灰、不能按
+  var aiCatProp = null;
+  function syncAiCat(){
+    var box = byId("aiCatBox"); if (!box) return;
+    if (typeof supa === "undefined" || isBrandView() || byId("menuEditor").hidden){ box.hidden = true; return; }
+    var rows = readMenuRows().filter(function(r){ return r.name; });
+    var hasCat = editCat && catNames().length > 0, un = rows.filter(function(r){ return !r.cat; });
+    if (rows.length < 2 || (hasCat && !un.length)){ if (!aiCatProp) box.hidden = true; return; }
+    box.hidden = false;
+    var partial = hasCat && un.length < rows.length;
+    byId("aiCatTitle").textContent = partial ? un.length + " 個品項還沒分類" : "讓 AI 推薦分類";
+    byId("aiCatHint").textContent = partial ? "AI 只建議這些品項放哪一類，原本的分類不會被更動。" : "分好類，報表才看得出主食、飲料、酒類各賣多少。AI 只給建議，套用前可以修改。";
+    var btn = byId("btnAiCat"), logged = typeof cloudUser !== "undefined" && !!cloudUser;
+    btn.textContent = partial ? "AI 建議分類" : "AI 推薦分類";
+    btn.disabled = !logged || btn.getAttribute("data-busy") === "1";
+    var msg = byId("aiCatMsg");
+    if (!logged) msg.innerHTML = '登入同步後才能使用　<button type="button" class="link-btn" data-login="1">前往登入</button>';
+    else if (btn.getAttribute("data-busy") !== "1" && !/失敗|部署|無法/.test(msg.textContent)) msg.textContent = (partial ? un.length : rows.length) + " 個品項";
+  }
+  function aiCatErr(code){
+    if (/no_lines|no_items/.test(code)) return "AI 分類功能還沒部署（請在 Supabase 重新部署 menu-ai）。";
+    if (/login_required/.test(code)) return "登入已過期，請重新登入。";
+    if (/not_configured/.test(code)) return "AI 金鑰還沒設定。";
+    return "AI 分類失敗，請稍後再試（" + code + "）。";
+  }
+  function runAiCat(){
+    var btn = byId("btnAiCat"), msg = byId("aiCatMsg"), out = byId("aiCatOut");
+    var rows = readMenuRows().filter(function(r){ return r.name; });
+    var hasCat = editCat && catNames().length > 0;
+    var partial = hasCat && rows.some(function(r){ return r.cat; });
+    var names = (partial ? rows.filter(function(r){ return !r.cat; }) : rows).map(function(r){ return r.name; });
+    var existing = hasCat ? catNames() : [];
+    if (!names.length) return;
+    btn.setAttribute("data-busy", "1"); btn.disabled = true; msg.textContent = "AI 分類中…（大約 5～15 秒）"; out.hidden = true;
+    supa.auth.getSession().then(function(r){
+      var tok = r && r.data && r.data.session ? r.data.session.access_token : "";
+      return fetch(SUPA_URL + "/functions/v1/menu-ai", { method:"POST", headers:{ "Authorization":"Bearer " + tok, "apikey":SUPA_KEY, "Content-Type":"application/json" },
+        body:JSON.stringify({ mode:"categorize", items:names, cats:existing, alc:existing.filter(function(c){ return alcCats[c]; }) }) });
+    }).then(function(res){
+      return res.json().catch(function(){ return {}; }).then(function(j){ if (!res.ok || !j || !Array.isArray(j.cats)) throw new Error((j && j.error) || ("http_" + res.status)); return j; });
+    }).then(function(j){
+      aiCatProp = { cats:j.cats, partial:partial };
+      var html = j.cats.map(function(c){
+        return '<div class="aic-blk"><h5>' + esc(c.name) + (c.alcohol && c.name !== "酒類" ? ' <span class="wtag">酒類</span>' : '') + '<small>' + c.items.length + ' 項</small></h5><div>' + c.items.map(esc).join("、") + '</div></div>';
+      }).join("");
+      out.innerHTML = '<div class="ai-cat-hint" style="margin:0 0 6px">AI 推薦的分類（還沒套用）</div>' + html +
+        '<div class="ai-cat-row" style="margin-top:8px"><button type="button" class="file-btn es-main" id="btnAiCatApply">' + (partial ? '套用建議' : '套用並修改') + '</button><button type="button" class="file-btn" id="btnAiCatCancel">不用了</button></div>';
+      out.hidden = false; msg.textContent = "";
+      logAppend("AI 推薦分類", storeLabel(storeById(state.storeSel)), "ok", names.length + " 個品項 → " + j.cats.length + " 類");
+    }).catch(function(e){
+      msg.textContent = aiCatErr(String(e && e.message || e));
+      logAppend("AI 推薦分類", "", "fail", String(e && e.message || e));
+    }).then(function(){ btn.removeAttribute("data-busy"); syncAiCat(); });
+  }
+  function applyAiCat(){
+    var prop = aiCatProp; if (!prop) return;
+    if (!editCat) setCatMode(true);
+    var byName = {};
+    readMenuRows().forEach(function(r){ if (r.name && !byName[r.name]) byName[r.name] = r.row; });
+    prop.cats.forEach(function(c){
+      var bl = catBlock(c.name, true);
+      if (c.alcohol){ alcCats[c.name] = 1; var cb = bl.querySelector(".cat-alc-in"); if (cb) cb.checked = true; }
+      c.items.forEach(function(n){ var row = byName[n]; if (row && (!prop.partial || !rowCat(row))) moveRowTo(row, c.name); });
+    });
+    aiCatProp = null; byId("aiCatOut").hidden = true;
+    updateCatCounts(); syncAiCat();
+    try { byId("menuEditor").scrollIntoView({ behavior:"smooth", block:"start" }); } catch(e){ /* 舊瀏覽器 */ }
+    setMenuMsg("已套用 AI 建議的分類。可以改分類名稱、搬品項，確認後請按「儲存菜單」。");
+  }
+  byId("btnAiCat").addEventListener("click", runAiCat);
+  byId("aiCatOut").addEventListener("click", function(e){
+    if (e.target.id === "btnAiCatApply") applyAiCat();
+    else if (e.target.id === "btnAiCatCancel"){ aiCatProp = null; byId("aiCatOut").hidden = true; syncAiCat(); }
+  });
   function syncPhotoAvail(){
+    try { syncAiCat(); } catch(e){ /* 不影響拍照按鈕 */ }
     var pb = byId("btnMenuPhoto"), wb = byId("btnWayPhoto"), note = byId("wayPhotoNote"), om = byId("ocrMsg");
     if (!wb) return;
     var supported = !!pb && !pb.parentNode.hidden;
@@ -5323,7 +5484,7 @@
     Array.prototype.forEach.call(document.querySelectorAll("#mainTabs button"), function(b){ b.setAttribute("aria-selected", String(b.getAttribute("data-pane") === p)); });
     if (p === "menu"){ renderMenuPane(); syncPhotoAvail(); }
     if (p === "recon") renderReconPane();
-    if (p === "report"){ try { if (!state.dataset.empty) renderTrend(state.dataset); } catch(e){ /* 圖表失敗不影響其他功能 */ } }
+    if (p === "report"){ try { if (!state.dataset.empty){ renderTrend(state.dataset); renderMix(state.dataset); } } catch(e){ /* 圖表失敗不影響其他功能 */ } }
   }
   byId("mainTabs").addEventListener("click", function(e){
     var b = e.target.closest ? e.target.closest("button[data-pane]") : null;

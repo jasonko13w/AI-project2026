@@ -6,6 +6,7 @@
 //   AZURE_OPENAI_KEY         Azure OpenAI 的金鑰
 //   AZURE_OPENAI_DEPLOYMENT  部署名稱，例如 gpt-4o-mini
 // 金鑰只存在這裡，網頁拿不到。
+// 另一個用途（mode: "categorize"）：把菜單品名分類，酒類一定獨立成一類；只回傳建議，由老闆決定要不要套用。
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -32,6 +33,52 @@ OCR 文字只是參考，可能有錯字、漏字，或把價格和品名拆開�
 8. 品名用正確的中文寫出來：手寫錯字、用字母或同音字代替的簡寫，要還原成常見寫法（例如「魯肉飯」寫成「滷肉飯」、「蕃茄」寫成「番茄」）。
 只輸出 JSON，格式：{"items":[{"name":"品名","price":數字,"category":"分類或空字串"}]}`;
 
+const CAT_SYSTEM = `你是台灣餐廳的菜單分類助手。你會收到一份品項名稱清單，有時也會附上店家已經有的分類。
+請把每個品項分到一個分類。規則：
+1. 如果有附上既有分類，優先放進既有分類；真的放不進去才新增分類。
+2. 含酒精的飲品（啤酒、清酒、燒酎、梅酒、紅白酒、威士忌、調酒等）一定要獨立成一類，分類名稱用「酒類」（既有分類裡已經有酒的分類就用它），並把 alcohol 設為 true；其他分類的 alcohol 都是 false。
+3. 不含酒精的飲品（茶、咖啡、汽水、果汁、水）放「飲料」。
+4. 分類名稱用 2～4 個字的常見中文，例如：飯類、麵類、主餐、小菜、湯品、炸物、甜點、飲料、酒類、加點。總共 3～8 類。
+5. 服務費、自帶酒水費、招待、運費這類不是餐點的品項，放「其他」。
+6. 每個品項都要出現，而且只出現一次；品名照原樣輸出，一個字都不要改。
+只輸出 JSON，格式：{"cats":[{"name":"分類名稱","alcohol":false,"items":["品名", "品名"]}]}`;
+
+async function categorize(endpoint: string, key: string, deployment: string, body: { items?: unknown; cats?: unknown; alc?: unknown }) {
+  const names = Array.isArray(body.items) ? [...new Set(body.items.map((x) => String(x || "").replace(/\s+/g, " ").trim().slice(0, 40)).filter(Boolean))].slice(0, 300) : [];
+  if (!names.length) return reply(400, { error: "no_items" });
+  const cats = Array.isArray(body.cats) ? body.cats.map((x) => String(x || "").trim().slice(0, 20)).filter(Boolean).slice(0, 30) : [];
+  const alc = Array.isArray(body.alc) ? body.alc.map((x) => String(x || "").trim().slice(0, 20)).filter(Boolean) : [];
+  const user = (cats.length ? "既有分類：" + cats.map((c) => c + (alc.includes(c) ? "（酒類）" : "")).join("、") + "\n" : "") + "品項：\n" + names.join("\n");
+  const r = await fetch(`${endpoint}/openai/deployments/${encodeURIComponent(deployment)}/chat/completions?api-version=${API_VERSION}`, {
+    method: "POST",
+    headers: { "api-key": key, "Content-Type": "application/json" },
+    body: JSON.stringify({ messages: [{ role: "system", content: CAT_SYSTEM }, { role: "user", content: user }], temperature: 0, max_tokens: 4000, response_format: { type: "json_object" } }),
+  });
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok) return reply(502, { error: "azure_" + r.status + ":" + ((j && j.error && (j.error.code || j.error.message)) || "") });
+  const text = j && j.choices && j.choices[0] && j.choices[0].message ? j.choices[0].message.content : "";
+  let parsed: { cats?: { name?: unknown; alcohol?: unknown; items?: unknown }[] } = {};
+  try { parsed = JSON.parse(text || "{}"); } catch { return reply(502, { error: "bad_ai_output" }); }
+  // 只接受清單裡真的有的品名；漏掉的放「其他」
+  const left = new Set(names);
+  const out: { name: string; alcohol: boolean; items: string[] }[] = [];
+  for (const c of parsed.cats || []) {
+    const name = String(c && c.name || "").replace(/\s+/g, "").slice(0, 20);
+    if (!name) continue;
+    const its = (Array.isArray(c.items) ? c.items : []).map((x) => String(x || "").replace(/\s+/g, " ").trim()).filter((x) => left.has(x));
+    its.forEach((x) => left.delete(x));
+    if (!its.length) continue;
+    const ex = out.find((o) => o.name === name);
+    if (ex) ex.items.push(...its); else out.push({ name, alcohol: !!(c && c.alcohol === true), items: its });
+  }
+  if (left.size) {
+    const other = out.find((o) => o.name === "其他");
+    if (other) other.items.push(...left); else out.push({ name: "其他", alcohol: false, items: [...left] });
+  }
+  const usage = j.usage || {};
+  return reply(200, { cats: out, usage: { in: usage.prompt_tokens || 0, out: usage.completion_tokens || 0 } });
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: CORS });
   if (req.method !== "POST") return reply(405, { error: "method_not_allowed" });
@@ -51,8 +98,11 @@ Deno.serve(async (req) => {
   const who = await fetch(`${supaUrl}/auth/v1/user`, { headers: { Authorization: auth, apikey: anon } });
   if (!who.ok) return reply(401, { error: "login_required" });
 
-  let body: { lines?: { text: string; box: number[] }[]; image?: string } = {};
+  let body: { mode?: string; items?: unknown; cats?: unknown; alc?: unknown; lines?: { text: string; box: number[] }[]; image?: string } = {};
   try { body = await req.json(); } catch { return reply(400, { error: "bad_json" }); }
+  if (body.mode === "categorize") {
+    try { return await categorize(endpoint, key, deployment, body); } catch (e) { return reply(502, { error: String((e as Error).message || e) }); }
+  }
   const lines = Array.isArray(body.lines) ? body.lines.slice(0, MAX_LINES) : [];
   // 照片（data:image/jpeg;base64,...），有的話讓模型直接看圖
   const image = typeof body.image === "string" && /^data:image\/(jpeg|png|webp);base64,/.test(body.image) && body.image.length < 6_000_000 ? body.image : "";
