@@ -801,7 +801,7 @@
       </div>
       <div id="menuWays" hidden>
         <div class="ways">
-          <div class="way"><b>拍菜單照片<small class="way-note" id="wayPhotoNote" hidden></small></b><button class="file-btn es-main" type="button" data-way="photo" id="btnWayPhoto">上傳照片</button></div>
+          <div class="way"><b>用照片建菜單<small class="way-note" id="wayPhotoNote" hidden></small></b><button class="file-btn es-main" type="button" data-way="photo" id="btnWayPhoto">上傳照片</button></div>
           <div class="way"><b>用 Excel 建菜單</b><button class="file-btn es-main" type="button" data-way="excel">選擇檔案</button></div>
           <div class="way"><b>手動輸入</b><button class="file-btn es-main" type="button" data-way="manual">新增品項</button></div>
         </div>
@@ -825,7 +825,7 @@
         </div>
         <div class="hint" id="catHint" hidden>點菜名可以換分類</div>
           <div class="ocr-row">
-            <button class="file-btn es-main" id="btnMenuPhoto" type="button">拍菜單／上傳菜單照片，AI 自動填好</button>
+            <button class="file-btn es-main" id="btnMenuPhoto" type="button">用照片匯入（AI 自動填好）</button>
             <button class="file-btn" id="btnMenuAI" type="button" hidden>再試一次 AI</button>
             <input type="file" id="menuPhoto" accept="image/*" hidden>
           </div>
@@ -1676,7 +1676,7 @@
       var om = document.getElementById("ocrMsg");
       if (!cloudUser || !supa){
         // 訊息直接顯示在按鈕下面，不把畫面捲走
-        om.innerHTML = '拍照辨識需要先登入同步（保護 Azure 金鑰，也避免被陌生人刷用量）。<button type="button" class="link-btn" data-login="1">前往登入</button>';
+        om.innerHTML = '拍照辨識需要先登入同步。<button type="button" class="link-btn" data-login="1">前往登入</button>';
         om.style.color = "var(--warn)";
         return;
       }
@@ -4711,7 +4711,7 @@
       if (!pb || pb.parentNode.hidden){ byId("waysMsg").textContent = "這個版本無法使用拍照辨識，請改用 Excel 或手動輸入。"; return; }
       // 還沒登入：訊息顯示在這裡，不打開編輯器、不把畫面捲走
       if (typeof cloudUser !== "undefined" && !cloudUser){
-        byId("waysMsg").innerHTML = '拍照辨識需要先登入同步（保護 Azure 金鑰，也避免被陌生人刷用量）。<button type="button" class="link-btn" data-login="1">前往登入</button>';
+        byId("waysMsg").innerHTML = '拍照辨識需要先登入同步。<button type="button" class="link-btn" data-login="1">前往登入</button>';
         return;
       }
       openMenuEditor(state.storeSel);
