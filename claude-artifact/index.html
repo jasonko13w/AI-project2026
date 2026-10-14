@@ -211,6 +211,22 @@
   html.no-recon #mainTabs button[data-pane="recon"], html.no-recon #paneRecon, html.no-recon .man-day .pill, html.no-recon .man-day [data-close]{ display:none !important; }
   html.no-season #rankCard, html.no-season #legendNote, html.no-season #overviewCard .stat[data-drill="season"]{ display:none !important; }
   @media (min-width:561px){ html.no-season #overviewCard .stats{ grid-template-columns:repeat(3, minmax(0,1fr)); } }
+  .period-bar{ background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:10px 14px; box-shadow:0 4px 14px rgba(0,0,0,.05); }
+  .pb-row{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+  .pb-label{ font-size:12.5px; font-weight:700; color:var(--muted); }
+  .pb-cur{ font-size:15px; font-weight:800; color:var(--text-primary); margin-right:auto; }
+  .pb-quick{ margin:0 !important; }
+  .pb-tog{ padding:5px 12px; font-size:12.5px; }
+  .pb-tog[aria-expanded="true"]{ background:var(--accent); border-color:var(--accent); color:#fff; }
+  .pb-body .mgrid{ margin-top:10px; }
+  .period-bar .hist-msg:empty{ display:none; }
+  .period-bar #cmpOut:empty{ display:none; }
+  @media (min-width:769px){ .period-bar{ position:sticky; top:8px; z-index:30; } }
+  @media (max-width:560px){ .pb-tog{ order:3; } .pb-quick{ order:4; width:100%; } }
+  .src-foot{ margin-top:12px; padding-top:10px; border-top:1px solid var(--border); font-size:12.5px; color:var(--muted); display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
+  .src-foot .link-btn{ font-size:12.5px; padding:0; }
+  .src-foot .link-btn:disabled{ opacity:.5; cursor:default; }
+  .src-foot .db-status{ width:100%; margin-top:2px; }
   .fc-head{ display:flex; align-items:center; gap:8px; font-size:13px; font-weight:700; color:var(--text-primary); }
   .fc-head .fc-sum{ flex:1; min-width:0; }
   .fc-head .fc-sum small{ font-weight:400; color:var(--muted); margin-left:6px; }
@@ -839,6 +855,7 @@
       <div class="new-items" id="newItemsNote" hidden></div>
       <div class="warn" id="parseWarn"></div>
       <div class="file-chips" id="fileChips" hidden></div>
+      <div class="src-foot"><span id="histNote">還沒有存任何月份</span><span class="sf-dot">·</span><button type="button" class="link-btn" id="btnClearHist">清除所有歷史報表</button><div class="db-status db-pending" id="histDbStatus">● 正在連線資料庫…</div></div>
       <div id="tabManual" hidden>
         <div class="man-step">
           <div class="man-step-head"><h4>新增每日銷售</h4><span class="man-step-sum" id="manStoreNote"></span></div>
@@ -862,6 +879,29 @@
         </div>
       </div>
     </div>
+
+
+  <div class="period-bar" id="histCard" hidden>
+    <div class="pb-row">
+      <span class="pb-label">期間</span><span class="pb-cur" id="pbCur">全部月份</span>
+      <div class="chips pb-quick" id="histQuick">
+        <button type="button" data-q="all" aria-pressed="false">全部月份</button>
+        <button type="button" data-q="last" aria-pressed="false">上個月</button>
+        <button type="button" data-q="season" aria-pressed="false">本季</button>
+        <button type="button" data-q="yoy" aria-pressed="false">去年同月</button>
+      </div>
+      <button type="button" class="file-btn pb-tog" id="pbToggle" aria-expanded="false">選月份 ▾</button>
+    </div>
+    <div class="pb-body" id="pbBody" hidden>
+      <div class="mgrid" id="histGrid"></div>
+      <div class="hist-cmp">
+        <label><input type="checkbox" id="cmpOn"> 跟另一個月比較</label>
+        <select id="cmpSel" aria-label="要比較的月份"></select>
+      </div>
+    </div>
+    <div id="cmpOut"></div>
+    <div class="hist-msg" id="histMsg"></div>
+  </div>
 
   <div class="banner empty-state" id="emptyState" hidden>
     <div class="es-title">還沒有資料</div>
@@ -943,30 +983,6 @@
     </div>
     <div class="log-actions"><button class="file-btn" id="btnAiRec" type="button" hidden>請 AI 寫下一季備貨建議</button></div>
     <div class="ai-out" id="aiRecOut" hidden></div>
-  </div>
-
-
-  <div class="card" id="histCard">
-    <div class="card-head">
-      <div class="card-title">歷史報表（切換月份）</div>
-      <div class="card-note" id="histNote">還沒有存任何月份</div>
-    </div>
-    <div class="hint" style="margin-top:0">每次上傳後，每個月整理好的報表會自動存起來。想看哪個月，點一下就切換；灰色的月份代表還沒有報表。</div>
-    <div class="chips" id="histQuick" style="margin-top:12px; margin-bottom:0">
-      <button type="button" data-q="all" aria-pressed="false">全部月份</button>
-      <button type="button" data-q="last" aria-pressed="false">上個月</button>
-      <button type="button" data-q="season" aria-pressed="false">本季</button>
-      <button type="button" data-q="yoy" aria-pressed="false">去年同月</button>
-    </div>
-    <div class="mgrid" id="histGrid"></div>
-    <div class="hist-msg" id="histMsg"></div>
-    <div class="hist-cmp">
-      <label><input type="checkbox" id="cmpOn"> 跟另一個月比較</label>
-      <select id="cmpSel" aria-label="要比較的月份"></select>
-    </div>
-    <div id="cmpOut"></div>
-    <div class="db-status db-pending" id="histDbStatus">● 正在連線資料庫…</div>
-    <div class="log-actions"><button class="file-btn" id="btnClearHist" type="button">清除所有歷史報表</button></div>
   </div>
 
 
@@ -1787,7 +1803,7 @@
     var b = e.target.closest ? e.target.closest("button[data-sum]") : null; if (!b) return;
     var k = b.getAttribute("data-sum");
     if (k === "rev"){ if (state.drill !== "rev") toggleDrill("rev"); openCardById("overviewCard"); }
-    else if (k === "hist") openCardById("histCard");
+    else if (k === "hist"){ pbOpen(true); openCardById("histCard"); }
     else if (k === "rank") openCardById("rankCard");
   });
 
@@ -3192,6 +3208,12 @@
     var s = startY + "-" + (startM<10?"0"+startM:startM);
     return [s, mkAdd(s,1), mkAdd(s,2)];
   }
+  function pbOpen(on){
+    var t = byId("pbToggle"), bd = byId("pbBody"); if (!t || !bd) return;
+    bd.hidden = !on; t.setAttribute("aria-expanded", String(!!on)); t.textContent = on ? "收合 ▴" : "選月份 ▾";
+  }
+  byId("pbToggle").addEventListener("click", function(){ pbOpen(byId("pbBody").hidden); });
+  byId("histGrid").addEventListener("click", function(e){ if (e.target.closest && e.target.closest(".mbtn:not(:disabled)") && !byId("cmpOn").checked) setTimeout(function(){ pbOpen(false); }, 0); });
   function setHistMsg(t){ var el = byId("histMsg"); if (el) el.textContent = t || ""; }
 
   function storeById(id){ for (var i=0;i<stores.length;i++) if (stores[i].id === id) return stores[i]; return null; }
@@ -3505,6 +3527,9 @@
     }
     renderCompare();
     var bch = byId("btnClearHist"); if (bch && bch.getAttribute("data-confirm") !== "1") bch.disabled = !mks.length || isBrandView();
+    var bar = byId("histCard"); if (bar) bar.hidden = !mks.length;
+    var hm = byId("histMsg"); if (hm && mks.length && /還沒有報表/.test(hm.textContent)) hm.textContent = "";
+    var pc = byId("pbCur"); if (pc) pc.textContent = sel ? monthLabelOf(sel) : ((state.view && state.view.label) || "全部月份");
     setSum("histCard", sel ? "正在看 " + monthLabelOf(sel) : (state.view && state.view.type !== "month" ? (state.view.label || "全部月份") : (mks.length ? "已存 " + mks.length + " 個月" : "尚無資料")));
   }
 
