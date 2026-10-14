@@ -4336,7 +4336,10 @@
     try { bl.scrollIntoView({ behavior:"smooth", block:"center" }); } catch(e){ /* 舊瀏覽器 */ }
     var ip = bl.querySelector(".cat-name"); ip.focus({ preventScroll:true }); ip.select();
   });
-  byId("btnMenuSave").addEventListener("click", function(){ saveMenu(); });
+  byId("btnMenuSave").addEventListener("click", function(){
+    if (menuImportPending && menuImportPending.sid === state.storeSel && !byId("menuAsk").hidden){ byId("btnAskImport").click(); return; }
+    saveMenu();
+  });
   byId("menuRows").addEventListener("click", function(e){
     var t = e.target;
     if (t.classList && t.classList.contains("man-del")){
@@ -4375,6 +4378,7 @@
   });
   byId("menuRows").addEventListener("input", function(e){
     var row = e.target.closest ? e.target.closest(".menu-row") : null; if (!row) return;
+    if (e.target.classList.contains("mn-name") && byId("aiCatBox").hidden) syncAiCat();
     var src = row.getAttribute("data-src");
     if (src === "excel" || src === "new"){ row.removeAttribute("data-src"); var f = row.querySelector(".mn-flag"); if (f && e.target.classList.contains("mn-price")) f.remove(); }
   });
@@ -5522,6 +5526,7 @@
     });
     if (!editCat) addMenuRow();
     updateCatCounts();
+    syncAiCat();
     byId("menuDone").hidden = true;
     if (sales.length){
       menuImportPending = { sid:sid, list:sales };
