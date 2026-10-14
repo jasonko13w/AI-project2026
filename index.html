@@ -538,6 +538,8 @@
   .way{ border:1px solid var(--border); border-radius:14px; padding:14px; display:flex; flex-direction:column; align-items:flex-start; gap:12px; }
   .way b{ font-size:15px; }
   .ways-demo{ font-size:12.5px; color:var(--muted); margin-top:10px; }
+  #waysMsg{ color:var(--warn); }
+  #waysMsg:empty, #ocrMsg:empty{ display:none; }
   .ask{ border:2px solid var(--accent); background:var(--accent-soft); border-radius:14px; padding:14px 16px; margin-bottom:12px; font-size:13.5px; }
   .ask b{ display:block; font-size:15px; margin-bottom:4px; }
   .menu-tools{ display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
@@ -799,6 +801,7 @@
           <div class="way"><b>用 Excel 建菜單</b><button class="file-btn es-main" type="button" data-way="excel">選擇檔案</button></div>
           <div class="way"><b>手動輸入</b><button class="file-btn es-main" type="button" data-way="manual">新增品項</button></div>
         </div>
+        <div class="hint" id="waysMsg"></div>
         <div class="ways-demo">先看效果：<button class="link-btn" id="btnMenuDemo" type="button">載入示範資料</button></div>
       </div>
       <input type="file" id="menuFileInput" accept=".csv,.xlsx,.xls" multiple hidden>
@@ -822,6 +825,7 @@
             <button class="file-btn" id="btnMenuAI" type="button" hidden>再試一次 AI</button>
             <input type="file" id="menuPhoto" accept="image/*" hidden>
           </div>
+          <div class="hint" id="ocrMsg"></div>
           <div class="menu-head" aria-hidden="true"><span>品項</span><span>價格</span><span></span></div>
           <div id="menuRows"></div>
           <div class="log-actions">
@@ -1665,11 +1669,14 @@
     if (!cloudReady()){ btn.parentNode.hidden = true; return; }
     btn.addEventListener("click", function(){
       if (isBrandView()){ setMenuMsg("請先在「店家資訊」選擇一家店。", true); return; }
+      var om = document.getElementById("ocrMsg");
       if (!cloudUser || !supa){
-        setMenuMsg("AI 讀菜單要先「登入同步」才能用（這樣才能保護 Azure 金鑰，也避免被陌生人刷用量）。", true);
-        var bar = document.getElementById("cloudBar"); if (bar) bar.scrollIntoView({ behavior:"smooth", block:"center" });
+        // 訊息直接顯示在按鈕下面，不把畫面捲走
+        om.innerHTML = '拍照辨識需要先登入同步（保護 Azure 金鑰，也避免被陌生人刷用量）。<button type="button" class="link-btn" data-login="1">前往登入</button>';
+        om.style.color = "var(--warn)";
         return;
       }
+      om.textContent = "";
       inp.value = ""; inp.click();
     });
     function shrink(file){
@@ -4693,15 +4700,28 @@
     var b = e.target.closest ? e.target.closest("button[data-way]") : null;
     if (!b || isBrandView()) return;
     var w = b.getAttribute("data-way");
+    byId("waysMsg").textContent = "";
     if (w === "excel"){ byId("menuFileInput").click(); return; }
-    openMenuEditor(state.storeSel);
     if (w === "photo"){
       var pb = byId("btnMenuPhoto");
-      if (pb && !pb.parentNode.hidden) pb.click();
-      else setMenuMsg("這個版本無法使用拍照辨識，請改用 Excel 或手動輸入。", true);
-    } else {
-      var f = byId("menuRows").querySelector(".mn-name"); if (f) f.focus();
+      if (!pb || pb.parentNode.hidden){ byId("waysMsg").textContent = "這個版本無法使用拍照辨識，請改用 Excel 或手動輸入。"; return; }
+      // 還沒登入：訊息顯示在這裡，不打開編輯器、不把畫面捲走
+      if (typeof cloudUser !== "undefined" && !cloudUser){
+        byId("waysMsg").innerHTML = '拍照辨識需要先登入同步（保護 Azure 金鑰，也避免被陌生人刷用量）。<button type="button" class="link-btn" data-login="1">前往登入</button>';
+        return;
+      }
+      openMenuEditor(state.storeSel);
+      pb.click();
+      return;
     }
+    openMenuEditor(state.storeSel);
+    var f = byId("menuRows").querySelector(".mn-name"); if (f) f.focus();
+  });
+  // 「前往登入」：捲到登入列並打開登入表單
+  byId("menuCard").addEventListener("click", function(e){
+    var b = e.target.closest ? e.target.closest("[data-login]") : null; if (!b) return;
+    var bar = byId("cloudBar"); if (bar) bar.scrollIntoView({ behavior:"smooth", block:"center" });
+    var bl = byId("btnCloudLogin"); if (bl && !bl.closest("[hidden]")) bl.click();
   });
   byId("btnMenuExcel").addEventListener("click", function(){ byId("menuFileInput").click(); });
   byId("btnMenuDemo").addEventListener("click", function(){ byId("btnDemo").click(); });
