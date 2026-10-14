@@ -3446,7 +3446,7 @@
     var period = manualMonth ? periodFromFilename(manualMonth) : periodFromFilename(fileName);
     if (!period) return { ok:false, needsMonth:true, reason:"商品排行的檔名沒有日期，無法判斷月份。" };
     var mk2 = period.months[0];
-    var products = {};
+    var products = {}, lines = [];
     body.forEach(function(r){
       var nm = String(col(r, "name") == null ? "" : col(r, "name")).replace(/[\s　]+/g, " ").replace(/\s*\(\s*/g, "(").trim(); // 統一空白，避免同一品項因多一個空格被拆成兩個
       if (!nm) return;
@@ -3455,9 +3455,10 @@
       if (!products[nm]) products[nm] = { qty:0, rev:0 };
       products[nm].qty += q;
       products[nm].rev += rv;
+      lines.push([nm, q, rv]);
     });
     if (!Object.keys(products).length) return { ok:false, reason:"有找到商品欄位，但沒有讀到任何有效的一列資料" };
-    return { ok:true, type:"product", typeName:"商品排行", month:mk2, periodMonths:period.months, periodLabel:period.label, products:products, hasRev: c.amt > -1 };
+    return { ok:true, type:"product", typeName:"商品排行", month:mk2, periodMonths:period.months, periodLabel:period.label, products:products, lines:lines, hasRev: c.amt > -1 };
   }
 
   function classifyAndExtract(fileName, rows){
@@ -5826,12 +5827,12 @@
         x.items.forEach(function(it){ if (!agg[it[0]]){ agg[it[0]] = { price:it[1], cat:it[2] || "" }; order.push(it[0]); } });
       } else if (x.type === "product"){
         sales.push(x); labels.push(x.periodLabel || monthLabelOf(x.month));
-        Object.keys(x.products).forEach(function(n0){
-          var n = cleanName(n0), q = x.products[n0].qty, r = x.products[n0].rev;
+        (x.lines || []).forEach(function(ln){
+          var n = cleanName(ln[0]), q = ln[1], r = ln[2];
           if (!n || !(q > 0) || !(r > 0)) return;
           var a = agg[n];
-          if (!a){ a = agg[n] = { qty:0, rev:0, cat:"" }; order.push(n); }
-          if (a.price == null){ a.qty += q; a.rev += r; }
+          if (!a){ a = agg[n] = { units:{}, cat:"" }; order.push(n); }
+          if (a.price == null){ var u = Math.round(r / q * 10) / 10; a.units[u] = true; }
         });
       } else if (x.type === "daily"){
         sales.push(x); (x.months || []).forEach(function(m){ labels.push(monthLabelOf(m)); });
@@ -5840,9 +5841,16 @@
     var items = order.map(function(n){
       var a = agg[n];
       if (a.price != null) return [n, Math.round(a.price), a.cat];
-      var raw = a.rev / a.qty, pr = Math.round(raw);
-      if (Math.abs(raw - pr) > 0.01) flags[n] = "單價由「銷售金額 ÷ 數量」推算為 " + (Math.round(raw * 10) / 10) + "，可能含折扣或招待，請確認售價。";
-      return [n, pr, ""];
+      var us = Object.keys(a.units).map(Number).sort(function(x, y){ return y - x; });
+      if (us.length > 1){
+        flags[n] = "報表中有 " + us.length + " 種售價：" + us.map(function(u){ return fmtInt(u); }).join("、") + "，請填入售價，或分成不同品項。";
+        return [n, "", ""];
+      }
+      if (Math.abs(us[0] - Math.round(us[0])) > 0.01){
+        flags[n] = "售價不固定（平均每份 " + us[0] + " 元），請填入售價，或刪除此品項。";
+        return [n, "", ""];
+      }
+      return [n, Math.round(us[0]), ""];
     });
     if (!items.length){
       var why = list.map(function(x){
