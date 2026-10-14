@@ -3277,7 +3277,7 @@
     var store = src || snapStore;
     mks = mks.filter(function(mk){ return store[mk]; }).sort();
     var ds = { label:label, months:mks.slice(), hasAmount:false, productMonthly:{}, revMonthly:{}, qtyMonthly:{}, recon:[], productFiles:[], daily:null, files:[], fromHistory:true };
-    var dx = { disc:{}, open:{}, days:{}, hasCust:false, hasDisc:false }, anyDaily = false;
+    var dx = { disc:{}, open:{}, days:{}, hasCust:false, hasDisc:false }, anyDaily = false, anyProdRev = false;
     mks.forEach(function(mk){
       var s = store[mk];
       if (s.daily){
@@ -3297,9 +3297,10 @@
         });
         ds.productFiles.push({ label:monthLabelOf(mk), start:mk, end:mk, products:products });
         if (s.daily && pr > 0 && s.source !== "manual") ds.recon.push({ label:monthLabelOf(mk), dailyRev:s.daily.rev || 0, productRev:pr });
+        if (!s.daily && pr > 0){ ds.revMonthly[mk] = pr; anyProdRev = true; }
       }
     });
-    ds.hasAmount = anyDaily;
+    ds.hasAmount = anyDaily || anyProdRev;
     ds.daily = anyDaily ? dx : null;
     return ds;
   }
@@ -5281,7 +5282,7 @@
           if (!n || !(q > 0) || !(r > 0)) return;
           var a = agg[n];
           if (!a){ a = agg[n] = { units:{}, cat:"" }; order.push(n); }
-          if (a.price == null){ var u = Math.round(r / q * 10) / 10; a.units[u] = true; }
+          if (a.price == null){ var u = Math.round(r / q * 10) / 10; a.units[u] = (a.units[u] || 0) + q; a.qty = (a.qty || 0) + q; a.rev = (a.rev || 0) + r; }
         });
       } else if (x.type === "daily"){
         sales.push(x); (x.months || []).forEach(function(m){ labels.push(monthLabelOf(m)); });
@@ -5290,16 +5291,14 @@
     var items = order.map(function(n){
       var a = agg[n];
       if (a.price != null) return [n, Math.round(a.price), a.cat];
-      var us = Object.keys(a.units).map(Number).sort(function(x, y){ return y - x; });
+      var us = Object.keys(a.units).map(Number).sort(function(x, y){ return a.units[y] - a.units[x]; });
       if (us.length > 1){
-        flags[n] = "報表中有 " + us.length + " 種售價：" + us.map(function(u){ return fmtInt(u); }).join("、") + "，請填入售價，或分成不同品項。";
-        return [n, "", ""];
+        flags[n] = "報表中有 " + us.length + " 種售價（" + us.map(function(u){ return fmtInt(u); }).join("、") + "），已填入銷量最多的 " + fmtInt(us[0]) + "，請確認。";
+        return [n, Math.round(us[0]), ""];
       }
-      if (Math.abs(us[0] - Math.round(us[0])) > 0.01){
-        flags[n] = "售價不固定（平均每份 " + us[0] + " 元），請填入售價，或刪除此品項。";
-        return [n, "", ""];
-      }
-      return [n, Math.round(us[0]), ""];
+      var pr = Math.round(a.rev / a.qty);
+      if (Math.abs(us[0] - Math.round(us[0])) > 0.01) flags[n] = "售價不固定，已填入平均每份 " + fmtInt(pr) + " 元，請確認。";
+      return [n, pr, ""];
     });
     if (!items.length){
       var why = list.map(function(x){
