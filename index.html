@@ -159,6 +159,7 @@
   .store-row select{ min-width:200px; max-width:100%; border-radius:999px; padding:7px 14px; line-height:1.4; }
   .store-add{ display:flex; gap:8px; flex-wrap:wrap; margin-top:10px; }
   .store-add input{ flex:1 1 180px; min-width:0; }
+  .store-setup{ flex:1 1 100%; font-size:14px; font-weight:700; color:var(--text-primary); }
   .empty-state{ text-align:center; padding:28px 20px; }
   .empty-state .es-title{ font-size:18px; font-weight:800; margin-bottom:8px; }
   .empty-state .es-text{ color:var(--text-secondary); max-width:52ch; margin:0 auto; }
@@ -577,8 +578,10 @@
       <select id="storeSel" aria-label="選擇分店"></select>
       <button class="file-btn" id="btnAddStore" type="button">＋新增分店</button>
       <button class="file-btn" id="btnRenameStore" type="button">改名</button>
+      <button class="file-btn" id="btnDelStore" type="button">刪除這家店</button>
     </div>
     <div class="store-add" id="storeForm" hidden>
+      <div class="store-setup" id="storeSetupHint" hidden>第一次使用：先填你的品牌和店名（沒有品牌可以空白），就可以開始。</div>
       <input id="storeBrand" maxlength="30" placeholder="品牌（例如：品牌A，沒有可空白）" aria-label="品牌">
       <input id="storeName" maxlength="30" placeholder="分店名稱（例如：南京店）" aria-label="分店名稱">
       <button class="file-btn es-main" id="btnSaveStore" type="button">新增</button>
@@ -3652,6 +3655,7 @@
     Promise.all([loadMappings(db), loadStores(db).then(function(){ return loadSnapshots(db); }).then(function(){ return loadDays(db); }).catch(function(){ setHistMsg("讀取歷史報表失敗，請重新整理頁面再試一次。"); })]).then(function(){
       pickStartStore();
       renderStoreUI();
+      maybeStoreSetup();
       renderHistory();
       // 打開頁面時，有存檔就直接顯示自己店的報表，不顯示示範資料
       if (!state.userTouched && snapMonths().length){
@@ -4260,6 +4264,11 @@
     }).join("");
     sel.value = state.storeSel;
     var rn = byId("btnRenameStore"); if (rn) rn.disabled = isBrandView();
+    var dl = byId("btnDelStore");
+    if (dl && dl.getAttribute("data-confirm") !== "1"){
+      dl.textContent = "刪除這家店";
+      dl.disabled = isBrandView() || needsStoreSetup() && !storeHasData("main");
+    }
     var b = byId("btnClearHist");
     if (b && b.getAttribute("data-confirm") !== "1"){
       b.textContent = isBrandView() ? "清除歷史報表（請先選一家分店）" : (stores.length === 1 ? "清除所有歷史報表" : "清除「" + selLabel() + "」的歷史報表");
@@ -4310,11 +4319,80 @@
     storeFormMode = mode;
     var f = byId("storeForm"); f.hidden = false;
     var cur = storeById(state.storeSel);
-    byId("storeBrand").value = mode === "rename" && cur ? cur.brand : (isBrandView() ? brandOfSel() : (cur ? cur.brand : ""));
-    byId("storeName").value = mode === "rename" && cur ? cur.name : "";
-    byId("btnSaveStore").textContent = mode === "rename" ? "儲存名稱" : "新增";
-    byId("storeName").focus();
+    var setup = mode === "setup";
+    byId("storeSetupHint").hidden = !setup;
+    byId("storeBrand").value = setup ? "" : mode === "rename" && cur ? cur.brand : (isBrandView() ? brandOfSel() : (cur ? cur.brand : ""));
+    byId("storeName").value = setup ? "" : mode === "rename" && cur ? cur.name : "";
+    byId("btnSaveStore").textContent = setup ? "開始使用" : mode === "rename" ? "儲存名稱" : "新增";
+    byId("btnCancelStore").textContent = setup ? "先跳過" : "取消";
+    // 第一次打開頁面時不自動跳出手機鍵盤
+    if (!setup) byId("storeName").focus();
   }
+  // 還沒設定過店名：只有系統預設的「我的店」
+  function needsStoreSetup(){
+    return stores.length === 1 && stores[0].id === "main" && !stores[0].brand && stores[0].name === "我的店";
+  }
+  function storeHasData(sid){
+    var ds = dayStore || {}, ms = menuStore || {}; // 頁面剛載入時這兩個可能還沒建立
+    return !!(Object.keys(storeSnaps[sid] || {}).length || Object.keys(ds[sid] || {}).length || (ms[sid] || []).length);
+  }
+  function maybeStoreSetup(){
+    if (needsStoreSetup()){ if (state.storeSel !== "main") selectStore("main", true); openStoreForm("setup"); }
+    else if (storeFormMode === "setup") byId("storeForm").hidden = true;
+  }
+
+  // 刪除目前這家店：報表、每日資料、菜單一起刪，再把店從清單拿掉
+  function deleteCurrentStore(){
+    if (isBrandView()){ setHistMsg("「全部分店加總」不能直接刪除，請先在上方選一家分店。"); return Promise.resolve(); }
+    var sid = state.storeSel, s = storeById(sid); if (!s) return Promise.resolve();
+    var label = storeLabel(s);
+    var mks = Object.keys(storeSnaps[sid] || {}), days = Object.keys(dayStore[sid] || {}), hasMenu = !!(menuStore[sid] || []).length;
+    var fails = 0, chain = persistChain;
+    if (appDb){
+      mks.forEach(function(mk){ chain = chain.then(function(){ return appDb.doc("reports/" + reportDocId(sid, mk)).delete(); }).catch(function(){ fails++; }); });
+      days.forEach(function(d){ chain = chain.then(function(){ return appDb.doc("days/" + reportDocId(sid, d)).delete(); }).catch(function(){ fails++; }); });
+      if (hasMenu) chain = chain.then(function(){ return appDb.doc("menus/" + sid).delete(); }).catch(function(){ fails++; });
+    }
+    persistChain = chain;
+    var btn = byId("btnDelStore"); btn.disabled = true;
+    setHistMsg("刪除中⋯⋯");
+    return chain.then(function(){
+      if (fails){
+        btn.disabled = false;
+        setHistMsg("「" + label + "」有 " + fails + " 筆資料刪除失敗，請重新整理頁面再按一次。");
+        logAppend("刪除分店", "", "fail", label + "：" + fails + " 筆刪除失敗");
+        return;
+      }
+      delete dayStore[sid]; delete menuStore[sid];
+      if (sid === "main"){ s.brand = ""; s.name = "我的店"; storeSnaps.main = {}; }
+      else {
+        for (var i = stores.length - 1; i >= 0; i--) if (stores[i].id === sid) stores.splice(i, 1);
+        delete storeSnaps[sid];
+      }
+      saveStores();
+      try { if (localStorage.getItem(LAST_STORE_KEY) === sid) localStorage.removeItem(LAST_STORE_KEY); } catch(e){ /* 沒關係 */ }
+      if (menuOpenFor === sid) menuOpenFor = null;
+      manKey = null;
+      var next = stores.slice().sort(function(a, b){ return monthsOfStore(b.id) - monthsOfStore(a.id); })[0];
+      logAppend("刪除分店", "", "ok", label + "：刪除 " + mks.length + " 個月報表、" + days.length + " 天每日資料" + (hasMenu ? "、菜單" : ""));
+      selectStore(next ? next.id : "main", true);
+      setHistMsg("已刪除「" + label + "」和它的報表、每日資料、菜單。");
+      maybeStoreSetup();
+    });
+  }
+  // 刪除要按兩次：第一次先確認
+  byId("btnDelStore").addEventListener("click", function(){
+    var b = byId("btnDelStore");
+    if (isBrandView()) return;
+    if (b.getAttribute("data-confirm") !== "1"){
+      b.setAttribute("data-confirm", "1");
+      b.textContent = "確定刪除「" + selLabel() + "」和它全部的資料嗎？再按一次";
+      setTimeout(function(){ if (b.getAttribute("data-confirm") === "1"){ b.removeAttribute("data-confirm"); renderStoreUI(); } }, 6000);
+      return;
+    }
+    b.removeAttribute("data-confirm");
+    deleteCurrentStore();
+  });
   function saveStoreForm(){
     var brand = byId("storeBrand").value.trim().replace(/[_~]/g, " ").slice(0, 30);
     var name = byId("storeName").value.trim().replace(/[_~]/g, " ").slice(0, 30);
@@ -4322,12 +4400,14 @@
     var dup = stores.filter(function(s){ return s.brand === brand && s.name === name && !(storeFormMode === "rename" && s.id === state.storeSel); });
     if (dup.length){ setHistMsg("已經有「" + storeLabel(dup[0]) + "」了。"); return; }
     byId("storeForm").hidden = true;
-    if (storeFormMode === "rename"){
+    if (storeFormMode === "rename" || storeFormMode === "setup"){
       var cur = storeById(state.storeSel); if (!cur) return;
       var old = storeLabel(cur);
       cur.brand = brand; cur.name = name;
       saveStores();
-      logAppend("分店改名", "", "ok", old + " → " + storeLabel(cur));
+      if (storeFormMode === "setup") logAppend("設定店名", "", "ok", storeLabel(cur));
+      else logAppend("分店改名", "", "ok", old + " → " + storeLabel(cur));
+      storeFormMode = "add";
       selectStore(state.storeSel, true);
     } else {
       var s = { id:newStoreId(), brand:brand, name:name };
