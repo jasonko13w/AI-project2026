@@ -602,6 +602,7 @@
           <div class="hint">一行一道菜：名稱和價格。設定一次就會記住；之後改價格，不會影響已經存好的日子。</div>
           <div class="ocr-row">
             <button class="file-btn es-main" id="btnMenuPhoto" type="button">📷 拍菜單／上傳菜單照片，AI 自動填好</button>
+            <button class="file-btn" id="btnMenuAI" type="button" hidden>✨ AI 深度整理菜單</button>
             <input type="file" id="menuPhoto" accept="image/*" hidden>
           </div>
           <div class="menu-head" aria-hidden="true"><span>品項</span><span>價格</span><span></span></div>
@@ -1321,7 +1322,12 @@
       n = n.replace(/[.．…·•\-—_~～:：]+$/g, "").replace(/^[\s.．…·•\-—_~～:：*＊●○◎★☆]+/, "").replace(/\s+/g, " ").trim();
       return n;
     }
-    function okName(n){ return n && n.length <= 30 && /[一-鿿A-Za-z]/.test(n) && !SKIP.test(n) && !/^\d+$/.test(n); }
+    var SIZE_ONLY = /^(大|中|小|特大|加大|單點|套餐|一份|半份|份|杯|瓶|碗|盤|例|大份|小份|中份|大碗|小碗|中碗)$/;
+    function okName(n){
+      if (!n || n.length > 30 || !/[\u4e00-\u9fffA-Za-z]/.test(n) || SKIP.test(n) || /^\d+$/.test(n) || SIZE_ONLY.test(n)) return false;
+      if (/^[\u4e00-\u9fff]$/.test(n)) return false; // 單獨一個中文字（多半是直式菜單被拆開的字）
+      return true;
+    }
     function okPrice(p){ return p >= 10 && p <= 99999; }
     var names = [], prices = [], out = [];
     (lines || []).forEach(function(l){
@@ -1405,8 +1411,68 @@
       if (/azure_400/.test(code)) return "Azure 看不懂這張圖，請換一張清楚的照片（JPG／PNG）。";
       return "AI 讀菜單失敗（" + (code || status) + "），請稍後再試，或直接手動輸入。";
     }
+    var aiBtn = document.getElementById("btnMenuAI"), lastLines = null, lastFile = "";
+    // 把配對結果填進菜單編輯器。replaceOcr=true 時，先拿掉上一次自動填入、還沒改過的列
+    function applyItems(sid, items, replaceOcr){
+      if (menuOpenFor !== sid) openMenuEditor(sid);
+      var rows = Array.prototype.slice.call(document.querySelectorAll("#menuRows .menu-row")), have = {};
+      rows.forEach(function(r){
+        var n = cleanName(r.querySelector(".mn-name").value);
+        if (replaceOcr && r.getAttribute("data-ocr") === "1"){ r.remove(); return; }
+        if (!n && !r.querySelector(".mn-price").value) r.remove(); else if (n) have[n] = r;
+      });
+      var added = 0, filled = 0;
+      items.forEach(function(it){
+        var r = have[it[0]];
+        if (r){ var pi = r.querySelector(".mn-price"); if (!pi.value){ pi.value = it[1]; filled++; } return; }
+        var nr = addMenuRow(it); nr.setAttribute("data-ocr", "1"); added++;
+      });
+      addMenuRow();
+      return { added:added, filled:filled };
+    }
+    function aiErr(status, code){
+      code = String(code || "");
+      if (status === 404) return "AI 深度整理還沒設定好：Supabase 裡還沒有部署 menu-ai 這個函式。";
+      if (code === "not_configured") return "AI 深度整理還沒設定好：Supabase 的 Secrets 裡還沒放 Azure OpenAI 的網址、金鑰和部署名稱。";
+      if (code === "login_required" || status === 401) return "登入狀態過期了，請登出再登入一次。";
+      if (/azure_401|azure_403/.test(code)) return "Azure OpenAI 的金鑰或網址不對，請到 Supabase 的 Secrets 檢查。";
+      if (/azure_404/.test(code)) return "找不到 Azure OpenAI 的模型部署，請確認 AZURE_OPENAI_DEPLOYMENT 的名稱。";
+      if (/azure_429/.test(code)) return "Azure OpenAI 用量到上限或太頻繁，請等一下再試。";
+      return "AI 深度整理失敗（" + (code || status) + "）。";
+    }
+    // 把讀到的文字交給 Azure OpenAI 依語意整理；auto=true 表示是規則配對太少時自動觸發
+    function runAi(sid, fallbackItems, auto){
+      if (!lastLines || !lastLines.length){ setMenuMsg("請先按「📷 拍菜單」上傳一張照片。", true); return Promise.resolve(); }
+      aiBtn.disabled = true; btn.disabled = true;
+      setMenuMsg((auto ? "規則只配對出 " + fallbackItems.length + " 道，改請 AI 依語意整理中…" : "AI 深度整理中…") + "（大約 5～20 秒）");
+      var t1 = Date.now(), st = 0;
+      return supa.auth.getSession().then(function(r){
+        var tok = r && r.data && r.data.session ? r.data.session.access_token : "";
+        return fetch(SUPA_URL + "/functions/v1/menu-ai", { method:"POST", headers:{ "Authorization":"Bearer " + tok, "apikey":SUPA_KEY, "Content-Type":"application/json" }, body:JSON.stringify({ lines:lastLines }) });
+      }).then(function(res){ st = res.status; return res.json().catch(function(){ return {}; }); }).then(function(j){
+        if (st !== 200 || !j || !Array.isArray(j.items)) throw { status:st, code:j && j.error };
+        var items = j.items.filter(function(it){ return Array.isArray(it) && it[0] && +it[1] > 0; }).map(function(it){ return [cleanName(it[0]), Math.round(+it[1])]; });
+        if (typeof logAppend === "function") logAppend("AI 深度整理菜單", lastFile, items.length ? "ok" : "fail", "整理出 " + items.length + " 道菜，" + Math.round((Date.now() - t1) / 100) / 10 + " 秒" + (j.usage ? "，用量 " + j.usage.in + "+" + j.usage.out + " tokens" : ""));
+        if (state.storeSel !== sid) return;
+        if (!items.length){ setMenuMsg("AI 也整理不出品項和價格，這張照片可能太模糊，或不是菜單。可以換一張照片，或直接手動輸入。", true); return; }
+        var r = applyItems(sid, items, true);
+        setMenuMsg("✨ AI 依語意整理出 " + items.length + " 道菜（已取代剛剛自動填入的結果），新增 " + r.added + " 道" + (r.filled ? "、補上 " + r.filled + " 個價格" : "") + "。大小份會拆成兩筆。請檢查後按「儲存菜單」。");
+      }).catch(function(e){
+        var msg = e && e.status !== undefined ? aiErr(e.status, e.code) : "連不上 AI 服務，請檢查網路後再試。";
+        if (auto && fallbackItems.length && state.storeSel === sid){
+          var r = applyItems(sid, fallbackItems);
+          setMenuMsg("先用規則配對出 " + fallbackItems.length + " 道菜（新增 " + r.added + " 道），請檢查後按「儲存菜單」。" + msg, true);
+        } else setMenuMsg(msg, true);
+        if (typeof logAppend === "function") logAppend("AI 深度整理菜單", lastFile, "fail", msg);
+      }).then(function(){ aiBtn.disabled = false; btn.disabled = false; });
+    }
+    aiBtn.addEventListener("click", function(){
+      if (!cloudUser || !supa){ setMenuMsg("AI 功能要先「登入同步」才能用。", true); return; }
+      runAi(state.storeSel, [], false);
+    });
     inp.addEventListener("change", function(){
       var file = inp.files && inp.files[0]; if (!file) return;
+      lastLines = null; aiBtn.hidden = true;
       var sid = state.storeSel;
       btn.disabled = true; setMenuMsg("AI 讀菜單中…（大約 3～15 秒）");
       var t0 = Date.now(), status = 0;
@@ -1420,24 +1486,19 @@
         return res.json().catch(function(){ return {}; });
       }).then(function(j){
         if (status !== 200 || !j || !Array.isArray(j.lines)) throw { status:status, code:j && j.error };
+        lastLines = j.lines; lastFile = file.name || "";
         var items = parseMenuLines(j.lines);
-        if (typeof logAppend === "function") logAppend("AI 讀菜單", file.name || "", items.length ? "ok" : "fail", "讀到 " + j.lines.length + " 行文字，配對出 " + items.length + " 道菜，" + Math.round((Date.now() - t0) / 100) / 10 + " 秒");
-        if (!items.length){ setMenuMsg("AI 有讀到 " + j.lines.length + " 行字，但配對不出「品名＋價格」。可以換一張正面、清楚、光線夠的照片，或直接手動輸入。", true); return; }
+        if (typeof logAppend === "function") logAppend("AI 讀菜單", lastFile, items.length ? "ok" : "fail", "讀到 " + j.lines.length + " 行文字，規則配對出 " + items.length + " 道菜，" + Math.round((Date.now() - t0) / 100) / 10 + " 秒");
         if (state.storeSel !== sid) return;
-        if (menuOpenFor !== sid) openMenuEditor(sid);
-        var rows = Array.prototype.slice.call(document.querySelectorAll("#menuRows .menu-row")), have = {};
-        rows.forEach(function(r){
-          var n = cleanName(r.querySelector(".mn-name").value);
-          if (!n && !r.querySelector(".mn-price").value) r.remove(); else if (n) have[n] = r;
-        });
-        var added = 0, filled = 0;
-        items.forEach(function(it){
-          var r = have[it[0]];
-          if (r){ var pi = r.querySelector(".mn-price"); if (!pi.value){ pi.value = it[1]; filled++; } return; }
-          addMenuRow(it); added++;
-        });
-        addMenuRow();
-        setMenuMsg("AI 讀到 " + items.length + " 道菜，新增 " + added + " 道" + (filled ? "、補上 " + filled + " 個價格" : "") + "。請檢查品名和價格有沒有讀錯（可以直接改），確認後按「儲存菜單」。");
+        aiBtn.hidden = false;
+        // 規則配對太少（直式、手寫、多價格菜單常見）：自動請 AI 依語意整理
+        var priceLines = j.lines.filter(function(l){ return /\d{2,}/.test(String(l.text || "")); }).length;
+        if ((items.length < 3 && j.lines.length >= 3) || (priceLines >= 3 && items.length < priceLines * 0.6)){
+          return runAi(sid, items, true);
+        }
+        if (!items.length){ setMenuMsg("AI 有讀到 " + j.lines.length + " 行字，但配對不出「品名＋價格」。可以按「✨ AI 深度整理菜單」再試一次，或換一張正面、清楚的照片。", true); return; }
+        var r = applyItems(sid, items);
+        setMenuMsg("讀到 " + items.length + " 道菜，新增 " + r.added + " 道" + (r.filled ? "、補上 " + r.filled + " 個價格" : "") + "。請檢查品名和價格（可以直接改），確認後按「儲存菜單」。如果有漏掉或配錯（例如直式菜單、大小份），可以按「✨ AI 深度整理菜單」。");
       }).catch(function(e){
         var msg = e && e.status !== undefined ? ocrErr(e.status, e.code) : (e && e.message === "image" ? "這個檔案打不開，請換一張 JPG 或 PNG 照片。" : "連不上 AI 服務，請檢查網路後再試。");
         setMenuMsg(msg, true);
