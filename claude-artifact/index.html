@@ -539,6 +539,10 @@
   .way b{ font-size:15px; }
   .ways-demo{ font-size:12.5px; color:var(--muted); margin-top:10px; }
   #waysMsg{ color:var(--warn); }
+  .way-note{ display:block; font-size:12px; font-weight:400; color:var(--muted); margin-top:2px; }
+  .way-note .link-btn{ font-size:12px; padding:0 2px; }
+  /* 不能用的橘色按鈕：變灰、不亮 */
+  .file-btn.es-main:disabled{ background:var(--surface-2); border-color:var(--border); color:var(--muted); cursor:not-allowed; filter:none; }
   #waysMsg:empty, #ocrMsg:empty{ display:none; }
   .ask{ border:2px solid var(--accent); background:var(--accent-soft); border-radius:14px; padding:14px 16px; margin-bottom:12px; font-size:13.5px; }
   .ask b{ display:block; font-size:15px; margin-bottom:4px; }
@@ -746,7 +750,7 @@
       </div>
       <div id="menuWays" hidden>
         <div class="ways">
-          <div class="way"><b>拍菜單照片</b><button class="file-btn es-main" type="button" data-way="photo">上傳照片</button></div>
+          <div class="way"><b>拍菜單照片<small class="way-note" id="wayPhotoNote" hidden></small></b><button class="file-btn es-main" type="button" data-way="photo" id="btnWayPhoto">上傳照片</button></div>
           <div class="way"><b>用 Excel 建菜單</b><button class="file-btn es-main" type="button" data-way="excel">選擇檔案</button></div>
           <div class="way"><b>手動輸入</b><button class="file-btn es-main" type="button" data-way="manual">新增品項</button></div>
         </div>
@@ -4622,6 +4626,24 @@
       b.title = why.replace(/[（）]/g, "");
     });
     if (!paneAllowed(paneNow)) showPane(defaultPane());
+    syncPhotoAvail();
+  }
+  // 拍照辨識要登入才能用（保護 Azure 金鑰）：沒登入時按鈕變灰、不能按
+  function syncPhotoAvail(){
+    var pb = byId("btnMenuPhoto"), wb = byId("btnWayPhoto"), note = byId("wayPhotoNote"), om = byId("ocrMsg");
+    if (!wb) return;
+    var supported = !!pb && !pb.parentNode.hidden;
+    var logged = typeof cloudUser !== "undefined" && !!cloudUser;
+    var ok = supported && logged;
+    wb.disabled = !ok;
+    if (pb) pb.disabled = !ok;
+    note.hidden = ok;
+    if (!supported) note.textContent = "這個版本沒有拍照辨識";
+    else if (!logged) note.innerHTML = '登入同步後才能使用　<button type="button" class="link-btn" data-login="1">前往登入</button>';
+    if (om){
+      if (supported && !logged){ om.innerHTML = '拍照辨識需要先登入同步　<button type="button" class="link-btn" data-login="1">前往登入</button>'; om.style.color = ""; }
+      else if (ok && /登入/.test(om.textContent)) om.textContent = "";
+    }
   }
   function showPane(p){
     if (!PANES) return;
@@ -4629,7 +4651,7 @@
     paneNow = p;
     Object.keys(PANES).forEach(function(k){ var el = byId(PANES[k]); if (el) el.hidden = k !== p; });
     Array.prototype.forEach.call(document.querySelectorAll("#mainTabs button"), function(b){ b.setAttribute("aria-selected", String(b.getAttribute("data-pane") === p)); });
-    if (p === "menu") renderMenuPane();
+    if (p === "menu"){ renderMenuPane(); syncPhotoAvail(); }
     if (p === "recon") renderReconPane();
     if (p === "report"){ try { if (!state.dataset.empty) renderTrend(state.dataset); } catch(e){ /* 圖表失敗不影響其他功能 */ } }
   }
