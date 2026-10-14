@@ -19,14 +19,17 @@ function reply(status: number, body: unknown) {
   return new Response(JSON.stringify(body), { status, headers: { ...CORS, "Content-Type": "application/json" } });
 }
 
-const SYSTEM = `你是台灣餐廳的菜單整理助手。你會收到用 OCR 從菜單照片讀出的文字，每一行格式是「x,y,寬,高|文字」（座標單位是像素，x 往右變大、y 往下變大）。
-請根據語意與位置，把菜單整理成品項與價格。規則：
-1. 只輸出菜單上真的有的品項，不要自己編造品項或價格。
-2. 菜單可能是直式（文字由上往下寫、一欄一欄由右往左）、手寫、或多欄排列；請依座標與語意判斷哪個價格屬於哪個品項。
-3. 同一個品項有多個價格（例如 大/小、單點/套餐、中碗/大碗、杯/瓶），請拆成多筆，品名後面用全形括號標註，例如「貢丸湯（大）」「貢丸湯（小）」。
-4. 價格只保留整數新台幣數字（去掉「元」「$」「NT」等符號）。看不出價格的品項不要輸出。
-5. 忽略店名、標語、電話、地址、營業時間、服務費說明、分類標題（例如「湯品」「炸物」）。
-6. 品名保持菜單上的原文，修正明顯的 OCR 錯字可以，但不要翻譯或改寫。
+const SYSTEM = `你是台灣餐廳的菜單整理助手。你會收到一張菜單照片，以及 OCR 從照片讀出的文字（每行格式「x,y,寬,高|文字」，座標單位是像素）。
+OCR 文字只是參考，可能有錯字、漏字，或把價格和品名拆開；請以照片為準，自己看懂菜單。
+規則：
+1. 只輸出菜單上真的有的品項與價格，不要編造。
+2. 菜單可能是手寫、直式、多欄，價格可能是後來貼上的小紙條或貼紙；請判斷每個價格屬於哪個品項。貼紙蓋在原價上時，以貼紙上的價格為準。
+3. 一個價格同時對應多種做法（例如「土司／漢堡 55」），請拆成多筆，例如「香煎雞腿土司」「香煎雞腿漢堡」都是 55。
+4. 同一品項有多個價格（大/小、單點/套餐、中碗/大碗、杯/瓶），請拆成多筆，品名後面用全形括號標註，例如「貢丸湯（大）」「貢丸湯（小）」。
+5. 加價項目（例如「加蛋 +15」「加起士 10元」）也要輸出，品名寫「加蛋」「加起司」，價格寫加價的金額。
+6. 價格只保留整數新台幣數字（去掉「元」「$」「+」等符號）。看不出價格的品項不要輸出。
+7. 忽略店名、標語、電話、地址、營業時間、分類標題（例如「熱壓吐司」「湯品」）。
+8. 品名用正確的中文寫出來：手寫錯字、簡寫要還原成常見寫法（例如「G腿」寫成「雞腿」、「起士」可寫成「起司」、「肉松」寫成「肉鬆」）。
 只輸出 JSON，格式：{"items":[{"name":"品名","price":數字}]}`;
 
 Deno.serve(async (req) => {
@@ -48,10 +51,12 @@ Deno.serve(async (req) => {
   const who = await fetch(`${supaUrl}/auth/v1/user`, { headers: { Authorization: auth, apikey: anon } });
   if (!who.ok) return reply(401, { error: "login_required" });
 
-  let body: { lines?: { text: string; box: number[] }[] } = {};
+  let body: { lines?: { text: string; box: number[] }[]; image?: string } = {};
   try { body = await req.json(); } catch { return reply(400, { error: "bad_json" }); }
   const lines = Array.isArray(body.lines) ? body.lines.slice(0, MAX_LINES) : [];
-  if (!lines.length) return reply(400, { error: "no_lines" });
+  // 照片（data:image/jpeg;base64,...），有的話讓模型直接看圖
+  const image = typeof body.image === "string" && /^data:image\/(jpeg|png|webp);base64,/.test(body.image) && body.image.length < 6_000_000 ? body.image : "";
+  if (!lines.length && !image) return reply(400, { error: "no_lines" });
 
   // 精簡成「x,y,寬,高|文字」，省 token
   const compact = lines.map((l) => {
@@ -67,7 +72,15 @@ Deno.serve(async (req) => {
       method: "POST",
       headers: { "api-key": key, "Content-Type": "application/json" },
       body: JSON.stringify({
-        messages: [{ role: "system", content: SYSTEM }, { role: "user", content: compact }],
+        messages: [
+          { role: "system", content: SYSTEM },
+          image
+            ? { role: "user", content: [
+                { type: "text", text: "OCR 參考文字（可能有錯）：\n" + (compact || "（沒有讀到文字）") },
+                { type: "image_url", image_url: { url: image, detail: "high" } },
+              ] }
+            : { role: "user", content: compact },
+        ],
         temperature: 0,
         max_tokens: 4000,
         response_format: { type: "json_object" },
@@ -91,7 +104,7 @@ Deno.serve(async (req) => {
       items.push([name, price]);
     }
     const usage = j.usage || {};
-    return reply(200, { items, usage: { in: usage.prompt_tokens || 0, out: usage.completion_tokens || 0 } });
+    return reply(200, { items, vision: !!image, usage: { in: usage.prompt_tokens || 0, out: usage.completion_tokens || 0 } });
   } catch (e) {
     return reply(502, { error: String((e as Error).message || e) });
   }
