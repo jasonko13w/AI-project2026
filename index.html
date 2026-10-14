@@ -605,7 +605,7 @@
           <div class="hint">一行一道菜：名稱和價格。設定一次就會記住；之後改價格，不會影響已經存好的日子。</div>
           <div class="ocr-row">
             <button class="file-btn es-main" id="btnMenuPhoto" type="button">📷 拍菜單／上傳菜單照片，AI 自動填好</button>
-            <button class="file-btn" id="btnMenuAI" type="button" hidden>✨ AI 深度整理菜單</button>
+            <button class="file-btn" id="btnMenuAI" type="button" hidden>🔄 再試一次 AI</button>
             <input type="file" id="menuPhoto" accept="image/*" hidden>
           </div>
           <div class="menu-head" aria-hidden="true"><span>品項</span><span>價格</span><span></span></div>
@@ -1469,10 +1469,14 @@
         if (typeof logAppend === "function") logAppend("AI 深度整理菜單", lastFile, items.length ? "ok" : "fail", (j.vision ? "看照片" : "只看文字") + "整理出 " + items.length + " 道菜，" + Math.round((Date.now() - t1) / 100) / 10 + " 秒" + (j.usage ? "，用量 " + j.usage.in + "+" + j.usage.out + " tokens" : ""));
         if (state.storeSel !== sid) return;
         if (!items.length){ setMenuMsg("AI 也整理不出品項和價格，這張照片可能太模糊，或不是菜單。可以換一張照片，或直接手動輸入。", true); return; }
+        aiBtn.hidden = true;
         var r = applyItems(sid, items, true, "ai");
-        setMenuMsg("✨ AI " + (j.vision ? "看照片" : "依文字") + "整理出 " + items.length + " 道菜，新增 " + r.added + " 道" + (r.filled ? "、補上 " + r.filled + " 個價格" : "") + "。橘色底的列是 AI 整理的，請對照菜單檢查，確認後按「儲存菜單」。不滿意可以再按一次「✨ AI 深度整理菜單」。");
+        setMenuMsg("✨ AI " + (j.vision ? "看照片" : "依文字") + "整理出 " + items.length + " 道菜，新增 " + r.added + " 道" + (r.filled ? "、補上 " + r.filled + " 個價格" : "") + "。橘色底的列是 AI 整理的，請對照菜單檢查，確認後按「儲存菜單」。");
       }).catch(function(e){
         var msg = e && e.status !== undefined ? aiErr(e.status, e.code) : "連不上 AI 服務，請檢查網路後再試。";
+        // 暫時性的失敗（網路、太忙、AI 回傳格式怪）才顯示「再試一次」；設定問題再按也沒用
+        var transient = !(e && e.status !== undefined) || e.status >= 500 && !/not_configured/.test(String(e.code || "")) || e.status === 429;
+        aiBtn.hidden = !transient;
         if (auto && fallbackItems.length && state.storeSel === sid){
           var r = applyItems(sid, fallbackItems);
           setMenuMsg("AI 整理沒有成功，先用規則配對出 " + fallbackItems.length + " 道菜（新增 " + r.added + " 道，準確度較低），請仔細檢查。原因：" + msg, true);
@@ -1509,13 +1513,12 @@
         var items = parseMenuLines(j.lines);
         if (typeof logAppend === "function") logAppend("AI 讀菜單", lastFile, items.length ? "ok" : "fail", "讀到 " + j.lines.length + " 行文字，規則配對出 " + items.length + " 道菜，" + Math.round((Date.now() - t0) / 100) / 10 + " 秒");
         if (state.storeSel !== sid) return;
-        aiBtn.hidden = false;
         // 規則配對太少（直式、手寫、多價格菜單常見）：自動請 AI 依語意整理
         // 一律請 AI 看照片＋讀到的文字整理（手寫、貼紙改價、直式都靠它）；AI 失敗時才用規則配對的結果
         return runAi(sid, items, true);
-        if (!items.length){ setMenuMsg("AI 有讀到 " + j.lines.length + " 行字，但配對不出「品名＋價格」。可以按「✨ AI 深度整理菜單」再試一次，或換一張正面、清楚的照片。", true); return; }
+        if (!items.length){ setMenuMsg("AI 有讀到 " + j.lines.length + " 行字，但配對不出「品名＋價格」。可以換一張正面、清楚的照片，或直接手動輸入。", true); return; }
         var r = applyItems(sid, items);
-        setMenuMsg("讀到 " + items.length + " 道菜，新增 " + r.added + " 道" + (r.filled ? "、補上 " + r.filled + " 個價格" : "") + "。請檢查品名和價格（可以直接改），確認後按「儲存菜單」。如果有漏掉或配錯（例如直式菜單、大小份），可以按「✨ AI 深度整理菜單」。");
+        setMenuMsg("讀到 " + items.length + " 道菜，新增 " + r.added + " 道" + (r.filled ? "、補上 " + r.filled + " 個價格" : "") + "。請檢查品名和價格（可以直接改），確認後按「儲存菜單」。如果有漏掉或配錯，可以直接修改。");
       }).catch(function(e){
         var msg = e && e.status !== undefined ? ocrErr(e.status, e.code) : (e && e.message === "image" ? "這個檔案打不開，請換一張 JPG 或 PNG 照片。" : "連不上 AI 服務，請檢查網路後再試。");
         setMenuMsg(msg, true);
