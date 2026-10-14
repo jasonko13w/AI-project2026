@@ -5450,6 +5450,10 @@
       if (c.alcohol){ alcCats[c.name] = 1; var cb = bl.querySelector(".cat-alc-in"); if (cb) cb.checked = true; }
       c.items.forEach(function(n){ (byName[aiKey(n)] || []).forEach(function(row){ if (!prop.partial || !rowCat(row)) moveRowTo(row, c.name); }); });
     });
+    if (!prop.partial){
+      var keepC = {}; prop.cats.forEach(function(c){ keepC[c.name] = 1; });
+      catBlocks().forEach(function(bl){ var n = bl.getAttribute("data-cat"); if (n && !keepC[n] && !bl.querySelector(".menu-row")){ delete alcCats[n]; bl.remove(); } });
+    }
     aiCatProp = null; byId("aiCatOut").hidden = true;
     updateCatCounts(); syncAiCat();
     try { byId("menuEditor").scrollIntoView({ behavior:"smooth", block:"start" }); } catch(e){ /* 舊瀏覽器 */ }
