@@ -4892,11 +4892,12 @@
     var prop = aiCatProp; if (!prop) return;
     if (!editCat) setCatMode(true);
     var byName = {};
-    readMenuRows().forEach(function(r){ if (r.name && !byName[r.name]) byName[r.name] = r.row; });
+    function aiKey(n){ return String(n || "").replace(/\s+/g, " ").trim().slice(0, 40); }
+    readMenuRows().forEach(function(r){ if (r.name){ var k = aiKey(r.name); (byName[k] = byName[k] || []).push(r.row); } });
     prop.cats.forEach(function(c){
       var bl = catBlock(c.name, true);
       if (c.alcohol){ alcCats[c.name] = 1; var cb = bl.querySelector(".cat-alc-in"); if (cb) cb.checked = true; }
-      c.items.forEach(function(n){ var row = byName[n]; if (row && (!prop.partial || !rowCat(row))) moveRowTo(row, c.name); });
+      c.items.forEach(function(n){ (byName[aiKey(n)] || []).forEach(function(row){ if (!prop.partial || !rowCat(row)) moveRowTo(row, c.name); }); });
     });
     aiCatProp = null; byId("aiCatOut").hidden = true;
     updateCatCounts(); syncAiCat();
