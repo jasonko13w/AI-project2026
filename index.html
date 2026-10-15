@@ -1850,7 +1850,8 @@
         aiBtn.hidden = true;
         if (menuOpenFor !== sid) openMenuEditor(sid);
         menuAdoptCats(items); // AI 看得出分類（飯類、麵類…）就自動用分類整理
-        var r = applyItems(sid, items, true, "ai");
+        // 只有「再試一次」（同一張照片重新整理）才清掉上一次的 AI 結果；上傳新照片時保留舊的
+        var r = applyItems(sid, items, !auto, "ai");
         setMenuMsg("AI " + (j.vision ? "看照片" : "依文字") + "整理出 " + items.length + " 道菜，新增 " + r.added + " 道" + (r.filled ? "、補上 " + r.filled + " 個價格" : "") + "。橘色底的列是 AI 整理的，請對照菜單檢查，確認後按「儲存菜單」。");
       }).catch(function(e){
         var msg = e && e.status !== undefined ? aiErr(e.status, e.code) : "連不上 AI 服務，請檢查網路後再試。";
@@ -1875,6 +1876,8 @@
     inp.addEventListener("change", function(){
       var file = inp.files && inp.files[0]; if (!file) return;
       lastLines = null; lastBlob = null; aiBtn.hidden = true;
+      // 換新照片：上一張照片整理出的列改成「保留」，之後按「再試一次」也不會被清掉
+      Array.prototype.forEach.call(document.querySelectorAll('#menuRows .menu-row[data-ocr="1"]'), function(r){ r.removeAttribute("data-ocr"); });
       var sid = state.storeSel;
       btn.disabled = true; setMenuMsg("AI 讀菜單中…（大約 3～15 秒）");
       var t0 = Date.now(), status = 0;
